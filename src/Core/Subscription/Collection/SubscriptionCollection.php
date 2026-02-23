@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Core\Subscription\Collection;
+
+use App\Core\Shared\Collection\AbstractCollection;
+use App\Core\Subscription\Entity\Subscription;
+
+/**
+ * @extends AbstractCollection<Subscription>
+ */
+final class SubscriptionCollection extends AbstractCollection
+{
+    public function getType(): string
+    {
+        return Subscription::class;
+    }
+
+    public function __toString(): string
+    {
+        $subscriptionsString = '';
+
+        foreach ($this->toArray() as $subscription) {
+            $subscriptionsString .= "$subscription->name: $subscription->url\n";
+        }
+
+        return $subscriptionsString;
+    }
+}
