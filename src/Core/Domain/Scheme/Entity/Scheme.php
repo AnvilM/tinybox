@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Core\Domain\Scheme\Entity;
 
-use App\Core\Domain\Scheme\VO\SchemeTypeVO;
+use App\Core\Domain\Shared\VO\OutboundTypeVO;
 use InvalidArgumentException;
 use ValueError;
 
 final readonly class Scheme
 {
-    public SchemeTypeVO $type;
+    public OutboundTypeVO $type;
     public string $tag;
     public string $uuid;
     public string $server;
@@ -49,10 +49,10 @@ final readonly class Scheme
         $this->fp = $this->assertNullableString($fp);
     }
 
-    private function assertTypeVO(mixed $value): SchemeTypeVO
+    private function assertTypeVO(mixed $value): OutboundTypeVO
     {
         try {
-            return SchemeTypeVO::from($value);
+            return OutboundTypeVO::from($value);
         } catch (ValueError) {
             throw new InvalidArgumentException("Unsupported type: $value");
         }
