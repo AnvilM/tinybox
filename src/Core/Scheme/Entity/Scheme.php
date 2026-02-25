@@ -24,7 +24,18 @@ final readonly class Scheme
     /**
      * @throws InvalidArgumentException Throws if given invalid data
      */
-    public function __construct(string $type, string $tag, string $uuid, string $server, int $server_port, string $sni, string $pbk, string $sid, ?string $flow, ?string $fp)
+    public function __construct(
+        ?string $type,
+        ?string $tag,
+        ?string $uuid,
+        ?string $server,
+        ?int    $server_port,
+        ?string $sni,
+        ?string $pbk,
+        ?string $sid,
+        ?string $flow,
+        ?string $fp
+    )
     {
         $this->type = $this->assertTypeVO($type);
         $this->tag = $this->assertNonEmptyString($tag, 'tag');
@@ -47,9 +58,9 @@ final readonly class Scheme
         }
     }
 
-    private function assertNonEmptyString(string $value, string $field): string
+    private function assertNonEmptyString(?string $value, string $field): string
     {
-        if (trim($value) === '') {
+        if (!$value || trim($value) === '') {
             throw new InvalidArgumentException("$field is required");
         }
 
@@ -58,7 +69,7 @@ final readonly class Scheme
 
     private function assertPositiveInt(int $value, string $field): int
     {
-        if ($value <= 0) {
+        if (!$value || $value <= 0) {
             throw new InvalidArgumentException("$field is invalid");
         }
         return $value;
