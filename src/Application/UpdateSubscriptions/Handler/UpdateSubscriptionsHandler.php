@@ -9,8 +9,9 @@ use App\Application\UpdateSubscriptions\Command\UpdateSubscriptionsCommand;
 final readonly class UpdateSubscriptionsHandler
 {
     public function __construct(
-        private GetSubscriptions $getSubscriptions,
-        private GetSchemes       $getSchemes,
+        private GetSubscriptions    $getSubscriptions,
+        private GetSchemes          $getSchemes,
+        private CreateSingBoxConfig $createSingBoxConfig,
     )
     {
     }
@@ -22,5 +23,7 @@ final readonly class UpdateSubscriptionsHandler
         );
 
         $schemeMap = $this->getSchemes->get($subscriptionCollection);
+
+        $this->createSingBoxConfig->create($schemeMap);
     }
 }

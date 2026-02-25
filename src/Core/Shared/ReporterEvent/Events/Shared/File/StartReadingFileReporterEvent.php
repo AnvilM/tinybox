@@ -16,7 +16,7 @@ final readonly class StartReadingFileReporterEvent extends ReporterEvent
             "Reading $fileTitle file...",
             TypeVO::Step,
             DebugMessagesVO::create([
-                "Loading from $filePath",
+                "Reading from $filePath",
             ])
         );
     }

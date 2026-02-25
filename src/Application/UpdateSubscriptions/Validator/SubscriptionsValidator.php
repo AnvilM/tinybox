@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application\UpdateSubscriptions\Validator;
 
 use App\Core\Shared\Exception\CriticalException;
-use App\Core\Shared\Exception\DomainException;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Validator;
 

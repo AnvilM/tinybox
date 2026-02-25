@@ -12,6 +12,7 @@ use App\Core\Shared\ReporterEvent\Events\Shared\FatalErrorReporterEvent;
 use App\Core\Shared\VO\ReporterEvent\DebugMessagesVO;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -32,7 +33,7 @@ final  class UpdateCommand extends Command
     {
         try {
             $this->updateSubscriptionsHandler->handle(
-                new UpdateSubscriptionsCommand(null)
+                new UpdateSubscriptionsCommand($input->getArgument('subscriptionName')),
             );
         } catch (CriticalException $e) {
             $this->reporterPort->notify(new FatalErrorReporterEvent(
@@ -48,11 +49,17 @@ final  class UpdateCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption(
-            'debug',
-            'd',
-            InputOption::VALUE_NONE,
-            'Show update list'
-        );
+        $this
+            ->addArgument(
+                'subscriptionName',
+                InputArgument::OPTIONAL,
+                'Subscription name to update'
+            )
+            ->addOption(
+                'debug',
+                'd',
+                InputOption::VALUE_NONE,
+                'Show debug messages'
+            );
     }
 }

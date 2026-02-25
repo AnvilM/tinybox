@@ -4,22 +4,23 @@ declare(strict_types=1);
 
 namespace App\Core\Domain\Scheme\Entity;
 
+use App\Core\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Core\Domain\Shared\VO\OutboundTypeVO;
 use InvalidArgumentException;
 use ValueError;
 
 final readonly class Scheme
 {
-    public OutboundTypeVO $type;
-    public string $tag;
-    public string $uuid;
-    public string $server;
-    public int $server_port;
-    public string $sni;
-    public string $pbk;
-    public string $sid;
-    public ?string $flow;
-    public ?string $fp;
+    private OutboundTypeVO $type;
+    private string $tag;
+    private string $uuid;
+    private string $server;
+    private int $server_port;
+    private string $sni;
+    private string $pbk;
+    private string $sid;
+    private ?string $flow;
+    private ?string $fp;
 
     /**
      * @throws InvalidArgumentException Throws if given invalid data
@@ -49,12 +50,12 @@ final readonly class Scheme
         $this->fp = $this->assertNullableString($fp);
     }
 
-    private function assertTypeVO(mixed $value): OutboundTypeVO
+    private function assertTypeVO(string $value): OutboundTypeVO
     {
         try {
             return OutboundTypeVO::from($value);
         } catch (ValueError) {
-            throw new InvalidArgumentException("Unsupported type: $value");
+            throw new UnsupportedSchemeType($value);
         }
     }
 
@@ -67,7 +68,7 @@ final readonly class Scheme
         return $value;
     }
 
-    private function assertPositiveInt(int $value, string $field): int
+    private function assertPositiveInt(?int $value, string $field): int
     {
         if (!$value || $value <= 0) {
             throw new InvalidArgumentException("$field is invalid");
@@ -82,5 +83,55 @@ final readonly class Scheme
         }
 
         return trim($value);
+    }
+
+    public function getType(): OutboundTypeVO
+    {
+        return $this->type;
+    }
+
+    public function getTag(): string
+    {
+        return $this->tag;
+    }
+
+    public function getUuid(): string
+    {
+        return $this->uuid;
+    }
+
+    public function getServer(): string
+    {
+        return $this->server;
+    }
+
+    public function getServerPort(): int
+    {
+        return $this->server_port;
+    }
+
+    public function getSni(): string
+    {
+        return $this->sni;
+    }
+
+    public function getPbk(): string
+    {
+        return $this->pbk;
+    }
+
+    public function getSid(): string
+    {
+        return $this->sid;
+    }
+
+    public function getFlow(): ?string
+    {
+        return $this->flow;
+    }
+
+    public function getFp(): ?string
+    {
+        return $this->fp;
     }
 }

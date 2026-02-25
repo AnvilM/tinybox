@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Application\UpdateSubscriptions\Mapper;
 
 use App\Core\Domain\Scheme\Collection\SchemeCollection;
+use App\Core\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Core\Domain\Scheme\Factory\SchemeFactory;
 use App\Core\Domain\Scheme\VO\RawSchemeVO;
 use App\Core\Shared\Ports\Reporter\ReporterPort;
+use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Mapper\RawSchemesMapper\InvalidSchemeReporterEvent;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Mapper\RawSchemesMapper\UnsupportedSchemeReporterEvent;
 use InvalidArgumentException;
 
@@ -35,8 +37,12 @@ final readonly class RawSchemesMapper
 
         foreach ($rawSchemeVOArray as $rawSchemeVO) {
             try {
-                $schemesArray[] = SchemeFactory::create($rawSchemeVO);
+                $schemesArray[] = SchemeFactory::fromRawSchemeVO($rawSchemeVO);
             } catch (InvalidArgumentException $exception) {
+                $this->reporterPort->notify(new InvalidSchemeReporterEvent(
+                    $rawSchemeVO, $subscriptionName, $exception->getMessage()
+                ));
+            } catch (UnsupportedSchemeType $exception) {
                 $this->reporterPort->notify(new UnsupportedSchemeReporterEvent(
                     $rawSchemeVO, $subscriptionName, $exception->getMessage()
                 ));
