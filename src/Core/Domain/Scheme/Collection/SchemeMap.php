@@ -7,7 +7,6 @@ namespace App\Core\Domain\Scheme\Collection;
 use Ramsey\Collection\Map\TypedMap;
 
 /**
- * Map of name => SchemeCollection
  *
  * @extends TypedMap<string, SchemeCollection>
  */

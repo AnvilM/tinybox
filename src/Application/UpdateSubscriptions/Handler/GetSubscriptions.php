@@ -8,6 +8,8 @@ use App\Application\UpdateSubscriptions\Mapper\SubscriptionsMapper;
 use App\Application\UpdateSubscriptions\Validator\SubscriptionsValidator;
 use App\Core\Domain\Subscription\Collection\SubscriptionCollection;
 use App\Core\Shared\Exception\CriticalException;
+use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
+use App\Core\Shared\Exception\File\UnableToReadFileException;
 use App\Core\Shared\Ports\Config\Subscription\SubscriptionConfigPort;
 use App\Core\Shared\Ports\File\JsonReaderPort;
 
@@ -27,11 +29,19 @@ final readonly class GetSubscriptions
      */
     public function get(?string $subscriptionName): SubscriptionCollection
     {
-        $rawSubscriptionArray = $this->jsonReader->read(
-            $this->subscriptionConfigPort::subscriptionListPath(),
-            "subscriptions",
-            "Subscriptions list successfully loaded"
-        );
+        try {
+            $rawSubscriptionArray = $this->jsonReader->read(
+                $this->subscriptionConfigPort::subscriptionListPath(),
+                "subscriptions"
+            );
+        } catch (UnableToDecodeJSONException|UnableToReadFileException $e) {
+            throw new CriticalException(
+                ($e instanceof UnableToDecodeJSONException)
+                    ? "Unable to parse JSON at subscriptions list"
+                    : "Unable to read file at subscriptions list",
+                $this->subscriptionConfigPort::subscriptionListPath()
+            );
+        }
 
         $this->subscriptionListValidation->validate($rawSubscriptionArray);
 

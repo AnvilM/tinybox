@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Application\Config\SingBoxConfig;
 
-use App\Core\Exceptions\ApplicationException;
 use Application\Config\ApplicationConfig\ApplicationConfig;
 use RuntimeException;
 
@@ -12,7 +11,6 @@ final readonly class SingBoxConfig
 {
     /**
      * @throws RuntimeException
-     * @throws ApplicationException
      */
     public static function singBoxConfigTemplatePath(): string
     {
@@ -21,7 +19,6 @@ final readonly class SingBoxConfig
 
     /**
      * @throws RuntimeException
-     * @throws ApplicationException
      */
     public static function singBoxOutboundTemplatePath(): string
     {
@@ -30,7 +27,6 @@ final readonly class SingBoxConfig
 
     /**
      * @throws RuntimeException
-     * @throws ApplicationException
      */
     public static function singBoxUrltestOutboundTemplatePath(): string
     {
@@ -39,14 +35,11 @@ final readonly class SingBoxConfig
 
     /**
      * @throws RuntimeException
-     * @throws ApplicationException
      */
     public static function singBoxConfigSaveDirectoryPath(): string
     {
         return ApplicationConfig::dataHomeDirectoryPath() . '/configs/';
     }
 
-    
-    
-    
+
 }
