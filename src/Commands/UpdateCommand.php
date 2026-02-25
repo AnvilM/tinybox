@@ -6,6 +6,10 @@ namespace App\Commands;
 
 use App\Application\UpdateSubscriptions\Command\UpdateSubscriptionsCommand;
 use App\Application\UpdateSubscriptions\Handler\UpdateSubscriptionsHandler;
+use App\Core\Shared\Exception\CriticalException;
+use App\Core\Shared\Ports\Reporter\ReporterPort;
+use App\Core\Shared\ReporterEvent\Events\Shared\FatalErrorReporterEvent;
+use App\Core\Shared\VO\ReporterEvent\DebugMessagesVO;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,6 +22,7 @@ final  class UpdateCommand extends Command
 {
     public function __construct(
         private UpdateSubscriptionsHandler $updateSubscriptionsHandler,
+        private ReporterPort               $reporterPort,
     )
     {
         parent::__construct();
@@ -25,35 +30,20 @@ final  class UpdateCommand extends Command
 
     public function __invoke(InputInterface $input, OutputInterface $output): int
     {
-        $this->updateSubscriptionsHandler->handle(
-            new UpdateSubscriptionsCommand(null)
-        );
+        try {
+            $this->updateSubscriptionsHandler->handle(
+                new UpdateSubscriptionsCommand(null)
+            );
+        } catch (CriticalException $e) {
+            $this->reporterPort->notify(new FatalErrorReporterEvent(
+                $e->getMessage(),
+                $e->debugMessage ? DebugMessagesVO::create([$e->debugMessage]) : null
+            ));
+
+            return Command::FAILURE;
+        }
 
         return Command::SUCCESS;
-
-//        try {
-//            $parsedSchemes = $this->fetchSubscriptionSchemes->fetchSubscriptionSchemes(
-//                $this->loadSubscriptionList->loadSubscriptionList()
-//            );
-//
-//            $configMap = new SingBoxConfigMap();
-//
-//            foreach ($parsedSchemes as $name => $schemes) {
-//                $configMap[$name] = $this->generateSingBoxConfig->generateSingBoxConfig($schemes);
-//            }
-//
-//            $this->saveSingBoxConfig->saveSingBoxConfig($configMap);
-//
-//
-//        } catch (ApplicationException $exception) {
-//            $output->writeln('<error>' . $exception->getMessage() . '</error>');
-//            return Command::FAILURE;
-//        } catch (Exception $e) {
-//            $output->writeln('<error>' . $e->getMessage() . '</error>');
-//            return Command::FAILURE;
-//        }
-//
-//        return Command::SUCCESS;
     }
 
     protected function configure(): void

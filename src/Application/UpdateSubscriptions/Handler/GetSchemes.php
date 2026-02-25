@@ -8,6 +8,7 @@ use App\Application\UpdateSubscriptions\Fetch\FetchSubscriptions;
 use App\Application\UpdateSubscriptions\Mapper\RawSchemesMapper;
 use App\Application\UpdateSubscriptions\Parser\RawSchemesParser;
 use App\Core\Scheme\Collection\SchemeMap;
+use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Ports\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Handler\GetSchemes\NoValidSchemesInSubscriptionFoundReporterEvent;
 use App\Core\Subscription\Collection\SubscriptionCollection;
@@ -54,6 +55,10 @@ final readonly class GetSchemes
                     $subscriptionName,
                 ));
             }
+        }
+
+        if ($schemeMap->isEmpty()) {
+            throw new CriticalException("No valid subscriptions found");
         }
 
         return $schemeMap;
