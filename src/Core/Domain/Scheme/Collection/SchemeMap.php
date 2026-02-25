@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Scheme\Collection;
+namespace App\Core\Domain\Scheme\Collection;
 
 use Ramsey\Collection\Map\TypedMap;
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Subscription\Collection;
+namespace App\Core\Domain\Subscription\Collection;
 
+use App\Core\Domain\Subscription\Entity\Subscription;
 use App\Core\Shared\Collection\AbstractCollection;
-use App\Core\Subscription\Entity\Subscription;
 
 /**
  * @extends AbstractCollection<Subscription>

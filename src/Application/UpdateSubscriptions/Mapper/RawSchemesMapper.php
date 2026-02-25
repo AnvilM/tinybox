@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\UpdateSubscriptions\Mapper;
 
-use App\Core\Scheme\Collection\SchemeCollection;
-use App\Core\Scheme\Factory\SchemeFactory;
-use App\Core\Scheme\VO\RawSchemeVO;
+use App\Core\Domain\Scheme\Collection\SchemeCollection;
+use App\Core\Domain\Scheme\Factory\SchemeFactory;
+use App\Core\Domain\Scheme\VO\RawSchemeVO;
 use App\Core\Shared\Ports\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Mapper\RawSchemesMapper\UnsupportedSchemeReporterEvent;
 use InvalidArgumentException;

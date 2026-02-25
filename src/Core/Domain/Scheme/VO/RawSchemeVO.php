@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Scheme\VO;
+namespace App\Core\Domain\Scheme\VO;
 
 final readonly class RawSchemeVO
 {

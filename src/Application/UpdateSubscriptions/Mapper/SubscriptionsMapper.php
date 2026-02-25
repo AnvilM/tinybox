@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\UpdateSubscriptions\Mapper;
 
+use App\Core\Domain\Subscription\Collection\SubscriptionCollection;
+use App\Core\Domain\Subscription\Entity\Subscription;
 use App\Core\Shared\Exception\CriticalException;
-use App\Core\Subscription\Collection\SubscriptionCollection;
-use App\Core\Subscription\Entity\Subscription;
 use InvalidArgumentException;
 
 final readonly class SubscriptionsMapper

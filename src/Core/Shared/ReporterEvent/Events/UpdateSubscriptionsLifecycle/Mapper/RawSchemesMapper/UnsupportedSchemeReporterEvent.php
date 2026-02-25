@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Mapper\RawSchemesMapper;
 
-use App\Core\Scheme\VO\RawSchemeVO;
+use App\Core\Domain\Scheme\VO\RawSchemeVO;
 use App\Core\Shared\ReporterEvent\ReporterEvent;
 use App\Core\Shared\VO\ReporterEvent\BreadcrumbsVO;
 use App\Core\Shared\VO\ReporterEvent\DebugMessagesVO;

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\UpdateSubscriptions\Fetch;
 
+use App\Core\Domain\Subscription\Collection\SubscriptionCollection;
+use App\Core\Domain\Subscription\Entity\Subscription;
 use App\Core\Shared\Ports\Http\HttpProt;
 use App\Core\Shared\Ports\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Fetch\FetchSubscriptions\InvalidBase64ReporterEvent;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Fetch\FetchSubscriptions\StartFetchingSubscriptionsReporterEvent;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Fetch\FetchSubscriptions\SubscriptionFetchingFailedReporterEvent;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Fetch\FetchSubscriptions\SubscriptionSuccessfullyFetchedReporterEvent;
-use App\Core\Subscription\Collection\SubscriptionCollection;
-use App\Core\Subscription\Entity\Subscription;
 use Exception;
 
 final readonly class FetchSubscriptions

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Scheme\Entity;
+namespace App\Core\Domain\Scheme\Entity;
 
-use App\Core\Scheme\VO\SchemeTypeVO;
+use App\Core\Domain\Scheme\VO\SchemeTypeVO;
 use InvalidArgumentException;
 use ValueError;
 
