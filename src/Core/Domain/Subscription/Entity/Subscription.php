@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Subscription\Entity;
+namespace App\Core\Domain\Subscription\Entity;
 
 final readonly class Subscription
 {

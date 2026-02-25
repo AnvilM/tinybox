@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Subscription\Exception;
+namespace App\Core\Domain\Subscription\Exception;
 
 use App\Core\Shared\Exception\OutputException;
 use App\Core\Shared\VO\Shared\Output\OutputFMTypeVO;

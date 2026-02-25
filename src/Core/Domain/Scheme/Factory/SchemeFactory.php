@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Scheme\Factory;
+namespace App\Core\Domain\Scheme\Factory;
 
-use App\Core\Scheme\Entity\Scheme;
-use App\Core\Scheme\VO\RawSchemeVO;
+use App\Core\Domain\Scheme\Entity\Scheme;
+use App\Core\Domain\Scheme\VO\RawSchemeVO;
 use InvalidArgumentException;
 
 final readonly class SchemeFactory

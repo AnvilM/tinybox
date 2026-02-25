@@ -6,10 +6,10 @@ namespace App\Application\UpdateSubscriptions\Handler;
 
 use App\Application\UpdateSubscriptions\Mapper\SubscriptionsMapper;
 use App\Application\UpdateSubscriptions\Validator\SubscriptionsValidator;
+use App\Core\Domain\Subscription\Collection\SubscriptionCollection;
 use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Ports\Config\Subscription\SubscriptionConfigPort;
 use App\Core\Shared\Ports\File\JsonReaderPort;
-use App\Core\Subscription\Collection\SubscriptionCollection;
 
 final readonly class GetSubscriptions
 {
