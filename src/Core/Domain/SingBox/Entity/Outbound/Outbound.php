@@ -65,7 +65,7 @@ final readonly class Outbound
             'type' => $this->type->value,
             'tag' => $this->tag,
             'server' => $this->server,
-            'serverPort' => $this->serverPort,
+            'server_port' => $this->serverPort,
             'uuid' => $this->uuid,
             'flow' => $this->flow,
             'tls' => $this->tls?->toArray(),
