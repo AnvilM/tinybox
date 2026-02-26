@@ -23,6 +23,11 @@ final readonly class ApplicationConfig
         return false;
     }
 
+    public static function baseConfigFilePath(): string
+    {
+        return self::configDirectoryPath() . '/config.json';
+    }
+
     /**
      * @throws RuntimeException
      */
@@ -33,18 +38,6 @@ final readonly class ApplicationConfig
         if (!is_string(getenv('HOME'))) throw new RuntimeException("HOME environment variable must be a string");
 
         return getenv('HOME') . '/.config/' . self::appName . '/';
-    }
-
-    /**
-     * @throws RuntimeException
-     */
-    public static function dataHomeDirectoryPath(): string
-    {
-        if (getenv('HOME') === false) throw new RuntimeException("Cannot get HOME environment variable");
-
-        if (!is_string(getenv('HOME'))) throw new RuntimeException("HOME environment variable must be a string");
-
-        return getenv('HOME') . '/.local/share/' . self::appName . '/';
     }
 
 

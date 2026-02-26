@@ -10,7 +10,7 @@ use App\Core\Domain\Subscription\Collection\SubscriptionCollection;
 use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Core\Shared\Exception\File\UnableToReadFileException;
-use App\Core\Shared\Ports\Config\Subscription\SubscriptionConfigPort;
+use App\Core\Shared\Ports\Config\ConfigFactoryPort;
 use App\Core\Shared\Ports\File\JsonReaderPort;
 
 final readonly class GetSubscriptions
@@ -19,7 +19,7 @@ final readonly class GetSubscriptions
         private SubscriptionsMapper    $subscriptionListMapper,
         private SubscriptionsValidator $subscriptionListValidation,
         private JsonReaderPort         $jsonReader,
-        private SubscriptionConfigPort $subscriptionConfigPort,
+        private ConfigFactoryPort      $configFactoryPort,
     )
     {
     }
@@ -31,15 +31,14 @@ final readonly class GetSubscriptions
     {
         try {
             $rawSubscriptionArray = $this->jsonReader->read(
-                $this->subscriptionConfigPort::subscriptionListPath(),
-                "subscriptions"
+                $this->configFactoryPort->get()->subscriptionListPath,
             );
         } catch (UnableToDecodeJSONException|UnableToReadFileException $e) {
             throw new CriticalException(
                 ($e instanceof UnableToDecodeJSONException)
                     ? "Unable to parse JSON at subscriptions list"
                     : "Unable to read file at subscriptions list",
-                $this->subscriptionConfigPort::subscriptionListPath()
+                $this->configFactoryPort->get()->subscriptionListPath
             );
         }
 
@@ -52,7 +51,7 @@ final readonly class GetSubscriptions
                 if ($subscription->name === $subscriptionName) return SubscriptionCollection::create([$subscription]);
             }
 
-            throw new CriticalException("<red>No subscription <bold>$subscriptionName</bold> found</red>");
+            throw new CriticalException("No subscription $subscriptionName</bold> found</red>");
         }
 
 

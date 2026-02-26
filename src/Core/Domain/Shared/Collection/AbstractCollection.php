@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Shared\Collection;
+namespace App\Core\Domain\Shared\Collection;
 
 use InvalidArgumentException;
 use Ramsey\Collection\AbstractCollection as BaseCollection;

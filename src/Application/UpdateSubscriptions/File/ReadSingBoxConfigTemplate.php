@@ -7,14 +7,14 @@ namespace App\Application\UpdateSubscriptions\File;
 use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Core\Shared\Exception\File\UnableToReadFileException;
-use App\Core\Shared\Ports\Config\SingBox\SingBoxConfigPort;
+use App\Core\Shared\Ports\Config\ConfigFactoryPort;
 use App\Core\Shared\Ports\File\JsonReaderPort;
 
 final readonly class ReadSingBoxConfigTemplate
 {
     public function __construct(
         private JsonReaderPort    $jsonReaderPort,
-        private SingBoxConfigPort $singBoxConfigPort,
+        private ConfigFactoryPort $configFactoryPort,
     )
     {
     }
@@ -30,15 +30,14 @@ final readonly class ReadSingBoxConfigTemplate
     {
         try {
             return $this->jsonReaderPort->read(
-                $this->singBoxConfigPort::singBoxConfigTemplatePath(),
-                "sing-box config template"
+                $this->configFactoryPort->get()->singBoxConfig->templates->config,
             );
         } catch (UnableToDecodeJSONException|UnableToReadFileException $e) {
             throw new CriticalException(
                 ($e instanceof UnableToDecodeJSONException)
                     ? "Unable to parse JSON from sing-box config template file"
                     : "Unable to read sing-box config template file",
-                $this->singBoxConfigPort::singBoxConfigTemplatePath()
+                $this->configFactoryPort->get()->singBoxConfig->templates->config
             );
         }
     }

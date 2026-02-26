@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Shared\VO\ReporterEvent;
 
-use App\Core\Shared\Collection\AbstractCollection;
+use App\Core\Domain\Shared\Collection\AbstractCollection;
 
 /**
  * @extends AbstractCollection<string>

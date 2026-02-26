@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Shared\Reporter;
 
-use App\Core\Shared\Ports\Output\OutputPort;
 use App\Core\Shared\Ports\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\ReporterEventInterface;
 use App\Core\Shared\VO\ReporterEvent\DebugMessagesVO;
 use App\Core\Shared\VO\ReporterEvent\TypeVO;
+use App\Infrastructure\Shared\Reporter\Output\CLI;
 
 final readonly class Reporter implements ReporterPort
 {
     public function __construct(
-        private OutputPort $outputPort,
+        private CLI $output,
     )
     {
     }
@@ -41,20 +41,22 @@ final readonly class Reporter implements ReporterPort
 
         switch ($reporterEvent->getType()) {
             case TypeVO::Success:
-                $this->outputPort->out("<green>$formatedMessage</green>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
+                $this->output->out("<green>$formatedMessage</green>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
                 break;
             case TypeVO::Skipped:
+                $this->output->err("<light_yellow>$formatedMessage</light_yellow>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
+                break;
             case TypeVO::Warning:
-                $this->outputPort->err("<yellow>$formatedMessage</yellow>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
+                $this->output->err("<yellow>$formatedMessage</yellow>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
                 break;
             case TypeVO::Error:
-                $this->outputPort->err("<red>$formatedMessage</red>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
+                $this->output->err("<red>$formatedMessage</red>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
                 break;
             case TypeVO::Step:
-                $this->outputPort->err("<blue>$formatedMessage</blue>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
+                $this->output->err("<blue>$formatedMessage</blue>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
         }
 
-        $this->outputPort->br();
+        $this->output->br();
     }
 
 }
