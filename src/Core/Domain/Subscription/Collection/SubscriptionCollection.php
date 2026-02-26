@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Domain\Subscription\Collection;
 
+use App\Core\Domain\Shared\Collection\AbstractCollection;
 use App\Core\Domain\Subscription\Entity\Subscription;
-use App\Core\Shared\Collection\AbstractCollection;
 
 /**
  * @extends AbstractCollection<Subscription>

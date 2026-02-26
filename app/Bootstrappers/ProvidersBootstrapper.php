@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Bootstrappers;
 
 
+use Application\Providers\App\Shared\Config\ConfigFactoryProvider;
 use Application\Providers\App\Shared\SharedProviders;
 use Application\Providers\ProviderInterface;
 

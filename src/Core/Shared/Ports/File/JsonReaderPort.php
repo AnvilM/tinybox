@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Shared\Ports\File;
 
-use App\Core\Shared\Exception\CriticalException;
+use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
+use App\Core\Shared\Exception\File\UnableToReadFileException;
 
 interface JsonReaderPort
 {
@@ -12,11 +13,11 @@ interface JsonReaderPort
      * Read and parse json file
      *
      * @param string $path Path to file
-     * @param string $fileTitle File title to print in output
      *
      * @return array Json decoded array
      *
-     * @throws CriticalException Throws if unable to read file or parse json
+     * @throws UnableToReadFileException Throws if unable to read file
+     * @throws UnableToDecodeJSONException Throws if unable to decode json
      */
-    public function read(string $path, string $fileTitle): array;
+    public function read(string $path): array;
 }

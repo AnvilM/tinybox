@@ -7,26 +7,13 @@ namespace App\Infrastructure\Shared\File;
 use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Core\Shared\Exception\File\UnableToReadFileException;
 use App\Core\Shared\Ports\File\JsonReaderPort;
-use App\Core\Shared\Ports\Reporter\ReporterPort;
-use App\Core\Shared\ReporterEvent\Events\Shared\File\FileReadSuccessfullyReporterEvent;
-use App\Core\Shared\ReporterEvent\Events\Shared\File\StartReadingFileReporterEvent;
 use JsonException;
 
 final readonly class JsonReader implements JsonReaderPort
 {
-    public function __construct(
-        private ReporterPort $reporterPort,
-    )
+
+    public function read(string $path): array
     {
-    }
-
-    public function read(string $path, string $fileTitle): array
-    {
-
-        $this->reporterPort->notify(new StartReadingFileReporterEvent(
-            $fileTitle, $path
-        ));
-
 
         $fileRawContent = @file_get_contents($path);
 
@@ -37,10 +24,6 @@ final readonly class JsonReader implements JsonReaderPort
         } catch (JsonException) {
             throw new UnableToDecodeJSONException();
         }
-
-        $this->reporterPort->notify(new FileReadSuccessfullyReporterEvent(
-            $fileTitle, $path
-        ));
 
         return $fileContent;
     }
