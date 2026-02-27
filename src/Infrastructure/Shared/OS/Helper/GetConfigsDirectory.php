@@ -16,6 +16,6 @@ final readonly class GetConfigsDirectory extends AbstractOSHelper
 
         if (!is_string(getenv('HOME'))) throw new RuntimeException("HOME environment variable must be a string");
 
-        return getenv('HOME') . '/.config/' . ApplicationConfig::appName . '/templates/';
+        return getenv('HOME') . '/.config/' . ApplicationConfig::appName . '/';
     }
 }

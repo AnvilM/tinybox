@@ -28,9 +28,9 @@ final readonly class DefaultConfigFactory
             new SingBoxConfigVO(
                 'sing-box',
                 new TemplatesSingBoxConfigVO(
-                    $this->getConfigsDirectory->execute() . '/outbound.json',
-                    $this->getConfigsDirectory->execute() . '/urltest.json',
-                    $this->getConfigsDirectory->execute() . '/config.json',
+                    $this->getConfigsDirectory->execute() . '/templates/outbound.json',
+                    $this->getConfigsDirectory->execute() . '/templates/urltest.json',
+                    $this->getConfigsDirectory->execute() . '/templates/config.json',
                 )
             )
 
