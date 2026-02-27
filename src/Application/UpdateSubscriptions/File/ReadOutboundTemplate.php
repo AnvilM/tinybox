@@ -8,13 +8,13 @@ use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Core\Shared\Exception\File\UnableToReadFileException;
 use App\Core\Shared\Ports\Config\ConfigFactoryPort;
-use App\Core\Shared\Ports\File\JsonReaderPort;
+use App\Core\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 
 final readonly class ReadOutboundTemplate
 {
     public function __construct(
-        private JsonReaderPort    $jsonReaderPort,
-        private ConfigFactoryPort $configFactoryPort,
+        private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
+        private ConfigFactoryPort      $configFactoryPort,
     )
     {
     }
@@ -29,9 +29,11 @@ final readonly class ReadOutboundTemplate
     public function read(): array
     {
         try {
-            return $this->jsonReaderPort->read(
-                $this->configFactoryPort->get()->singBoxConfig->templates->outbound,
-            );
+            return $this->readJsonFileNotifyPort
+                ->notifyStartAndSuccess(
+                    "Reading outbound template file...",
+                    "Outbound template file successfully read"
+                )->read($this->configFactoryPort->get()->singBoxConfig->templates->outbound);
         } catch (UnableToDecodeJSONException|UnableToReadFileException $e) {
             throw new CriticalException(
                 ($e instanceof UnableToDecodeJSONException)

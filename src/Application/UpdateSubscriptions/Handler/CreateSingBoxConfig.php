@@ -11,7 +11,7 @@ use App\Application\UpdateSubscriptions\File\SaveSingBoxConfig;
 use App\Application\UpdateSubscriptions\Mapper\OutboundsMapper;
 use App\Core\Domain\Scheme\Collection\SchemeMap;
 use App\Core\Domain\SingBox\Collection\OutboundMap;
-use App\Core\Shared\Ports\Reporter\ReporterPort;
+use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Handler\CreateSingBoxConfig\NoValidOutboundsInSubscriptionFoundReporterEvent;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Handler\CreateSingBoxConfig\UnableToEncodeJSONReporterEvent;
 use InvalidArgumentException;

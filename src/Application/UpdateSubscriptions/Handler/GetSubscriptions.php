@@ -11,14 +11,14 @@ use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Core\Shared\Exception\File\UnableToReadFileException;
 use App\Core\Shared\Ports\Config\ConfigFactoryPort;
-use App\Core\Shared\Ports\File\JsonReaderPort;
+use App\Core\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 
 final readonly class GetSubscriptions
 {
     public function __construct(
         private SubscriptionsMapper    $subscriptionListMapper,
         private SubscriptionsValidator $subscriptionListValidation,
-        private JsonReaderPort         $jsonReader,
+        private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
         private ConfigFactoryPort      $configFactoryPort,
     )
     {
@@ -30,9 +30,10 @@ final readonly class GetSubscriptions
     public function get(?string $subscriptionName): SubscriptionCollection
     {
         try {
-            $rawSubscriptionArray = $this->jsonReader->read(
-                $this->configFactoryPort->get()->subscriptionListPath,
-            );
+            $rawSubscriptionArray = $this->readJsonFileNotifyPort->notifyStartAndSuccess(
+                "Reading subscriptions list file...",
+                "Subscriptions list file successfully read",
+            )->read($this->configFactoryPort->get()->subscriptionListPath);
         } catch (UnableToDecodeJSONException|UnableToReadFileException $e) {
             throw new CriticalException(
                 ($e instanceof UnableToDecodeJSONException)

@@ -8,13 +8,13 @@ use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Core\Shared\Exception\File\UnableToReadFileException;
 use App\Core\Shared\Ports\Config\ConfigFactoryPort;
-use App\Core\Shared\Ports\File\JsonReaderPort;
+use App\Core\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 
 final readonly class ReadSingBoxConfigTemplate
 {
     public function __construct(
-        private JsonReaderPort    $jsonReaderPort,
-        private ConfigFactoryPort $configFactoryPort,
+        private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
+        private ConfigFactoryPort      $configFactoryPort,
     )
     {
     }
@@ -29,9 +29,11 @@ final readonly class ReadSingBoxConfigTemplate
     public function read(): array
     {
         try {
-            return $this->jsonReaderPort->read(
-                $this->configFactoryPort->get()->singBoxConfig->templates->config,
-            );
+            return $this->readJsonFileNotifyPort
+                ->notifyStartAndSuccess(
+                    "Reading sing-box config template file...",
+                    "Sing-box config template file successfully read"
+                )->read($this->configFactoryPort->get()->singBoxConfig->templates->config);
         } catch (UnableToDecodeJSONException|UnableToReadFileException $e) {
             throw new CriticalException(
                 ($e instanceof UnableToDecodeJSONException)

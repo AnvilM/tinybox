@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Shared\Reporter;
+namespace App\Infrastructure\Shared\IO\Reporter;
 
-use App\Core\Shared\Ports\Reporter\ReporterPort;
+use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\ReporterEventInterface;
 use App\Core\Shared\VO\ReporterEvent\DebugMessagesVO;
 use App\Core\Shared\VO\ReporterEvent\TypeVO;
-use App\Infrastructure\Shared\Reporter\Output\CLI;
+use App\Infrastructure\Shared\IO\Reporter\Output\CLI;
 
 final readonly class Reporter implements ReporterPort
 {

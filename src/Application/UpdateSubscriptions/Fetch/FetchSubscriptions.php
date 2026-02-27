@@ -7,7 +7,7 @@ namespace App\Application\UpdateSubscriptions\Fetch;
 use App\Core\Domain\Subscription\Collection\SubscriptionCollection;
 use App\Core\Domain\Subscription\Entity\Subscription;
 use App\Core\Shared\Ports\Http\HttpProt;
-use App\Core\Shared\Ports\Reporter\ReporterPort;
+use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Fetch\FetchSubscriptions\InvalidBase64ReporterEvent;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Fetch\FetchSubscriptions\StartFetchingSubscriptionsReporterEvent;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Fetch\FetchSubscriptions\SubscriptionFetchingFailedReporterEvent;

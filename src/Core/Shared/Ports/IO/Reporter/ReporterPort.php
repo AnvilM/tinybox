@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Shared\Ports\Reporter;
+namespace App\Core\Shared\Ports\IO\Reporter;
 
 use App\Core\Shared\ReporterEvent\ReporterEventInterface;
 

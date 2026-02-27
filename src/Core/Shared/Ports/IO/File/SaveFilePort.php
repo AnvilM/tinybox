@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Shared\Ports\File;
+namespace App\Core\Shared\Ports\IO\File;
 
 use App\Core\Shared\Exception\CriticalException;
 
