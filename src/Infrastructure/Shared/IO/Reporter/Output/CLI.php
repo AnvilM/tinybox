@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Shared\Reporter\Output;
+namespace App\Infrastructure\Shared\IO\Reporter\Output;
 
 use Application\Config\ApplicationConfig\ApplicationConfig;
 use League\CLImate\CLImate;

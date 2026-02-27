@@ -7,7 +7,7 @@ namespace App\Application\UpdateSubscriptions\Mapper;
 use App\Core\Domain\Scheme\Collection\SchemeCollection;
 use App\Core\Domain\SingBox\Collection\OutboundCollection;
 use App\Core\Domain\SingBox\Factory\OutboundFactory;
-use App\Core\Shared\Ports\Reporter\ReporterPort;
+use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Mapper\OutboundsMapper\InvalidOutboundParamsReporterEvent;
 use InvalidArgumentException;
 

@@ -10,7 +10,7 @@ use App\Application\UpdateSubscriptions\Parser\RawSchemesParser;
 use App\Core\Domain\Scheme\Collection\SchemeMap;
 use App\Core\Domain\Subscription\Collection\SubscriptionCollection;
 use App\Core\Shared\Exception\CriticalException;
-use App\Core\Shared\Ports\Reporter\ReporterPort;
+use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Handler\GetSchemes\NoValidSchemesInSubscriptionFoundReporterEvent;
 use InvalidArgumentException;
 

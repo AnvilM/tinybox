@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Core\Shared\Ports\File;
+namespace App\Core\Shared\Ports\IO\File;
 
 use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Core\Shared\Exception\File\UnableToReadFileException;
 
-interface JsonReaderPort
+interface ReadJsonFilePort
 {
     /**
-     * Read and parse json file
+     * Read file and decode json to array
      *
      * @param string $path Path to file
      *

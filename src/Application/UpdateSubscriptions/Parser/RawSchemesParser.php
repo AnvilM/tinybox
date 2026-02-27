@@ -6,7 +6,7 @@ namespace App\Application\UpdateSubscriptions\Parser;
 
 use App\Core\Domain\Scheme\VO\RawSchemeVO;
 use App\Core\Shared\Exception\CriticalException;
-use App\Core\Shared\Ports\Reporter\ReporterPort;
+use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Parser\RawSchemesParser\InvalidSchemeReporterEvent;
 use Random\RandomException;
 

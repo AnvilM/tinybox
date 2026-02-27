@@ -8,7 +8,7 @@ use App\Core\Domain\Scheme\Collection\SchemeCollection;
 use App\Core\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Core\Domain\Scheme\Factory\SchemeFactory;
 use App\Core\Domain\Scheme\VO\RawSchemeVO;
-use App\Core\Shared\Ports\Reporter\ReporterPort;
+use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Mapper\RawSchemesMapper\InvalidSchemeReporterEvent;
 use App\Core\Shared\ReporterEvent\Events\UpdateSubscriptionsLifecycle\Mapper\RawSchemesMapper\UnsupportedSchemeReporterEvent;
 use InvalidArgumentException;
