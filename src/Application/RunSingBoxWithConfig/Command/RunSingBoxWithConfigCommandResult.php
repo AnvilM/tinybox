@@ -6,5 +6,9 @@ namespace App\Application\RunSingBoxWithConfig\Command;
 
 final readonly class RunSingBoxWithConfigCommandResult
 {
-
+    public function __construct(
+        public int $responseCode,
+    )
+    {
+    }
 }
