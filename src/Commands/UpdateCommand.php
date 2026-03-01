@@ -8,6 +8,8 @@ use App\Application\FetchSubscriptions\Command\UpdateSubscriptionsCommand;
 use App\Application\FetchSubscriptions\Handler\FetchSubscriptionsHandler;
 use App\Application\GenerateConfigs\Command\GenerateConfigsCommand;
 use App\Application\GenerateConfigs\Handler\GenerateConfigsHandler;
+use App\Application\RunSingBoxWithConfig\Command\RunSingBoxWithConfigCommand;
+use App\Application\RunSingBoxWithConfig\Handler\RunSingBoxWithConfigHandler;
 use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\Shared\FatalErrorReporterEvent;
@@ -24,9 +26,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 final  class UpdateCommand extends Command
 {
     public function __construct(
-        private readonly FetchSubscriptionsHandler $fetchSubscriptionsHandler,
-        private readonly ReporterPort              $reporterPort,
-        private readonly GenerateConfigsHandler    $generateConfigHandler
+        private readonly FetchSubscriptionsHandler   $fetchSubscriptionsHandler,
+        private readonly ReporterPort                $reporterPort,
+        private readonly GenerateConfigsHandler      $generateConfigHandler,
+        private readonly RunSingBoxWithConfigHandler $runSingBoxWithConfigHandler,
     )
     {
         parent::__construct();
@@ -42,6 +45,19 @@ final  class UpdateCommand extends Command
                     )
                 ),
             );
+
+            $subscriptionName = $input->getArgument('subscriptionName');
+            $applyOption = $input->getOption('apply');
+
+            $subscription =
+                ($subscriptionName && $applyOption !== false) ? $subscriptionName :
+                    (!$subscriptionName && $applyOption ? $applyOption : null);
+
+            if ($subscription !== null) {
+                return $this->runSingBoxWithConfigHandler
+                    ->handle(new RunSingBoxWithConfigCommand($subscription))
+                    ->responseCode;
+            }
 
 
         } catch (CriticalException $e) {
@@ -69,6 +85,12 @@ final  class UpdateCommand extends Command
                 'd',
                 InputOption::VALUE_NONE,
                 'Show debug messages'
+            )->addOption(
+                'apply',
+                'a',
+                InputOption::VALUE_OPTIONAL,
+                'Subscription name to apply',
+                false
             );
     }
 }

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ApplySubscriptionConfig\Command;
+namespace App\Application\RunSingBoxWithConfig\Command;
 
-final readonly class ApplySubscriptionConfigCommand
+final readonly class RunSingBoxWithConfigCommand
 {
     public function __construct(
         public ?string $subscriptionName,

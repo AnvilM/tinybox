@@ -2,14 +2,26 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ApplySubscriptionConfig\Handler;
+namespace App\Application\RunSingBoxWithConfig\Handler;
 
-use App\Application\ApplySubscriptionConfig\Command\ApplySubscriptionConfigCommand;
+use App\Application\RunSingBoxWithConfig\Command\RunSingBoxWithConfigCommand;
+use App\Application\RunSingBoxWithConfig\Command\RunSingBoxWithConfigCommandResult;
+use App\Application\RunSingBoxWithConfig\Process\RunSingBox;
 
-final readonly class ApplySubscriptionConfigHandler
+final readonly class RunSingBoxWithConfigHandler
 {
-    public function handle(ApplySubscriptionConfigCommand $command): void
+    public function __construct(
+        private RunSingBox $runSingBox,
+    )
     {
+    }
 
+    public function handle(RunSingBoxWithConfigCommand $command): RunSingBoxWithConfigCommandResult
+    {
+        return new RunSingBoxWithConfigCommandResult(
+            $this->runSingBox->run(
+                $command->subscriptionName
+            )
+        );
     }
 }
