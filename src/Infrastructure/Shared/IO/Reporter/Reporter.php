@@ -55,8 +55,6 @@ final readonly class Reporter implements ReporterPort
             case TypeVO::Step:
                 $this->output->err("<blue>$formatedMessage</blue>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
         }
-
-        $this->output->br();
     }
 
 }

@@ -55,12 +55,13 @@ final readonly class CLI
      * Prints br
      *
      * @param int $count Count of br's
+     * @param string $to
      *
      * @return CLI
      */
-    public function br(int $count = 1): CLI
+    public function br(int $count = 1, string $to = 'out'): CLI
     {
-        if ($count > 0) $this->CLImate->br($count);
+        if ($count > 0) $this->CLImate->to($to)->br($count);
 
         return $this;
     }
