@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Commands;
 
-use App\Application\UpdateSubscriptions\Command\UpdateSubscriptionsCommand;
-use App\Application\UpdateSubscriptions\Handler\UpdateSubscriptionsHandler;
+use App\Application\FetchSubscriptions\Command\UpdateSubscriptionsCommand;
+use App\Application\FetchSubscriptions\Handler\FetchSubscriptionsHandler;
+use App\Application\GenerateConfigs\Command\GenerateConfigsCommand;
+use App\Application\GenerateConfigs\Handler\GenerateConfigsHandler;
 use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\Shared\FatalErrorReporterEvent;
@@ -22,8 +24,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 final  class UpdateCommand extends Command
 {
     public function __construct(
-        private readonly UpdateSubscriptionsHandler $updateSubscriptionsHandler,
-        private readonly ReporterPort               $reporterPort,
+        private readonly FetchSubscriptionsHandler $fetchSubscriptionsHandler,
+        private readonly ReporterPort              $reporterPort,
+        private readonly GenerateConfigsHandler    $generateConfigHandler
     )
     {
         parent::__construct();
@@ -32,9 +35,15 @@ final  class UpdateCommand extends Command
     public function __invoke(InputInterface $input, OutputInterface $output): int
     {
         try {
-            $this->updateSubscriptionsHandler->handle(
-                new UpdateSubscriptionsCommand($input->getArgument('subscriptionName')),
+            $this->generateConfigHandler->handle(
+                new GenerateConfigsCommand(
+                    $this->fetchSubscriptionsHandler->handle(
+                        new UpdateSubscriptionsCommand($input->getArgument('subscriptionName'))
+                    )
+                ),
             );
+
+
         } catch (CriticalException $e) {
             $this->reporterPort->notify(new FatalErrorReporterEvent(
                 $e->getMessage(),
