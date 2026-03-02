@@ -8,6 +8,8 @@ use App\Application\ScanGeneratedConfigsDirectory\Command\ScanGeneratedConfigsDi
 use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Ports\Config\ConfigFactoryPort;
 use App\Core\Shared\Ports\IO\Directory\ScanDirectoryForFilesPort;
+use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
+use App\Core\Shared\ReporterEvent\Events\ScanGeneratedConfigsDirectory\Handler\ScanGeneratedConfigsDirectoryHandler\SearchingConfigFilesReporterEvent;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -16,6 +18,7 @@ final readonly class ScanGeneratedConfigsDirectoryHandler
     public function __construct(
         private ScanDirectoryForFilesPort $scanDirectoryForFilesPort,
         private ConfigFactoryPort         $configFactoryPort,
+        private ReporterPort              $reporterPort,
     )
     {
     }
@@ -34,10 +37,18 @@ final readonly class ScanGeneratedConfigsDirectoryHandler
          */
         $generatedConfigsDirectoryPath = $this->configFactoryPort->get()->generatedConfigsDirectoryPath;
 
+        /**
+         * Notify scanning directory
+         */
+        $this->reporterPort->notify(new SearchingConfigFilesReporterEvent(
+            $generatedConfigsDirectoryPath
+        ));
+
+        /**
+         * Trying to scan directory for files
+         */
         try {
-            /**
-             * Scan directory for files
-             */
+
             $configFiles = $this->scanDirectoryForFilesPort->scan($generatedConfigsDirectoryPath);
 
         } catch (InvalidArgumentException|RuntimeException $e) {
@@ -54,6 +65,9 @@ final readonly class ScanGeneratedConfigsDirectoryHandler
 
         $result = [];
 
+        /**
+         * Removing extensions from files
+         */
         foreach ($configFiles as $configFile) {
             $extension = pathinfo($configFile, PATHINFO_EXTENSION);
 

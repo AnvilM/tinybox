@@ -6,7 +6,7 @@ namespace App\Core\Shared\Exception;
 
 use RuntimeException;
 
-final class CriticalException extends RuntimeException
+class CriticalException extends RuntimeException
 {
     public function __construct(string $message = "", public ?string $debugMessage = null)
     {

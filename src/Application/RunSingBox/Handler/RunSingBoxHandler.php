@@ -10,6 +10,8 @@ use App\Application\RunSingBox\Process\RestartSingBoxSystemd;
 use App\Application\RunSingBox\Process\RunSingBox;
 use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Ports\Config\ConfigFactoryPort;
+use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
+use App\Core\Shared\ReporterEvent\Events\RunSingBox\File\CopyConfigToDefaultSingBoxConfig\ConfigSuccessfullyCopiedReporterEvent;
 use RuntimeException;
 
 final readonly class RunSingBoxHandler
@@ -19,6 +21,7 @@ final readonly class RunSingBoxHandler
         private ConfigFactoryPort                $configFactoryPort,
         private CopyConfigToDefaultSingBoxConfig $copyConfigToDefaultSingBoxConfig,
         private RestartSingBoxSystemd            $restartSingBoxSystemd,
+        private ReporterPort                     $reporterPort,
     )
     {
     }
@@ -45,8 +48,14 @@ final readonly class RunSingBoxHandler
             throw new CriticalException("Unable to copy config", $e->getMessage());
         }
 
+        $this->reporterPort->notify(new ConfigSuccessfullyCopiedReporterEvent(
+            $configPath,
+            $this->configFactoryPort->get()->singBoxConfig->defaultConfigPath,
+            $command->subscriptionName
+        ));
+
         try {
-            $this->restartSingBoxSystemd->reload();
+            $this->restartSingBoxSystemd->reload($command->subscriptionName);
         } catch (RuntimeException $e) {
             throw new CriticalException("Unable to reload sing-box service", $e->getMessage());
         }

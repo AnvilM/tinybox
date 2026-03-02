@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Application\RunSingBox\Process;
 
 use App\Core\Shared\Ports\Config\ConfigFactoryPort;
+use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
+use App\Core\Shared\ReporterEvent\Events\RunSingBox\Process\RestartSingBoxSystemd\RestartSingBoxSystemdReporterEvent;
+use App\Core\Shared\ReporterEvent\Events\RunSingBox\Process\RestartSingBoxSystemd\SingBoxSystemdSuccessfullyRestarted;
 use RuntimeException;
 
 final readonly class RestartSingBoxSystemd
 {
     public function __construct(
         private ConfigFactoryPort $configFactoryPort,
+        private ReporterPort      $reporterPort,
     )
     {
     }
@@ -18,18 +22,32 @@ final readonly class RestartSingBoxSystemd
     /**
      * Restart systemd sing box service
      *
+     * @param string $subscriptionName Subscription/config name to print
+     *
      * @throws RuntimeException Throws if unable to restart service
      */
-    public function reload(): void
+    public function reload(string $subscriptionName): void
     {
+
         $escapedServiceName = escapeshellarg($this->configFactoryPort->get()->singBoxConfig->systemdServiceName);
 
         /**
          * Restart service
          */
-        $reloadCommand = "sudo systemctl restart $escapedServiceName";
+        $restartCommand = "sudo systemctl restart $escapedServiceName";
 
-        exec($reloadCommand, $output, $resultCode);
+        /**
+         * Notify restarting service
+         */
+        $this->reporterPort->notify(new RestartSingBoxSystemdReporterEvent(
+            $restartCommand, $subscriptionName
+        ));
+
+
+        /**
+         * Execute command
+         */
+        exec($restartCommand, $output, $resultCode);
 
         /**
          * Check if unable to restart throw exception
@@ -37,5 +55,10 @@ final readonly class RestartSingBoxSystemd
         if ($resultCode !== 0) {
             throw new RuntimeException(implode("\n", $output));
         }
+
+        /**
+         * Notify service restarted successfully
+         */
+        $this->reporterPort->notify(new SingBoxSystemdSuccessfullyRestarted($restartCommand, $subscriptionName));
     }
 }
