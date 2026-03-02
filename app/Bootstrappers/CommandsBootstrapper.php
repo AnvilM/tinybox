@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Bootstrappers;
 
+use App\Commands\ListConfigsCommand;
 use App\Commands\ListSubscriptionsCommand;
 use App\Commands\UpdateSubscriptionsCommand;
 use Psr\Container\ContainerInterface;
@@ -16,7 +17,8 @@ final class CommandsBootstrapper
     /** @var array<class-string<Command>> */
     private static array $commands = [
         UpdateSubscriptionsCommand::class,
-        ListSubscriptionsCommand::class
+        ListSubscriptionsCommand::class,
+        ListConfigsCommand::class,
     ];
 
 
