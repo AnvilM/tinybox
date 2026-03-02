@@ -2,32 +2,35 @@
 
 declare(strict_types=1);
 
-namespace App\Application\FetchSubscriptions\Handler;
+namespace App\Application\ReadSubscriptionList\Handler;
 
-use App\Application\FetchSubscriptions\Mapper\SubscriptionsMapper;
-use App\Application\FetchSubscriptions\Validator\SubscriptionsValidator;
-use App\Core\Domain\Subscription\Collection\SubscriptionCollection;
+use App\Application\ReadSubscriptionList\Command\ReadSubscriptionsListCommandResult;
+use App\Application\ReadSubscriptionList\Mapper\SubscriptionDTOMapper;
+use App\Application\ReadSubscriptionList\Validator\SubscriptionsListValidator;
 use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Core\Shared\Exception\File\UnableToReadFileException;
 use App\Core\Shared\Ports\Config\ConfigFactoryPort;
 use App\Core\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 
-final readonly class GetSubscriptions
+final readonly class ReadSubscriptionsListHandler
 {
+
     public function __construct(
-        private SubscriptionsMapper    $subscriptionListMapper,
-        private SubscriptionsValidator $subscriptionListValidation,
-        private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
-        private ConfigFactoryPort      $configFactoryPort,
+        private SubscriptionsListValidator $subscriptionListValidation,
+        private ReadJsonFileNotifyPort     $readJsonFileNotifyPort,
+        private ConfigFactoryPort          $configFactoryPort,
+        private SubscriptionDTOMapper      $subscriptionDTOMapper,
     )
     {
     }
 
     /**
+     * Read subscriptions list from file
+     *
      * @throws CriticalException
      */
-    public function get(?string $subscriptionName): SubscriptionCollection
+    public function handle(): ReadSubscriptionsListCommandResult
     {
         try {
             $rawSubscriptionArray = $this->readJsonFileNotifyPort->notifyStartAndSuccess(
@@ -45,17 +48,10 @@ final readonly class GetSubscriptions
 
         $this->subscriptionListValidation->validate($rawSubscriptionArray);
 
-        $subscriptionCollection = $this->subscriptionListMapper->map($rawSubscriptionArray);
-
-        if ($subscriptionName !== null) {
-            foreach ($subscriptionCollection as $subscription) {
-                if ($subscription->name === $subscriptionName) return SubscriptionCollection::create([$subscription]);
-            }
-
-            throw new CriticalException("No subscription $subscriptionName</bold> found</red>");
-        }
-
-
-        return $subscriptionCollection;
+        return new ReadSubscriptionsListCommandResult(
+            $this->subscriptionDTOMapper->map(
+                $rawSubscriptionArray
+            ),
+        );
     }
 }
