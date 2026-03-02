@@ -11,6 +11,8 @@ final readonly class SingBoxConfigVO
     public function __construct(
         public string                   $binary,
         public TemplatesSingBoxConfigVO $templates,
+        public string                   $defaultConfigPath,
+        public string                   $systemdServiceName
     )
     {
     }

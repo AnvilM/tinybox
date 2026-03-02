@@ -29,7 +29,10 @@ final readonly class RawConfigMapper
                     $rawConfig['sing_box']['templates']['outbound'] ?? $defaultConfig->singBoxConfig->templates->outbound,
                     $rawConfig['sing_box']['templates']['outbound_urltest'] ?? $defaultConfig->singBoxConfig->templates->outboundUrltest,
                     $rawConfig['sing_box']['templates']['config'] ?? $defaultConfig->singBoxConfig->templates->config,
-                )
+                ),
+                $rawConfig['sing_box']['default_config_path'] ?? $defaultConfig->singBoxConfig->defaultConfigPath,
+                $rawConfig['sing_box']['systemd_service_name'] ?? $defaultConfig->singBoxConfig->systemdServiceName
+
             )
         );
     }
