@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Application\FetchSubscriptions\Validator;
+namespace App\Application\ReadSubscriptionList\Validator;
 
 use App\Core\Shared\Exception\CriticalException;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Validator;
 
-final readonly class SubscriptionsValidator
+final readonly class SubscriptionsListValidator
 {
     private string $schema;
 

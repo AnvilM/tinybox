@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Bootstrappers;
 
-use App\Commands\UpdateCommand;
+use App\Commands\ListSubscriptionsCommand;
+use App\Commands\UpdateSubscriptionsCommand;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Application as CliApp;
 use Symfony\Component\Console\Command\Command;
@@ -14,10 +15,11 @@ final class CommandsBootstrapper
 {
     /** @var array<class-string<Command>> */
     private static array $commands = [
-        UpdateCommand::class
+        UpdateSubscriptionsCommand::class,
+        ListSubscriptionsCommand::class
     ];
 
-    
+
     public static function registerCommands(CliApp $app, ContainerInterface $container): void
     {
 

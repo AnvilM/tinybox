@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Commands;
 
-use App\Application\FetchSubscriptions\Command\UpdateSubscriptionsCommand;
+use App\Application\FetchSubscriptions\Command\FetchSubscriptionsCommand;
 use App\Application\FetchSubscriptions\Handler\FetchSubscriptionsHandler;
 use App\Application\GenerateConfigs\Command\GenerateConfigsCommand;
 use App\Application\GenerateConfigs\Handler\GenerateConfigsHandler;
+use App\Application\ReadSubscriptionList\Handler\ReadSubscriptionsListHandler;
 use App\Application\RunSingBoxWithConfig\Command\RunSingBoxWithConfigCommand;
 use App\Application\RunSingBoxWithConfig\Handler\RunSingBoxWithConfigHandler;
 use App\Core\Shared\Exception\CriticalException;
@@ -22,14 +23,15 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 
-#[AsCommand(name: 'update')]
-final  class UpdateCommand extends Command
+#[AsCommand(name: 'subscription:update', description: 'Update subscriptions')]
+final  class UpdateSubscriptionsCommand extends Command
 {
     public function __construct(
-        private readonly FetchSubscriptionsHandler   $fetchSubscriptionsHandler,
-        private readonly ReporterPort                $reporterPort,
-        private readonly GenerateConfigsHandler      $generateConfigHandler,
-        private readonly RunSingBoxWithConfigHandler $runSingBoxWithConfigHandler,
+        private readonly FetchSubscriptionsHandler    $fetchSubscriptionsHandler,
+        private readonly ReporterPort                 $reporterPort,
+        private readonly GenerateConfigsHandler       $generateConfigHandler,
+        private readonly RunSingBoxWithConfigHandler  $runSingBoxWithConfigHandler,
+        private readonly ReadSubscriptionsListHandler $readSubscriptionsListHandler,
     )
     {
         parent::__construct();
@@ -38,10 +40,16 @@ final  class UpdateCommand extends Command
     public function __invoke(InputInterface $input, OutputInterface $output): int
     {
         try {
+
+
             $this->generateConfigHandler->handle(
                 new GenerateConfigsCommand(
                     $this->fetchSubscriptionsHandler->handle(
-                        new UpdateSubscriptionsCommand($input->getArgument('subscriptionName'))
+                        new FetchSubscriptionsCommand(
+                            $this->readSubscriptionsListHandler->handle()
+                                ->rawSubscriptionCollectionDTO,
+                            $input->getArgument('subscriptionName')
+                        )
                     )
                 ),
             );
