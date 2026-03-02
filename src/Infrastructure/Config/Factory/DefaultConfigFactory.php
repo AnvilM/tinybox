@@ -31,7 +31,9 @@ final readonly class DefaultConfigFactory
                     $this->getConfigsDirectory->execute() . '/templates/outbound.json',
                     $this->getConfigsDirectory->execute() . '/templates/urltest.json',
                     $this->getConfigsDirectory->execute() . '/templates/config.json',
-                )
+                ),
+                "/etc/sing-box/config.json",
+                "sing-box"
             )
 
         );

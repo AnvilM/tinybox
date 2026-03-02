@@ -9,8 +9,8 @@ use App\Application\FetchSubscriptions\Handler\FetchSubscriptionsHandler;
 use App\Application\GenerateConfigs\Command\GenerateConfigsCommand;
 use App\Application\GenerateConfigs\Handler\GenerateConfigsHandler;
 use App\Application\ReadSubscriptionList\Handler\ReadSubscriptionsListHandler;
-use App\Application\RunSingBoxWithConfig\Command\RunSingBoxWithConfigCommand;
-use App\Application\RunSingBoxWithConfig\Handler\RunSingBoxWithConfigHandler;
+use App\Application\RunSingBox\Command\RunSingBoxCommand;
+use App\Application\RunSingBox\Handler\RunSingBoxHandler;
 use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\Shared\FatalErrorReporterEvent;
@@ -30,7 +30,7 @@ final  class UpdateSubscriptionsCommand extends Command
         private readonly FetchSubscriptionsHandler    $fetchSubscriptionsHandler,
         private readonly ReporterPort                 $reporterPort,
         private readonly GenerateConfigsHandler       $generateConfigHandler,
-        private readonly RunSingBoxWithConfigHandler  $runSingBoxWithConfigHandler,
+        private readonly RunSingBoxHandler            $RunSingBoxHandler,
         private readonly ReadSubscriptionsListHandler $readSubscriptionsListHandler,
     )
     {
@@ -62,9 +62,11 @@ final  class UpdateSubscriptionsCommand extends Command
                     (!$subscriptionName && $applyOption ? $applyOption : null);
 
             if ($subscription !== null) {
-                return $this->runSingBoxWithConfigHandler
-                    ->handle(new RunSingBoxWithConfigCommand($subscription))
-                    ->responseCode;
+                $this->RunSingBoxHandler
+                    ->handle(new RunSingBoxCommand(
+                        $subscription,
+                        (bool)$input->getOption('service'),
+                    ));
             }
 
 
@@ -99,6 +101,11 @@ final  class UpdateSubscriptionsCommand extends Command
                 InputOption::VALUE_OPTIONAL,
                 'Subscription name to apply',
                 false
+            )->addOption(
+                'service',
+                's',
+                InputOption::VALUE_NONE,
+                'Apply subscription using systemctl sing-box service'
             );
     }
 }

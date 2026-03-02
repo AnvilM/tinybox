@@ -2,23 +2,31 @@
 
 declare(strict_types=1);
 
-namespace App\Application\RunSingBoxWithConfig\Process;
+namespace App\Application\RunSingBox\Process;
 
-use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Ports\Config\ConfigFactoryPort;
+use RuntimeException;
 
+/**
+ *
+ */
 final readonly class RunSingBox
 {
     public function __construct(
-        private ConfigFactoryPort $configFactoryPort,
+        private ConfigFactoryPort $configFactoryPort
     )
     {
     }
 
-    public function run(string $subscriptionName): int
+    /**
+     * Run sing box process with provided config
+     *
+     * @param string $configPath Path to generated config file
+     *
+     * @throws RuntimeException Throws if unable to run sing-box process
+     */
+    public function run(string $configPath): int
     {
-        echo "running $subscriptionName\n";
-
         $descriptors = [
             0 => STDIN,
             1 => STDOUT,
@@ -28,8 +36,7 @@ final readonly class RunSingBox
         $command = "sudo "
             . $this->configFactoryPort->get()->singBoxConfig->binary
             . " run -c "
-            . $this->configFactoryPort->get()->generatedConfigsDirectoryPath
-            . "/$subscriptionName.json";
+            . $configPath;
 
         $singBoxProcess = proc_open(
             $command,
@@ -41,6 +48,6 @@ final readonly class RunSingBox
             return proc_close($singBoxProcess);
         }
 
-        throw new CriticalException("Unable to run sing-box");
+        throw new RuntimeException("Unable to run sing-box");
     }
 }
