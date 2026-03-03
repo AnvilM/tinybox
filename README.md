@@ -1,6 +1,11 @@
 <div align="center">
-    <h1>Slim · RoadRunner Boilerplate</h1>
-    <p>PHP Boilerplate Powered by <b>Slim Framework</b> and <b>RoadRunner</b></p>
+    <h1 align="center">
+        <br>
+	    <img src="assets/icons/logo.svg" width=128 alt="logo">
+        <br>
+        Tinybox
+    </h1>
+
 
 [![php-version-shield]][php-version-link]
 [![phpstan-shield]][phpstan-link]
@@ -13,283 +18,183 @@
 
 </div>
 
-## Project Overview
+# Tinybox
 
-This template is designed for the development of web applications utilizing
-the [Slim Framework](https://www.slimframework.com/) and the high-performance [RoadRunner](https://roadrunner.dev/)
-server. The project incorporates tools for building scalable PHP applications, including a dependency injection
-container, logging system, Object-Relational Mapping (ORM), database migrations, and a Command Line Interface (CLI).
+## Overview
 
-## Core Components
+Tinybox is a command-line utility designed for managing sing-box subscriptions and configurations.  
+It allows you to store subscription links, update their content, and generate sing-box configurations based on your own
+templates.
 
-- **Container**: [PHP-DI](https://php-di.org/)
-- **HTTP**: [nyholm/psr7](https://github.com/Nyholm/psr7)
-- **Logger**: [Monolog](https://seldaek.github.io/monolog/)
-- **ORM**: [CycleORM](https://cycle-orm.dev/)
-- **Migrations**: [Cycle Migrations](https://cycle-orm.dev/docs/database-migrations/)
-- **CLI**: [Symfony Console](https://symfony.com/doc/current/components/console.html)
-- **Testing**: [Pest](https://pestphp.com/)
-- **Static Analysis**: [PHPStan](https://phpstan.org/)
+## Features
 
-## Getting Started
+- **Subscription Management**
+    - Store subscriptions
+    - Update subscriptions
+    - Apply subscriptions
 
-### Installation
+- **Configuration Management**
+    - Generate configurations
+    - Store configurations
+    - Apply configurations
 
-#### Via Composer
+## Commands
 
-Create a new project using Composer:
+### tinybox subscription:list
 
-```bash
-composer create-project anvilm/slim-rr-boilerplate my-project
-```
+**Description**
 
-#### Via GitHub
+Displays the list of added subscriptions.
 
-Clone the repository and install dependencies:
+**Usage example**
 
 ```bash
-git clone https://github.com/anvilm/slim-rr-boilerplate.git my-project
-cd my-project
-composer install
+tinybox subscription:list
 ```
 
-### Directory Structure
+### tinybox subscription:update
 
+**Description**
+
+Updates existing subscriptions.
+
+If the `subscriptionName` argument is not provided — all subscriptions are updated.  
+If the argument is provided — only the specified subscription is updated.
+
+**Arguments**
+
+`subscriptionName` — subscription name (optional).
+
+**Flags**
+
+`-a`, `--apply` — apply the subscription after updating.  
+If a subscription is specified, only that one is applied.  
+If no subscription is specified, you must explicitly provide the name of the subscription to apply, for example:  
+`tinybox subscription:update -a subName` — all subscriptions will be updated, but only `subName` will be applied.
+
+`-s`, `--systemd` — when applying, use the sing-box systemd service instead of launching via the binary.
+
+**Examples**
+
+```bash
+# Update subscription "sub"
+tinybox subscription:update sub
+
+# Update all subscriptions and apply subscription "mySub" using sing-box systemd service
+tinybox subscription:update -a mySub -s
 ```
-.
-├── app/                          # Core application logic and infrastructure
-│   ├── Bootstrappers/            # Classes for initializing application components
-│   ├── Commands/                 # Custom CLI commands
-│   ├── Config/                   # Configuration files
-│   ├── Endpoints/                # Definitions of HTTP endpoints
-│   ├── Providers/                # Dependency injection container providers
-│   │   ├── ApplicationProviders/ # Providers for application functionality
-│   │   └── Providers/            # Custom providers
-│   └── Kernel.php                # Application entry point and bootstrap management
-├── bin/                          # CLI entry point
-│   └── console.php               # Entry point for Symfony Console
-├── database/                     # Migrations and SQLite database files
-├── logs/                         # Application logs
-├── src/                          # Source code for custom logic
-├── tests/                        # Pest tests
-└── index.php                     # Entry point for RoadRunner
+
+### tinybox subscription:apply
+
+**Description**
+
+Applies a specific configuration.
+
+**Arguments**
+
+`subscriptionName` — name of the subscription to apply
+
+**Flags**
+
+`-u`, `--update` — update the subscription before applying.
+
+`-s`, `--systemd` — use the sing-box systemd service instead of launching via the binary.  
+sing-box can be started directly as a binary or as a systemd service; this flag forces systemd mode.
+
+**Examples**
+
+```bash
+# Apply configuration "mySub"
+tinybox subscription:apply mySub
 ```
 
-### Directory Organization
+### tinybox config:list
 
-The boilerplate is structured to separate infrastructural logic from user-defined code:
+**Description**
 
-- **Directory `app/`**: Contains the core infrastructure of the application,
-  including [configurations](#configuration), [providers](#providers), [endpoints](#endpoints),
-  and [bootstrappers](#bootstrappers). This directory is intended for foundational application setup and operation.
-- **Directory `src/`**: Designated for user-defined source code, where developers can implement the primary business
-  logic of the application.
+Shows the list of generated configuration files.
 
-### Configuration
+**Example**
 
-Application configurations are organized in the `app/Config/` directory and provide type-safe access to settings via
-classes with static methods. For further details, refer to the [Configuration](#configuration-1) section.
+```bash
+tinybox config:list
+```
 
-#### Environment Variables
+## Global Flags
 
-Environment variables are managed using the [oscarotero/env](https://github.com/oscarotero/env) library. These variables
-are read directly from the system, not from a `.env` file, and are intended for use within configuration classes.
+`-d`, `--debug` — enables debug log output.
 
-Predefined environment variables:
+## Configuration
 
-- **APP_ENV**: Defines the application environment (e.g., `production`, `development`), affecting logging levels.
-- **APP_DEBUG**: Enables or disables debug mode, influencing the display of detailed error information in Slim.
+The configuration file is stored at: `~/.config/tinybox/config.json`
 
-#### Application Configuration
+If the configuration file is missing or some parameters are not specified, default values are used.
 
-The `ApplicationConfig` class provides the following parameters:
-
-- **baseDir**: The root directory of the project.
-- **appEnv**: The application environment, determined by the `APP_ENV` variable. Available environments are listed in
-  the `ApplicationEnvironmentEnum` enumeration. To add a new environment, update this enumeration and the
-  `ApplicationConfig` class.
-- **appDebug**: Debug mode, determined by the `APP_DEBUG` variable. Enables detailed error messages.
-
-#### Database Configuration
-
-The `DatabaseConfig` class defines settings for CycleORM. By default, it is configured for SQLite, but other database
-management systems (e.g., MySQL, PostgreSQL) are supported with appropriate configuration.
-
-#### Logging Configuration
-
-The `LoggerConfig` class configures logging parameters using Monolog. It includes the path to log files (in the `logs/`
-directory) and the logging level, which depends on the `appEnv` value.
-
-#### Migration Configuration
-
-Database migration settings are defined for Cycle Migrations. Migrations are stored in the `database/migrations/`
-directory and managed via [CLI commands](#commands).
-
-## Architectural Concepts
-
-### Configuration
-
-Configurations are stored in the `app/Config/` directory. Each configuration is implemented as a class with static
-methods, ensuring type-safe access to settings.
-
-Example:
-
-```php
-namespace Application\Config\ApplicationConfig;
-
-use function Env\env;
-
-final readonly class ApplicationConfig
+```json
 {
-    public static function baseDir(): string
-    {
-        return dirname(__DIR__, 3);
+  "subscriptions_list": "/home/user/.local/share/tinybox/subscriptions.json",
+  "generated_configs_dir": "/home/user/.local/share/tinybox/configs/",
+  "sing_box": {
+    "binary": "sing-box",
+    "default_config_path": "/etc/sing-box/config.json",
+    "systemd_service_name": "sing-box",
+    "templates": {
+      "outbound": "/home/user/.config/tinybox/templates/outbound.json",
+      "outbound_urltest": "/home/user/.config/tinybox/templates/outbound_urltest.json",
+      "config": "/home/user/.config/tinybox/templates/config.json"
     }
+  }
 }
 ```
 
-### Endpoints
+## Templates
 
-HTTP endpoints are defined in the `app/Endpoints/` directory. Routing is handled using the standard Slim Framework
-mechanism. Each endpoint class must implement the `EndpointInterface` and be registered in
-the [EndpointBootstrapper](#bootstrappers).
+Templates are used to generate the final sing-box configuration.
 
-Example of creating an endpoint:
+The quality of the resulting configuration fully depends on the correctness of the templates.  
+If a template contains syntax errors or has an incorrect structure, the generated configuration will also be invalid and
+may fail to start.
 
-```php
-namespace App\Endpoints;
+**Default locations**
 
-final readonly class ApiEndpoints implements EndpointInterface
-{
-    public static function register(App $app): void
-    {
-        $app->get('/', function (RequestInterface $request, ResponseInterface $response) {
-            $response->getBody()->write('Example response');
-            return $response;
-        });
-    }
-}
-```
+Paths can be overridden in `~/.config/tinybox/config.json`
 
-Example of registration in [EndpointBootstrapper](#bootstrappers):
+`~/.config/tinybox/templates/config.json` — main template for the entire configuration
 
-```php
-private static array $endpoints = [
-    \App\Endpoints\ApiEndpoints::class,
-];
-```
+`~/.config/tinybox/templates/outbound.json` — template for a single outbound
 
-### Providers
-
-Service providers, located in the `app/Providers/` directory, are responsible for registering dependencies in the PHP-DI
-container, making them accessible to the application. Providers are categorized as follows:
-
-- `ApplicationProviders/`: Providers essential for application functionality.
-- `Providers/`: Custom providers for specific logic.
-
-Each provider must implement the `ProviderInterface` and be registered in the [ProvidersBootstrapper](#bootstrappers).
-
-Example of creating a provider:
-
-```php
-namespace App\Providers;
-
-final readonly class DBALProvider implements ProviderInterface
-{
-    public static function register(): array
-    {
-        return [DatabaseManager::class => new DatabaseManager(
-            new CycleDatabaseConfig(
-                DatabaseConfig::config()
-            )
-        )];
-    }
-}
-```
-
-Example of registration in [ProvidersBootstrapper](#bootstrappers):
-
-```php
-private static array $appProviders = [
-    \App\Providers\LoggerProvider::class,
-    \App\Providers\DBALProvider::class,
-];
-
-private static array $providers = [
-    // Custom providers
-];
-```
-
-### Bootstrappers
-
-Bootstrapper classes in the `app/Bootstrappers/` directory initialize key application components. The primary
-bootstrappers are:
-
-- `ApplicationBootstrapper`: Initializes the Slim application.
-- `ContainerBootstrapper`: Configures the PHP-DI container.
-- `ProvidersBootstrapper`: Registers [providers](#providers).
-- `EndpointBootstrapper`: Registers [endpoints](#endpoints).
-- `CommandsBootstrapper`: Registers [CLI commands](#commands).
-
-The `Kernel.php` file manages the initialization process.
-
-### Commands
-
-CLI commands are defined in the `app/Commands/` directory. Each command must be registered in
-the [CommandsBootstrapper](#bootstrappers).
-
-The Symfony Console library is used for CLI commands.
-
-Example of registration in [CommandsBootstrapper](#bootstrappers):
-
-```php
-private static array $commands = [
-    \App\Commands\MigrationGenerateCommand::class,
-    \App\Commands\MigrationUpCommand::class,
-];
-```
-
-Available commands:
-
-- `migration:generate`: Generates a migration template in the `database/migrations/` directory.
-- `migration:up`: Executes pending migrations.
-
-Running commands:
-
-```bash
-php bin/console {commandName}
-```
+`~/.config/tinybox/templates/outbound_urltest.json` — template for an urltest group
 
 ## License
 
-The project is distributed under the MIT License. For details, refer to the [LICENSE](LICENSE) file.
+The project is distributed under the MIT License. For details, refer to the [LICENSE][github-license-link] file.
 
 <!-- LINKS -->
 
-[github-release-link]: https://github.com/anvilm/slim-rr-boilerplate/releases
+[github-release-link]: https://github.com/anvilm/tinybox/releases
 
-[github-release-shield]: https://img.shields.io/github/v/release/anvilm/slim-rr-boilerplate?style=flat-square&sort=semver&logo=github&labelColor=black
+[github-release-shield]: https://img.shields.io/github/v/release/anvilm/tinybox?style=flat-square&sort=semver&logo=github&labelColor=black
 
-[github-release-date-link]: https://github.com/anvilm/slim-rr-boilerplate/releases
+[github-release-date-link]: https://github.com/anvilm/tinybox/releases
 
-[github-release-date-shield]: https://img.shields.io/github/release-date/anvilm/slim-rr-boilerplate?labelColor=black&style=flat-square
+[github-release-date-shield]: https://img.shields.io/github/release-date/anvilm/tinybox?labelColor=black&style=flat-square
 
-[github-license-link]: https://github.com/anvilm/slim-rr-boilerplate/blob/master/LICENSE
+[github-license-link]: LICENSE
 
-[github-license-shield]: https://img.shields.io/github/license/anvilm/slim-rr-boilerplate?color=white&labelColor=black&style=flat-square
+[github-license-shield]: https://img.shields.io/github/license/anvilm/tinybox?color=white&labelColor=black&style=flat-square
 
-[status-link]: https://github.com/AnvilM/slim-rr-boilerplate/
+[status-link]: https://github.com/AnvilM/tinybox/
 
 [status-shield]: https://img.shields.io/badge/status-active-brightgreen?labelColor=black&style=flat-square
 
-[last-commit-link]: https://github.com/AnvilM/slim-rr-boilerplate/commits
+[last-commit-link]: https://github.com/AnvilM/tinybox/commits
 
-[last-commit-shield]: https://img.shields.io/github/last-commit/anvilm/slim-rr-boilerplate?labelColor=black&style=flat-square
+[last-commit-shield]: https://img.shields.io/github/last-commit/anvilm/tinybox?labelColor=black&style=flat-square
 
-[phpstan-link]: https://github.com/AnvilM/slim-rr-boilerplate/
+[phpstan-link]: https://github.com/AnvilM/tinybox/
 
 [phpstan-shield]: https://img.shields.io/badge/PHPStan-Level%20max-blue?logo=php&labelColor=black&style=flat-square
 
-[php-version-link]: https://github.com/AnvilM/slim-rr-boilerplate/
+[php-version-link]: https://github.com/AnvilM/tinybox/
 
 [php-version-shield]: https://img.shields.io/badge/PHP-8.4-blue?logo=php&labelColor=black&style=flat-square
