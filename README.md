@@ -153,7 +153,7 @@ The quality of the resulting configuration fully depends on the correctness of t
 If a template contains syntax errors or has an incorrect structure, the generated configuration will also be invalid and
 may fail to start.
 
-**Default locations**
+### Default locations
 
 Paths can be overridden in `~/.config/tinybox/config.json`
 
@@ -163,11 +163,38 @@ Paths can be overridden in `~/.config/tinybox/config.json`
 
 `~/.config/tinybox/templates/outbound_urltest.json` — template for an urltest group
 
+### Template Purpose
+
+`config.json`
+
+The main template for the complete sing-box configuration.
+It acts as the structural skeleton of the final config file. Generated outbound blocks and other dynamic elements are
+inserted into this template  
+Reference documentation: [Configuration Structure][sing-box-docs-config-link]
+
+`outbound.json`
+
+Template for a single outbound object.
+Used to generate individual outbound entries based on subscription data.  
+Reference documentation: [Outbound][sing-box-docs-outbound-link]
+
+`outbound_urltest.json`
+
+Template for an outbound group of type urltest.
+Used to create a group that automatically selects the best server based on connectivity testing.  
+Reference documentation: [URLTest outbound][sing-box-docs-urltest-outbound-link]
+
 ## License
 
 The project is distributed under the MIT License. For details, refer to the [LICENSE][github-license-link] file.
 
 <!-- LINKS -->
+
+[sing-box-docs-config-link]: https://sing-box.sagernet.org/configuration
+
+[sing-box-docs-outbound-link]: https://sing-box.sagernet.org/configuration/outbound
+
+[sing-box-docs-urltest-outbound-link]: https://sing-box.sagernet.org/configuration/outbound/urltest
 
 [github-release-link]: https://github.com/anvilm/tinybox/releases
 
@@ -196,3 +223,4 @@ The project is distributed under the MIT License. For details, refer to the [LIC
 [php-version-link]: https://github.com/AnvilM/tinybox/
 
 [php-version-shield]: https://img.shields.io/badge/PHP-8.4-blue?logo=php&labelColor=black&style=flat-square
+
