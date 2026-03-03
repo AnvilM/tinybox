@@ -18,8 +18,6 @@
 
 </div>
 
-# Tinybox
-
 ## Overview
 
 Tinybox is a command-line utility designed for managing sing-box subscriptions and configurations.  
