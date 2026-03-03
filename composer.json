@@ -34,7 +34,7 @@
     "pestphp/pest": "^4.1"
   },
   "bin": [
-    "cli"
+    "tinybox"
   ],
   "scripts": {
     "test": "vendor/bin/pest",
