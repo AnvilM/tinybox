@@ -21,6 +21,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 #[AsCommand(name: 'subscription:apply', description: 'Apply subscription')]
 final class ApplySubscriptionCommand extends Command
@@ -64,6 +65,11 @@ final class ApplySubscriptionCommand extends Command
             ));
 
             return Command::FAILURE;
+        } catch (Throwable $e) {
+            $this->reporterPort->notify(new FatalErrorReporterEvent(
+                "Unhandled exception",
+                DebugMessagesVO::create([$e->getMessage()])
+            ));
         }
 
         return Command::SUCCESS;

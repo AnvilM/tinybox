@@ -14,6 +14,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 #[AsCommand(name: 'config:list', description: 'List all generated configs')]
 final readonly class ListConfigsCommand
@@ -46,6 +47,11 @@ final readonly class ListConfigsCommand
             ));
 
             return Command::FAILURE;
+        } catch (Throwable $e) {
+            $this->reporterPort->notify(new FatalErrorReporterEvent(
+                "Unhandled exception",
+                DebugMessagesVO::create([$e->getMessage()])
+            ));
         }
 
         return Command::SUCCESS;
