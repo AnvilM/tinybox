@@ -21,6 +21,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 
 #[AsCommand(name: 'subscription:update', description: 'Update subscriptions')]
@@ -65,7 +66,7 @@ final  class UpdateSubscriptionsCommand extends Command
                 $this->RunSingBoxHandler
                     ->handle(new RunSingBoxCommand(
                         $subscription,
-                        (bool)$input->getOption('service'),
+                        (bool)$input->getOption('systemd'),
                     ));
             }
 
@@ -77,6 +78,11 @@ final  class UpdateSubscriptionsCommand extends Command
             ));
 
             return Command::FAILURE;
+        } catch (Throwable $e) {
+            $this->reporterPort->notify(new FatalErrorReporterEvent(
+                "Unhandled exception",
+                DebugMessagesVO::create([$e->getMessage()])
+            ));
         }
 
         return Command::SUCCESS;
@@ -102,7 +108,7 @@ final  class UpdateSubscriptionsCommand extends Command
                 'Subscription name to apply',
                 false
             )->addOption(
-                'service',
+                'systemd',
                 's',
                 InputOption::VALUE_NONE,
                 'Apply subscription using systemctl sing-box service'

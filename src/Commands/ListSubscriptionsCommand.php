@@ -14,6 +14,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
 
 #[AsCommand(name: 'subscription:list', description: 'List all subscriptions')]
 final readonly class ListSubscriptionsCommand
@@ -42,6 +43,11 @@ final readonly class ListSubscriptionsCommand
             ));
 
             return Command::FAILURE;
+        } catch (Throwable $e) {
+            $this->reporterPort->notify(new FatalErrorReporterEvent(
+                "Unhandled exception",
+                DebugMessagesVO::create([$e->getMessage()])
+            ));
         }
 
         return Command::SUCCESS;
