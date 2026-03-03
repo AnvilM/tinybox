@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Bootstrappers;
 
+use App\Commands\ApplySubscriptionCommand;
 use App\Commands\ListConfigsCommand;
 use App\Commands\ListSubscriptionsCommand;
 use App\Commands\UpdateSubscriptionsCommand;
@@ -19,6 +20,7 @@ final class CommandsBootstrapper
         UpdateSubscriptionsCommand::class,
         ListSubscriptionsCommand::class,
         ListConfigsCommand::class,
+        ApplySubscriptionCommand::class
     ];
 
 
