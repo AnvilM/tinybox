@@ -33,6 +33,9 @@
   "require-dev": {
     "pestphp/pest": "^4.1"
   },
+  "bin": [
+    "cli"
+  ],
   "scripts": {
     "test": "vendor/bin/pest",
     "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
