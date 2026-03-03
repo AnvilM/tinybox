@@ -40,17 +40,19 @@ final class ApplySubscriptionCommand extends Command
     public function __invoke(InputInterface $input, OutputInterface $output): int
     {
         try {
-            if ($input->getOption('update')) $this->generateConfigsHandler->handle(
-                new GenerateConfigsCommand(
-                    $this->fetchSubscriptionsHandler->handle(
-                        new FetchSubscriptionsCommand(
-                            $this->readSubscriptionsListHandler->handle()
-                                ->rawSubscriptionCollectionDTO,
-                            $input->getArgument('subscriptionName')
+            if ($input->getOption('update')) {
+                $this->generateConfigsHandler->handle(
+                    new GenerateConfigsCommand(
+                        $this->fetchSubscriptionsHandler->handle(
+                            new FetchSubscriptionsCommand(
+                                $this->readSubscriptionsListHandler->handle()
+                                    ->rawSubscriptionCollectionDTO,
+                                $input->getArgument('subscriptionName')
+                            )
                         )
-                    )
-                ),
-            );
+                    ),
+                );
+            }
 
             $this->runSingBoxHandler->handle(
                 new RunSingBoxCommand(
@@ -92,9 +94,8 @@ final class ApplySubscriptionCommand extends Command
             )->addOption(
                 'update',
                 'u',
-                InputOption::VALUE_OPTIONAL,
+                InputOption::VALUE_NONE,
                 'Update subscription before applying',
-                false
             )->addOption(
                 'systemd',
                 's',
