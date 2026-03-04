@@ -1,0 +1,21 @@
+version: '3'
+
+tasks:
+
+  build:
+    desc: Build docker image artifacts
+    requires:
+      vars: [ v ]
+    cmds:
+      - |
+        docker buildx build \
+          --platform linux/amd64 \
+          --output type=local,dest=./build,src=/out \
+          -f ./docker/build.Dockerfile \
+          --build-arg VERSION={{.v}} \
+          .
+
+  clean:
+    desc: Remove build directory
+    cmds:
+      - rm -rf ./build
