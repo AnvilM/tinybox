@@ -50,12 +50,6 @@ Tinybox requires the following software to function properly:
 - **sing-box** — required sing-box cli.
 - **sudo** — required for operations that need elevated privileges.
 
-## Installation
-
-```shell
-curl -L https://github.com/AnvilM/tinybox/releases/latest/download/tinybox -o tinybox && chmod +x tinybox && sudo mv tinybox /usr/bin/
-```
-
 ## Commands
 
 ### tinybox subscription:list
