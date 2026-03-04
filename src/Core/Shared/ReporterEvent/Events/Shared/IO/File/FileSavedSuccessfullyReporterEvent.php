@@ -8,14 +8,14 @@ use App\Core\Shared\ReporterEvent\ReporterEvent;
 use App\Core\Shared\VO\ReporterEvent\DebugMessagesVO;
 use App\Core\Shared\VO\ReporterEvent\TypeVO;
 
-final readonly class FileReadSuccessfullyReporterEvent extends ReporterEvent
+final readonly class FileSavedSuccessfullyReporterEvent extends ReporterEvent
 {
-    public function __construct(string $message, string $filePath)
+    public function __construct(string $message, string $filePath, ?string $fileContent = null)
     {
         parent::__construct(
             $message,
             TypeVO::Success,
-            DebugMessagesVO::create([$filePath])
+            DebugMessagesVO::create($fileContent ? [$filePath, $fileContent] : [$filePath]),
         );
     }
 }

@@ -10,11 +10,13 @@ use App\Core\Shared\Ports\IO\Directory\ScanDirectoryForFilesPort;
 use App\Core\Shared\Ports\IO\File\ReadFilePort;
 use App\Core\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 use App\Core\Shared\Ports\IO\File\ReadJsonFilePort;
+use App\Core\Shared\Ports\IO\File\SaveFileNotifyPort;
 use App\Core\Shared\Ports\IO\File\SaveFilePort;
 use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Infrastructure\Config\Factory\ConfigFactory;
 use App\Infrastructure\IO\File\ReadJsonFile;
 use App\Infrastructure\IO\File\ReadJsonFileNotify;
+use App\Infrastructure\IO\File\SaveFileNotify;
 use App\Infrastructure\Shared\Http\Http;
 use App\Infrastructure\Shared\IO\Directory\ScanDirectoryForFiles;
 use App\Infrastructure\Shared\IO\File\ReadFile;
@@ -36,6 +38,7 @@ final readonly class SharedProviders implements ProviderInterface
             ReadJsonFilePort::class => autowire(ReadJsonFile::class),
             ReadJsonFileNotifyPort::class => autowire(ReadJsonFileNotify::class),
             ScanDirectoryForFilesPort::class => autowire(ScanDirectoryForFiles::class),
+            SaveFileNotifyPort::class => autowire(SaveFileNotify::class),
         ];
     }
 }
