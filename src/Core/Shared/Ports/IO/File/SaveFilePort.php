@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Shared\Ports\IO\File;
 
-use App\Core\Shared\Exception\CriticalException;
+use App\Core\Shared\Exception\File\UnableToSaveFileException;
 
 interface SaveFilePort
 {
@@ -16,7 +16,7 @@ interface SaveFilePort
      *
      * @return void
      *
-     * @throws CriticalException Throws if unable to save file
+     * @throws UnableToSaveFileException Throws if unable to save file
      */
     public function save(string $path, string $fileContent): void;
 }
