@@ -13,17 +13,19 @@ use League\CLImate\CLImate;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 #[AsCommand(name: 'subscription:list', description: 'List all subscriptions')]
-final readonly class ListSubscriptionsCommand
+final class ListSubscriptionsCommand extends Command
 {
     public function __construct(
-        private ReadSubscriptionsListHandler $readSubscriptionsListHandler,
-        private ReporterPort                 $reporterPort,
+        private readonly ReadSubscriptionsListHandler $readSubscriptionsListHandler,
+        private readonly ReporterPort                 $reporterPort,
     )
     {
+        parent::__construct();
     }
 
     public function __invoke(InputInterface $input, OutputInterface $output): int
@@ -53,5 +55,15 @@ final readonly class ListSubscriptionsCommand
         return Command::SUCCESS;
     }
 
+    protected function configure(): void
+    {
+        $this
+            ->addOption(
+                'debug',
+                'd',
+                InputOption::VALUE_NONE,
+                'Show debug messages'
+            );
+    }
 
 }

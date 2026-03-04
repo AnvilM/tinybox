@@ -13,17 +13,19 @@ use League\CLImate\CLImate;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 #[AsCommand(name: 'config:list', description: 'List all generated configs')]
-final readonly class ListConfigsCommand
+final class ListConfigsCommand extends Command
 {
     public function __construct(
-        private ScanGeneratedConfigsDirectoryHandler $scanGeneratedConfigsDirectoryHandler,
-        private ReporterPort                         $reporterPort,
+        private readonly ScanGeneratedConfigsDirectoryHandler $scanGeneratedConfigsDirectoryHandler,
+        private readonly ReporterPort                         $reporterPort,
     )
     {
+        parent::__construct();
     }
 
     public function __invoke(InputInterface $input, OutputInterface $output): int
@@ -55,5 +57,16 @@ final readonly class ListConfigsCommand
         }
 
         return Command::SUCCESS;
+    }
+
+    protected function configure(): void
+    {
+        $this
+            ->addOption(
+                'debug',
+                'd',
+                InputOption::VALUE_NONE,
+                'Show debug messages'
+            );
     }
 }
