@@ -1,0 +1,34 @@
+{
+  "main": "tinybox.php",
+  "output": "/build/artifact.phar",
+  "compression": "GZ",
+  "algorithm": "SHA512",
+  "directories": [
+    "app",
+    "src"
+  ],
+  "files": [
+    "tinybox.php"
+  ],
+  "finder": [
+    {
+      "in": "vendor",
+      "exclude": [
+        "tests",
+        "test",
+        "docs",
+        "doc",
+        "examples",
+        "example",
+        "fixtures",
+        "README*",
+        "CHANGELOG*",
+        "LICENSE*",
+        "*.md",
+        "*.rst",
+        ".github"
+      ]
+    }
+  ],
+  "exclude-dev-files": true
+}
