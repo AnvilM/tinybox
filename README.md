@@ -8,10 +8,9 @@
 
 
 [![php-version-shield]][php-version-link]
-[![phpstan-shield]][phpstan-link]
 [![][github-release-shield]][github-release-link]
-
 [![status-shield]][status-link]
+
 [![last-commit-shield]][last-commit-link]
 [![][github-release-date-shield]][github-release-date-link]
 [![github-license-shield]][github-license-link]
@@ -35,6 +34,27 @@ templates.
     - Generate configurations
     - Store configurations
     - Apply configurations
+
+## Supported Platforms
+
+Tinybox is supported on:
+
+- **Linux x86_64** — full functionality.
+
+> Other platforms and architectures are not supported.
+
+## Dependencies
+
+Tinybox requires the following software to function properly:
+
+- **sing-box** — required sing-box cli.
+- **sudo** — required for operations that need elevated privileges.
+
+## Installation
+
+```shell
+curl -L https://github.com/AnvilM/tinybox/releases/latest/download/tinybox -o tinybox && chmod +x tinybox && sudo mv tinybox /usr/bin/
+```
 
 ## Commands
 
@@ -215,10 +235,6 @@ The project is distributed under the MIT License. For details, refer to the [LIC
 [last-commit-link]: https://github.com/AnvilM/tinybox/commits
 
 [last-commit-shield]: https://img.shields.io/github/last-commit/anvilm/tinybox?labelColor=black&style=flat-square
-
-[phpstan-link]: https://github.com/AnvilM/tinybox/
-
-[phpstan-shield]: https://img.shields.io/badge/PHPStan-Level%20max-blue?logo=php&labelColor=black&style=flat-square
 
 [php-version-link]: https://github.com/AnvilM/tinybox/
 
