@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\RunSingBox\Process;
 
-use App\Core\Shared\Ports\Config\ConfigFactoryPort;
+use App\Core\Shared\Ports\Config\ConfigInstancePort;
 use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\RunSingBox\Process\RunSingBox\RunSingBoxReporterEvent;
 use RuntimeException;
@@ -15,8 +15,8 @@ use RuntimeException;
 final readonly class RunSingBox
 {
     public function __construct(
-        private ConfigFactoryPort $configFactoryPort,
-        private ReporterPort      $reporterPort,
+        private ConfigInstancePort $configInstancePort,
+        private ReporterPort       $reporterPort,
     )
     {
     }
@@ -43,7 +43,7 @@ final readonly class RunSingBox
          * Preparing cli command
          */
         $command = "sudo "
-            . $this->configFactoryPort->get()->singBoxConfig->binary
+            . $this->configInstancePort->get()->singBoxConfig->binary
             . " run -c "
             . $configPath;
 
