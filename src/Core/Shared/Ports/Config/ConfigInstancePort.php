@@ -6,7 +6,7 @@ namespace App\Core\Shared\Ports\Config;
 
 use App\Core\Shared\VO\Config\ConfigVO;
 
-interface ConfigFactoryPort
+interface ConfigInstancePort
 {
     /**
      * Get config value object

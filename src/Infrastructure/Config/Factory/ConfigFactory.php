@@ -4,48 +4,50 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Config\Factory;
 
-use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
-use App\Core\Shared\Exception\File\UnableToReadFileException;
-use App\Core\Shared\Ports\Config\ConfigFactoryPort;
-use App\Core\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
-use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
-use App\Core\Shared\ReporterEvent\Events\Shared\Config\ConfigFileReadFailedReporterEvent;
+use App\Core\Shared\Ports\OS\Path\NormalizePathPort;
 use App\Core\Shared\VO\Config\ConfigVO;
-use App\Infrastructure\Config\Mapper\RawConfigMapper;
-use Application\Config\ApplicationConfig\ApplicationConfig;
+use App\Core\Shared\VO\Config\SingBox\SingBoxConfigVO;
+use App\Core\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
 
-final readonly class ConfigFactory implements ConfigFactoryPort
+final readonly class ConfigFactory
 {
-
-    private ConfigVO $config;
-
     public function __construct(
-        private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
-        private RawConfigMapper        $rawConfigMapper,
-        private DefaultConfigFactory   $defaultConfigFactory,
-        private ReporterPort           $reporterPort,
+        private NormalizePathPort $normalizePathPort,
     )
     {
-        try {
-            $rawConfig = $this->readJsonFileNotifyPort
-                ->notifyStartAndSuccess(
-                    "Reading configuration file...",
-                    "Configuration file successfully read"
-                )->read(ApplicationConfig::baseConfigFilePath());
-        } catch (UnableToReadFileException|UnableToDecodeJSONException) {
-            $rawConfig = [];
+    }
 
-            $this->reporterPort->notify(new ConfigFileReadFailedReporterEvent());
-        }
+    /**
+     * Creates config value object from raw json decoded config array
+     *
+     * @param array $rawConfig Raw, json decoded config
+     * @param ConfigVO $defaultConfig Default config used if some field in raw config not found
+     *
+     * @return ConfigVO Config value object
+     */
+    public function create(array $rawConfig, ConfigVO $defaultConfig): ConfigVO
+    {
+        return new ConfigVO(
+            $this->normalizePath($rawConfig['subscriptions_list'] ?? null) ?? $defaultConfig->subscriptionListPath,
+            $this->normalizePath($rawConfig['generated_configs_dir'] ?? null) ?? $defaultConfig->generatedConfigsDirectoryPath,
+            new SingBoxConfigVO(
+                $rawConfig['sing_box']['binary'] ?? $defaultConfig->singBoxConfig->binary,
+                new TemplatesSingBoxConfigVO(
+                    $this->normalizePath($rawConfig['sing_box']['templates']['outbound'] ?? null) ?? $defaultConfig->singBoxConfig->templates->outbound,
+                    $this->normalizePath($rawConfig['sing_box']['templates']['outbound_urltest'] ?? null) ?? $defaultConfig->singBoxConfig->templates->outboundUrltest,
+                    $this->normalizePath($rawConfig['sing_box']['templates']['config'] ?? null) ?? $defaultConfig->singBoxConfig->templates->config,
+                ),
+                $this->normalizePath($rawConfig['sing_box']['default_config_path'] ?? null) ?? $defaultConfig->singBoxConfig->defaultConfigPath,
+                $rawConfig['sing_box']['systemd_service_name'] ?? $defaultConfig->singBoxConfig->systemdServiceName
 
-        $this->config = $this->rawConfigMapper->map(
-            $rawConfig,
-            $this->defaultConfigFactory->create()
+            )
         );
     }
 
-    public function get(): ConfigVO
+    private function normalizePath(?string $path): ?string
     {
-        return $this->config;
+        return $path === null
+            ? null
+            : $this->normalizePathPort->execute($path);
     }
 }
