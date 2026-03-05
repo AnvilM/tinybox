@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Config\Factory;
 
+use App\Core\Shared\Ports\OS\Directories\GetConfigsDirectoryPort;
+use App\Core\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
 use App\Core\Shared\VO\Config\ConfigVO;
 use App\Core\Shared\VO\Config\SingBox\SingBoxConfigVO;
 use App\Core\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
-use App\Infrastructure\Shared\OS\Helper\GetConfigsDirectory;
-use App\Infrastructure\Shared\OS\Helper\GetDataHomeDirectory;
 
 final readonly class DefaultConfigFactory
 {
     public function __construct(
-        private GetConfigsDirectory  $getConfigsDirectory,
-        private GetDataHomeDirectory $getDataHomeDirectory,
+        private GetConfigsDirectoryPort  $getConfigsDirectory,
+        private GetDataHomeDirectoryPort $getDataHomeDirectory,
     )
     {
 
