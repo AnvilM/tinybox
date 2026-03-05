@@ -64,6 +64,24 @@ Displays the list of added subscriptions.
 tinybox subscription:list
 ```
 
+### tinybox subscription:add
+
+**Description**
+
+Add subscription to subscriptions list.
+
+**Arguments**
+
+`subscriptionName` — subscription name.
+
+`subscriptionUrl` — subscription url.
+
+**Usage example**
+
+```bash
+tinybox subscription:add subName https://example.com
+```
+
 ### tinybox subscription:update
 
 **Description**
