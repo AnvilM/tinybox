@@ -9,7 +9,7 @@ use App\Application\RunSingBox\File\CopyConfigToDefaultSingBoxConfig;
 use App\Application\RunSingBox\Process\RestartSingBoxSystemd;
 use App\Application\RunSingBox\Process\RunSingBox;
 use App\Core\Shared\Exception\CriticalException;
-use App\Core\Shared\Ports\Config\ConfigFactoryPort;
+use App\Core\Shared\Ports\Config\ConfigInstancePort;
 use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\RunSingBox\File\CopyConfigToDefaultSingBoxConfig\ConfigSuccessfullyCopiedReporterEvent;
 use RuntimeException;
@@ -18,7 +18,7 @@ final readonly class RunSingBoxHandler
 {
     public function __construct(
         private RunSingBox                       $runSingBox,
-        private ConfigFactoryPort                $configFactoryPort,
+        private ConfigInstancePort               $configInstancePort,
         private CopyConfigToDefaultSingBoxConfig $copyConfigToDefaultSingBoxConfig,
         private RestartSingBoxSystemd            $restartSingBoxSystemd,
         private ReporterPort                     $reporterPort,
@@ -28,7 +28,7 @@ final readonly class RunSingBoxHandler
 
     public function handle(RunSingBoxCommand $command): void
     {
-        $configPath = $this->configFactoryPort->get()->generatedConfigsDirectoryPath . "/$command->subscriptionName.json";
+        $configPath = $this->configInstancePort->get()->generatedConfigsDirectoryPath . "/$command->subscriptionName.json";
 
         if (!file_exists($configPath))
             throw new CriticalException("Config $command->subscriptionName doesn't exist", $configPath);
@@ -50,7 +50,7 @@ final readonly class RunSingBoxHandler
 
         $this->reporterPort->notify(new ConfigSuccessfullyCopiedReporterEvent(
             $configPath,
-            $this->configFactoryPort->get()->singBoxConfig->defaultConfigPath,
+            $this->configInstancePort->get()->singBoxConfig->defaultConfigPath,
             $command->subscriptionName
         ));
 
