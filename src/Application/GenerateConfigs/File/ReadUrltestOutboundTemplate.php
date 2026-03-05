@@ -7,14 +7,14 @@ namespace App\Application\GenerateConfigs\File;
 use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Core\Shared\Exception\File\UnableToReadFileException;
-use App\Core\Shared\Ports\Config\ConfigFactoryPort;
+use App\Core\Shared\Ports\Config\ConfigInstancePort;
 use App\Core\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 
 final readonly class ReadUrltestOutboundTemplate
 {
     public function __construct(
         private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
-        private ConfigFactoryPort      $configFactoryPort,
+        private ConfigInstancePort     $configInstancePort,
     )
     {
     }
@@ -32,13 +32,13 @@ final readonly class ReadUrltestOutboundTemplate
             return $this->readJsonFileNotifyPort->notifyStartAndSuccess(
                 "Reading urltest outbound template file...",
                 "Urltest outbound template file successfully read"
-            )->read($this->configFactoryPort->get()->singBoxConfig->templates->outboundUrltest);
+            )->read($this->configInstancePort->get()->singBoxConfig->templates->outboundUrltest);
         } catch (UnableToDecodeJSONException|UnableToReadFileException $e) {
             throw new CriticalException(
                 ($e instanceof UnableToDecodeJSONException)
                     ? "Unable to parse JSON from urltest outbound template file"
                     : "Unable to read urltest outbound template file",
-                $this->configFactoryPort->get()->singBoxConfig->templates->outboundUrltest
+                $this->configInstancePort->get()->singBoxConfig->templates->outboundUrltest
             );
         }
     }

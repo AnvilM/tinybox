@@ -6,7 +6,7 @@ namespace App\Application\ScanGeneratedConfigsDirectory\Handler;
 
 use App\Application\ScanGeneratedConfigsDirectory\Command\ScanGeneratedConfigsDirectoryCommandResult;
 use App\Core\Shared\Exception\CriticalException;
-use App\Core\Shared\Ports\Config\ConfigFactoryPort;
+use App\Core\Shared\Ports\Config\ConfigInstancePort;
 use App\Core\Shared\Ports\IO\Directory\ScanDirectoryForFilesPort;
 use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\ScanGeneratedConfigsDirectory\Handler\ScanGeneratedConfigsDirectoryHandler\SearchingConfigFilesReporterEvent;
@@ -17,7 +17,7 @@ final readonly class ScanGeneratedConfigsDirectoryHandler
 {
     public function __construct(
         private ScanDirectoryForFilesPort $scanDirectoryForFilesPort,
-        private ConfigFactoryPort         $configFactoryPort,
+        private ConfigInstancePort        $configInstancePort,
         private ReporterPort              $reporterPort,
     )
     {
@@ -35,7 +35,7 @@ final readonly class ScanGeneratedConfigsDirectoryHandler
         /**
          * Get generated config directory path from app config
          */
-        $generatedConfigsDirectoryPath = $this->configFactoryPort->get()->generatedConfigsDirectoryPath;
+        $generatedConfigsDirectoryPath = $this->configInstancePort->get()->generatedConfigsDirectoryPath;
 
         /**
          * Notify scanning directory

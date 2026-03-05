@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\RunSingBox\File;
 
 use App\Application\RunSingBox\Exception\UnableToCopyConfigException;
-use App\Core\Shared\Ports\Config\ConfigFactoryPort;
+use App\Core\Shared\Ports\Config\ConfigInstancePort;
 use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\RunSingBox\File\CopyConfigToDefaultSingBoxConfig\CopyConfigReporterEvent;
 use RuntimeException;
@@ -13,8 +13,8 @@ use RuntimeException;
 final readonly class CopyConfigToDefaultSingBoxConfig
 {
     public function __construct(
-        private ConfigFactoryPort $configFactoryPort,
-        private ReporterPort      $reporterPort
+        private ConfigInstancePort $configInstancePort,
+        private ReporterPort       $reporterPort
     )
     {
     }
@@ -28,7 +28,7 @@ final readonly class CopyConfigToDefaultSingBoxConfig
      */
     public function copy(string $configPath): void
     {
-        $targetPath = $this->configFactoryPort->get()->singBoxConfig->defaultConfigPath;
+        $targetPath = $this->configInstancePort->get()->singBoxConfig->defaultConfigPath;
 
         $this->reporterPort->notify(
             new CopyConfigReporterEvent($configPath, $targetPath)

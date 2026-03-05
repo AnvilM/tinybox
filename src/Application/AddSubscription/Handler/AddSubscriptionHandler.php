@@ -9,7 +9,7 @@ use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Core\Shared\Exception\File\UnableToReadFileException;
 use App\Core\Shared\Exception\File\UnableToSaveFileException;
-use App\Core\Shared\Ports\Config\ConfigFactoryPort;
+use App\Core\Shared\Ports\Config\ConfigInstancePort;
 use App\Core\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 use App\Core\Shared\Ports\IO\File\SaveFileNotifyPort;
 use JsonException;
@@ -18,7 +18,7 @@ final readonly class AddSubscriptionHandler
 {
     public function __construct(
         private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
-        private ConfigFactoryPort      $configFactoryPort,
+        private ConfigInstancePort     $configInstancePort,
         private SaveFileNotifyPort     $saveFileNotifyPort,
     )
     {
@@ -36,13 +36,13 @@ final readonly class AddSubscriptionHandler
             $subscriptionArray = $this->readJsonFileNotifyPort->notifyStartAndSuccess(
                 "Reading subscriptions list file...",
                 "Subscriptions list file successfully read",
-            )->read($this->configFactoryPort->get()->subscriptionListPath);
+            )->read($this->configInstancePort->get()->subscriptionListPath);
         } catch (UnableToDecodeJSONException|UnableToReadFileException $e) {
             throw new CriticalException(
                 ($e instanceof UnableToDecodeJSONException)
                     ? "Unable to parse JSON at subscriptions list"
                     : "Unable to read file at subscriptions list",
-                $this->configFactoryPort->get()->subscriptionListPath
+                $this->configInstancePort->get()->subscriptionListPath
             );
         }
 
@@ -58,9 +58,9 @@ final readonly class AddSubscriptionHandler
             $this->saveFileNotifyPort->notifyStartAndSuccess(
                 "Saving subscriptions list file...",
                 "Subscriptions list file successfully saved",
-            )->save($this->configFactoryPort->get()->subscriptionListPath, $subscriptionsListJson);
+            )->save($this->configInstancePort->get()->subscriptionListPath, $subscriptionsListJson);
         } catch (UnableToSaveFileException) {
-            throw new CriticalException("Unable to save subscriptions list file", $this->configFactoryPort->get()->subscriptionListPath);
+            throw new CriticalException("Unable to save subscriptions list file", $this->configInstancePort->get()->subscriptionListPath);
         }
 
     }

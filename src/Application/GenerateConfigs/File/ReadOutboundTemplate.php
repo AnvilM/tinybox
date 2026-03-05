@@ -7,14 +7,14 @@ namespace App\Application\GenerateConfigs\File;
 use App\Core\Shared\Exception\CriticalException;
 use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Core\Shared\Exception\File\UnableToReadFileException;
-use App\Core\Shared\Ports\Config\ConfigFactoryPort;
+use App\Core\Shared\Ports\Config\ConfigInstancePort;
 use App\Core\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 
 final readonly class ReadOutboundTemplate
 {
     public function __construct(
         private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
-        private ConfigFactoryPort      $configFactoryPort,
+        private ConfigInstancePort     $configInstancePort,
     )
     {
     }
@@ -33,13 +33,13 @@ final readonly class ReadOutboundTemplate
                 ->notifyStartAndSuccess(
                     "Reading outbound template file...",
                     "Outbound template file successfully read"
-                )->read($this->configFactoryPort->get()->singBoxConfig->templates->outbound);
+                )->read($this->configInstancePort->get()->singBoxConfig->templates->outbound);
         } catch (UnableToDecodeJSONException|UnableToReadFileException $e) {
             throw new CriticalException(
                 ($e instanceof UnableToDecodeJSONException)
                     ? "Unable to parse JSON from outbound template file"
                     : "Unable to read outbound template file",
-                $this->configFactoryPort->get()->singBoxConfig->templates->outbound
+                $this->configInstancePort->get()->singBoxConfig->templates->outbound
             );
         }
     }

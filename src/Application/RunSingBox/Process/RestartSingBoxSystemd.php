@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\RunSingBox\Process;
 
-use App\Core\Shared\Ports\Config\ConfigFactoryPort;
+use App\Core\Shared\Ports\Config\ConfigInstancePort;
 use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Core\Shared\ReporterEvent\Events\RunSingBox\Process\RestartSingBoxSystemd\RestartSingBoxSystemdReporterEvent;
 use App\Core\Shared\ReporterEvent\Events\RunSingBox\Process\RestartSingBoxSystemd\SingBoxSystemdSuccessfullyRestarted;
@@ -13,8 +13,8 @@ use RuntimeException;
 final readonly class RestartSingBoxSystemd
 {
     public function __construct(
-        private ConfigFactoryPort $configFactoryPort,
-        private ReporterPort      $reporterPort,
+        private ConfigInstancePort $configInstancePort,
+        private ReporterPort       $reporterPort,
     )
     {
     }
@@ -29,7 +29,7 @@ final readonly class RestartSingBoxSystemd
     public function reload(string $subscriptionName): void
     {
 
-        $escapedServiceName = escapeshellarg($this->configFactoryPort->get()->singBoxConfig->systemdServiceName);
+        $escapedServiceName = escapeshellarg($this->configInstancePort->get()->singBoxConfig->systemdServiceName);
 
         /**
          * Restart service
