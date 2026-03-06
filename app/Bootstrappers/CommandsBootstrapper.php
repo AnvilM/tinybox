@@ -6,6 +6,7 @@ namespace Application\Bootstrappers;
 
 use App\Commands\AddSubscriptionCommand;
 use App\Commands\ApplySubscriptionCommand;
+use App\Commands\CreateConfigCommand;
 use App\Commands\ListConfigsCommand;
 use App\Commands\ListSubscriptionsCommand;
 use App\Commands\UpdateSubscriptionsCommand;
@@ -22,7 +23,8 @@ final class CommandsBootstrapper
         ListSubscriptionsCommand::class,
         ListConfigsCommand::class,
         ApplySubscriptionCommand::class,
-        AddSubscriptionCommand::class
+        AddSubscriptionCommand::class,
+        CreateConfigCommand::class
     ];
 
 
