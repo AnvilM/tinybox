@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Shared\Http;
 
-use App\Core\Shared\Ports\Http\HttpProt;
+use App\Domain\Shared\Ports\Http\HttpProt;
 use Closure;
 use Exception;
 use GuzzleHttp\Client;
@@ -22,7 +22,7 @@ final readonly class Http implements HttpProt
          */
 
 
-        $client = new Client(['timeout' => 5.0]);
+        $client = new Client(['timeout' => 100.0]);
 
 
         /**

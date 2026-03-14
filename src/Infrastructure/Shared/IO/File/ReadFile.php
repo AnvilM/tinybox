@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Shared\IO\File;
 
-use App\Core\Shared\Exception\File\UnableToReadFileException;
-use App\Core\Shared\Ports\IO\File\ReadFilePort;
+use App\Domain\Shared\Exception\File\UnableToReadFileException;
+use App\Domain\Shared\Ports\IO\File\ReadFilePort;
 
 final readonly class ReadFile implements ReadFilePort
 {
@@ -14,7 +14,7 @@ final readonly class ReadFile implements ReadFilePort
     {
         $fileContent = @file_get_contents($path);
 
-        if ($fileContent === false) throw new UnableToReadFileException();
+        if ($fileContent === false) throw new UnableToReadFileException($path);
 
         return $fileContent;
     }

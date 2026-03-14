@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Config\Factory;
 
-use App\Core\Shared\Ports\OS\Path\NormalizePathPort;
-use App\Core\Shared\VO\Config\ConfigVO;
-use App\Core\Shared\VO\Config\SingBox\SingBoxConfigVO;
-use App\Core\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
+use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
+use App\Domain\Shared\VO\Config\ConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
 
 final readonly class ConfigFactory
 {
@@ -30,6 +30,7 @@ final readonly class ConfigFactory
         return new ConfigVO(
             $this->normalizePath($rawConfig['subscriptions_list'] ?? null) ?? $defaultConfig->subscriptionListPath,
             $this->normalizePath($rawConfig['generated_configs_dir'] ?? null) ?? $defaultConfig->generatedConfigsDirectoryPath,
+            $this->normalizePath($rawConfig['schemes_list'] ?? null) ?? $defaultConfig->schemesListPath,
             new SingBoxConfigVO(
                 $rawConfig['sing_box']['binary'] ?? $defaultConfig->singBoxConfig->binary,
                 new TemplatesSingBoxConfigVO(

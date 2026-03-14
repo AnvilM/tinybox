@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Shared\IO\Directory;
 
-use App\Core\Shared\Ports\IO\Directory\ScanDirectoryForFilesPort;
+use App\Domain\Shared\Ports\IO\Directory\ScanDirectoryForFilesPort;
 use FilesystemIterator;
 use InvalidArgumentException;
 use RuntimeException;

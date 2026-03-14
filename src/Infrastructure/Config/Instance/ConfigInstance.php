@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Config\Instance;
 
-use App\Core\Shared\Exception\File\UnableToDecodeJSONException;
-use App\Core\Shared\Exception\File\UnableToReadFileException;
-use App\Core\Shared\Ports\Config\ConfigInstancePort;
-use App\Core\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
-use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
-use App\Core\Shared\ReporterEvent\Events\Shared\Config\ConfigFileReadFailedReporterEvent;
-use App\Core\Shared\VO\Config\ConfigVO;
+use App\Domain\Shared\Exception\File\UnableToDecodeJSONException;
+use App\Domain\Shared\Exception\File\UnableToReadFileException;
+use App\Domain\Shared\Ports\Config\ConfigInstancePort;
+use App\Domain\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
+use App\Domain\Shared\ReporterEvent\Events\Shared\Config\ConfigFileReadFailedReporterEvent;
+use App\Domain\Shared\VO\Config\ConfigVO;
 use App\Infrastructure\Config\Factory\ConfigFactory;
 use App\Infrastructure\Config\Factory\DefaultConfigFactory;
 use Application\Config\ApplicationConfig\ApplicationConfig;

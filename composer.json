@@ -28,7 +28,8 @@
     "opis/json-schema": "^2.6",
     "guzzlehttp/guzzle": "^7.0",
     "league/climate": "^3.10",
-    "ramsey/collection": "^2.1"
+    "ramsey/collection": "^2.1",
+    "azjezz/psl": "^5.3"
   },
   "require-dev": {
     "pestphp/pest": "^4.1"
