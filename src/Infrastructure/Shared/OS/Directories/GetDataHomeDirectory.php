@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Shared\OS\Directories;
 
-use App\Core\Shared\Exception\CriticalException;
-use App\Core\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
+use App\Domain\Shared\Exception\CriticalException;
+use App\Domain\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
 use Application\Config\ApplicationConfig\ApplicationConfig;
 use RuntimeException;
 

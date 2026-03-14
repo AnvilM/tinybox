@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Config\Factory;
 
-use App\Core\Shared\Ports\OS\Directories\GetConfigsDirectoryPort;
-use App\Core\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
-use App\Core\Shared\VO\Config\ConfigVO;
-use App\Core\Shared\VO\Config\SingBox\SingBoxConfigVO;
-use App\Core\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
+use App\Domain\Shared\Ports\OS\Directories\GetConfigsDirectoryPort;
+use App\Domain\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
+use App\Domain\Shared\VO\Config\ConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
 
 final readonly class DefaultConfigFactory
 {
@@ -25,6 +25,7 @@ final readonly class DefaultConfigFactory
         return new ConfigVO(
             $this->getDataHomeDirectory->execute() . '/subscriptions.json',
             $this->getDataHomeDirectory->execute() . '/configs/',
+            $this->getDataHomeDirectory->execute() . '/schemes.json',
             new SingBoxConfigVO(
                 'sing-box',
                 new TemplatesSingBoxConfigVO(

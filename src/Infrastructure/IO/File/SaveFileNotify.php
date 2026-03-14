@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\IO\File;
 
-use App\Core\Shared\Ports\IO\File\SaveFileNotifyPort;
-use App\Core\Shared\Ports\IO\File\SaveFilePort;
-use App\Core\Shared\Ports\IO\Reporter\ReporterPort;
-use App\Core\Shared\ReporterEvent\Events\Shared\IO\File\FileReadingStartReporterEvent;
-use App\Core\Shared\ReporterEvent\Events\Shared\IO\File\FileReadSuccessfullyReporterEvent;
+use App\Domain\Shared\Ports\IO\File\SaveFileNotifyPort;
+use App\Domain\Shared\Ports\IO\File\SaveFilePort;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
+use App\Domain\Shared\ReporterEvent\Events\Shared\IO\File\FileReadingStartReporterEvent;
+use App\Domain\Shared\ReporterEvent\Events\Shared\IO\File\FileReadSuccessfullyReporterEvent;
 
 final class SaveFileNotify implements SaveFileNotifyPort
 {

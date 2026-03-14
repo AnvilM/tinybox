@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Shared\OS\Path;
 
-use App\Core\Shared\Exception\CriticalException;
-use App\Core\Shared\Ports\OS\Path\NormalizePathPort;
+use App\Domain\Shared\Exception\CriticalException;
+use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
 use InvalidArgumentException;
 use RuntimeException;
 use UnexpectedValueException;
