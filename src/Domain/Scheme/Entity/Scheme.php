@@ -104,7 +104,7 @@ final readonly class Scheme
         $rawTag .= $this->flow;
         $rawTag .= $this->fp;
 
-        return \Psl\Hash\hash($rawTag, Algorithm::Murmur3A);
+        return \Psl\Hash\hash($rawTag, Algorithm::Murmur3F);
     }
 
     public function equals(Scheme $scheme): bool
@@ -170,6 +170,11 @@ final readonly class Scheme
     public function getTag(): string
     {
         return $this->tag;
+    }
+
+    public function getHash(): string
+    {
+        return \Psl\Hash\hash($this->toRawScheme(), Algorithm::Murmur3F);
     }
 
     public function toRawScheme(): string

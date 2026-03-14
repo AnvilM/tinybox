@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\Scheme\Shared\File;
 
-use App\Domain\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
+use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 
@@ -25,7 +25,7 @@ final readonly class ReadSchemes
      * @return array Unvalidated JSON decoded array of schemes
      *
      * @throws UnableToReadFileException Throws if unable to read file
-     * @throws UnableToDecodeJSONException Throws if unable to parse JSON
+     * @throws UnableToDecodeJsonException Throws if unable to parse JSON
      */
     public function read(): array
     {

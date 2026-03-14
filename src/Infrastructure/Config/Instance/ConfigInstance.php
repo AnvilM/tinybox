@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Config\Instance;
 
-use App\Domain\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
+use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
@@ -32,7 +32,7 @@ final readonly class ConfigInstance implements ConfigInstancePort
                     "Reading configuration file...",
                     "Configuration file successfully read"
                 )->read(ApplicationConfig::baseConfigFilePath());
-        } catch (UnableToReadFileException|UnableToDecodeJSONException) {
+        } catch (UnableToReadFileException|UnableToDecodeJsonException) {
             $rawConfig = [];
 
             $this->reporterPort->notify(new ConfigFileReadFailedReporterEvent());

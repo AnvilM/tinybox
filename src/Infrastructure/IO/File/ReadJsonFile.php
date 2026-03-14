@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\IO\File;
 
-use App\Domain\Shared\Exception\File\UnableToDecodeJSONException;
+use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Ports\IO\File\ReadJsonFilePort;
 use App\Infrastructure\Shared\IO\File\ReadFile;
 use JsonException;
@@ -43,7 +43,7 @@ final readonly class ReadJsonFile implements ReadJsonFilePort
             /**
              * Throw exception if unable to decode file content
              */
-            throw new UnableToDecodeJSONException($path);
+            throw new UnableToDecodeJsonException($path);
         }
     }
 }
