@@ -18,19 +18,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class AddSchemeCommand extends AbstractCommand
 {
     public function __construct(
-        private readonly ReporterPort     $reporterPort,
+        ReporterPort                      $reporterPort,
         private readonly AddSchemeHandler $addSchemeHandler,
     )
     {
-        parent::__construct($this->reporterPort);
+        parent::__construct($reporterPort);
     }
-
-    protected function configure(): void
-    {
-        $this->addArgument('scheme', InputArgument::REQUIRED, 'Scheme string')
-            ->addOption('debug', 'd', InputOption::VALUE_NONE, 'Show debug messages');
-    }
-
 
     protected function handle(InputInterface $input, OutputInterface $output): int
     {
@@ -42,4 +35,12 @@ final class AddSchemeCommand extends AbstractCommand
 
         return Command::SUCCESS;
     }
+
+    protected function configure(): void
+    {
+        $this->addArgument('scheme', InputArgument::REQUIRED, 'Scheme string')
+            ->addOption('debug', 'd', InputOption::VALUE_NONE, 'Show debug messages');
+    }
+
+
 }

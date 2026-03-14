@@ -9,6 +9,7 @@ use App\Application\Shared\Scheme\Exception\UnableToParseRawSchemeStringExceptio
 use App\Application\Shared\Scheme\Shared\File\WriteSchemes;
 use App\Application\Shared\Scheme\Shared\Parser\RawSchemeParser;
 use App\Application\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
+use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Domain\Scheme\Factory\SchemeFactory;
 use App\Domain\Shared\Exception\CriticalException;
@@ -41,11 +42,11 @@ final readonly class AddSchemeHandler
             throw new CriticalException("Invalid scheme provided", $command->schemeString);
         }
 
-        if ($schemes->has($newScheme)) {
-            throw new CriticalException("already exists");
+        try {
+            $schemes->add($newScheme);
+        } catch (SchemeAlreadyExistsException) {
+            throw new CriticalException("Provided scheme already exists", $command->schemeString);
         }
-
-        $schemes->add($newScheme);
 
         $this->writeSchemes->write($schemes);
 

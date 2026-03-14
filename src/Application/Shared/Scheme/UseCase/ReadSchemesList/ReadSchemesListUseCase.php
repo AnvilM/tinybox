@@ -9,12 +9,13 @@ use App\Application\Shared\Scheme\Exception\UnableToParseRawSchemeStringExceptio
 use App\Application\Shared\Scheme\Shared\File\ReadSchemes;
 use App\Application\Shared\Scheme\Shared\Parser\RawSchemeParser;
 use App\Application\Shared\Scheme\Shared\Validator\SchemesListFormatValidator;
-use App\Domain\Scheme\Collection\SchemeCollection;
+use App\Domain\Scheme\Collection\SchemeMap;
+use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Domain\Scheme\Factory\SchemeFactory;
 use App\Domain\Shared\Exception\CriticalException;
-use App\Domain\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
+use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Domain\Shared\ReporterEvent\Events\AddScheme\Handler\AddSchemeHandler\InvalidSchemeReporterEvent;
 use InvalidArgumentException;
@@ -34,17 +35,17 @@ final readonly class ReadSchemesListUseCase
     /**
      * Read schemes list from file
      *
-     * @return SchemeCollection Scheme collection from file
+     * @return SchemeMap Scheme map from file
      *
      * @throws CriticalException
      */
-    public function handle(): SchemeCollection
+    public function handle(): SchemeMap
     {
         try {
             $rawSchemesStringArray = $this->readSchemes->read();
         } catch (UnableToReadFileException $e) {
             throw new CriticalException("Unable to read schemes list", $e->getMessage());
-        } catch (UnableToDecodeJSONException $e) {
+        } catch (UnableToDecodeJsonException $e) {
             throw new CriticalException("Invalid schemes list format", $e->getMessage());
         }
 
@@ -55,7 +56,7 @@ final readonly class ReadSchemesListUseCase
         }
 
 
-        $schemes = new SchemeCollection();
+        $schemes = new SchemeMap();
 
         foreach ($rawSchemesStringArray as $rawSchemeString) {
 
@@ -65,6 +66,9 @@ final readonly class ReadSchemesListUseCase
                 ));
             } catch (UnsupportedSchemeType|UnableToParseRawSchemeStringException|InvalidArgumentException) {
                 $this->reporterPort->notify(new InvalidSchemeReporterEvent($rawSchemeString));
+                continue;
+            } catch (SchemeAlreadyExistsException) {
+                // TODO: Add reporter event
                 continue;
             }
         }

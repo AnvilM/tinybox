@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Ports\IO\File;
 
-use App\Domain\Shared\Exception\File\UnableToDecodeJSONException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
+use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 
 interface ReadJsonFileNotifyPort
 {
@@ -17,7 +17,7 @@ interface ReadJsonFileNotifyPort
      * @return array Json decoded array
      *
      * @throws UnableToReadFileException Throws if unable to read file
-     * @throws UnableToDecodeJSONException Throws if unable to decode json
+     * @throws UnableToDecodeJsonException Throws if unable to decode json
      */
     public function read(string $path): array;
 
