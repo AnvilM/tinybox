@@ -24,7 +24,7 @@ final readonly class DefaultConfigFactory
     {
         return new ConfigVO(
             $this->getDataHomeDirectory->execute() . '/subscriptions.json',
-            $this->getDataHomeDirectory->execute() . '/configs/',
+            $this->getDataHomeDirectory->execute() . '/configs.json',
             $this->getDataHomeDirectory->execute() . '/schemes.json',
             new SingBoxConfigVO(
                 'sing-box',

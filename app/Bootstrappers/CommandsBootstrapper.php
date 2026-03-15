@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Bootstrappers;
 
+use App\Commands\Config\AddSchemeToConfigCommand;
+use App\Commands\Config\ListConfigsCommand;
 use App\Commands\Scheme\AddSchemeCommand;
 use App\Commands\Scheme\ListSchemesCommand;
 use Psr\Container\ContainerInterface;
@@ -17,6 +19,8 @@ final class CommandsBootstrapper
     private static array $commands = [
         AddSchemeCommand::class,
         ListSchemesCommand::class,
+        AddSchemeToConfigCommand::class,
+        ListConfigsCommand::class
     ];
 
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\Scheme\Shared\Validator;
 
-use App\Application\Shared\Scheme\Exception\InvalidSchemesListFormatException;
+use App\Application\Shared\Scheme\Exception\Shared\Validator\InvalidSchemesListFormatException;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Validator;
 
@@ -42,6 +42,6 @@ final readonly class SchemesListFormatValidator
             $this->schema
         );
 
-        if ($validation->hasError()) throw new InvalidSchemesListFormatException("Invalid schemes list format");
+        if ($validation->hasError()) throw new InvalidSchemesListFormatException();
     }
 }

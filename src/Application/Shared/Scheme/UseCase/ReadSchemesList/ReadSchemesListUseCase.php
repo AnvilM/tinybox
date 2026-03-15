@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\Scheme\UseCase\ReadSchemesList;
 
-use App\Application\Shared\Scheme\Exception\InvalidSchemesListFormatException;
-use App\Application\Shared\Scheme\Exception\UnableToParseRawSchemeStringException;
+use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
+use App\Application\Shared\Scheme\Exception\Shared\Validator\InvalidSchemesListFormatException;
 use App\Application\Shared\Scheme\Shared\File\ReadSchemes;
 use App\Application\Shared\Scheme\Shared\Parser\RawSchemeParser;
 use App\Application\Shared\Scheme\Shared\Validator\SchemesListFormatValidator;

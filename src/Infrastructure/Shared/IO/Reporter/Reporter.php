@@ -9,6 +9,7 @@ use App\Domain\Shared\ReporterEvent\ReporterEventInterface;
 use App\Domain\Shared\VO\ReporterEvent\ReporterEventDebugMessagesVO;
 use App\Domain\Shared\VO\ReporterEvent\ReporterEventTypeVO;
 use App\Infrastructure\Shared\IO\Reporter\Output\CLI;
+use Application\Config\ApplicationConfig\ApplicationConfig;
 
 final readonly class Reporter implements ReporterPort
 {
@@ -20,6 +21,8 @@ final readonly class Reporter implements ReporterPort
 
     public function notify(ReporterEventInterface $reporterEvent): void
     {
+        if (ApplicationConfig::isSilent()) return;
+
         $formatedMessage = $reporterEvent->getType()->value . ' ';
 
         if ($reporterEvent->getBreadcrumbsVO()) foreach ($reporterEvent->getBreadcrumbsVO() as $breadcrumb) {
