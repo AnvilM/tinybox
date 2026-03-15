@@ -23,6 +23,19 @@ final readonly class ApplicationConfig
         return false;
     }
 
+    public static function isSilent(): bool
+    {
+        $argv = $_SERVER['argv'] ?? [];
+
+        foreach ($argv as $arg) {
+            if ($arg === '--silent') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static function baseConfigFilePath(): string
     {
         return self::configDirectoryPath() . '/config.json';

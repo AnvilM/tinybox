@@ -9,6 +9,7 @@ use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
 use JsonException;
 use Psl\Collection\MutableMap;
+use Psl\Collection\MutableVector;
 
 final class SchemeMap
 {
@@ -49,7 +50,7 @@ final class SchemeMap
 
 
     /**
-     * Check scheme already exists in map
+     * Check scheme exists in map
      *
      * @param Scheme $scheme Scheme
      *
@@ -62,6 +63,19 @@ final class SchemeMap
         }
 
         return false;
+    }
+
+
+    /**
+     * Check scheme with provided id exists in map
+     *
+     * @param string $schemeId Scheme id
+     *
+     * @return bool Returns true if exists
+     */
+    public function containsSchemeId(string $schemeId): bool
+    {
+        return $this->map->containsKey($schemeId);
     }
 
 
@@ -113,4 +127,11 @@ final class SchemeMap
     }
 
 
+    /**
+     * @return MutableVector<string> Mutable vector of schemes ids e.g., ["id1", "id2"]
+     */
+    public function getIds(): MutableVector
+    {
+        return $this->map->keys();
+    }
 }

@@ -28,8 +28,8 @@ final readonly class ConfigFactory
     public function create(array $rawConfig, ConfigVO $defaultConfig): ConfigVO
     {
         return new ConfigVO(
-            $this->normalizePath($rawConfig['subscriptions_list'] ?? null) ?? $defaultConfig->subscriptionListPath,
-            $this->normalizePath($rawConfig['generated_configs_dir'] ?? null) ?? $defaultConfig->generatedConfigsDirectoryPath,
+            $this->normalizePath($rawConfig['subscriptions_list'] ?? null) ?? $defaultConfig->subscriptionsListPath,
+            $this->normalizePath($rawConfig['configs_list'] ?? null) ?? $defaultConfig->configsListPath,
             $this->normalizePath($rawConfig['schemes_list'] ?? null) ?? $defaultConfig->schemesListPath,
             new SingBoxConfigVO(
                 $rawConfig['sing_box']['binary'] ?? $defaultConfig->singBoxConfig->binary,

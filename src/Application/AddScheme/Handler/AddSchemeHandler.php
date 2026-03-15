@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\AddScheme\Handler;
 
 use App\Application\AddScheme\Command\AddSchemeCommand;
-use App\Application\Shared\Scheme\Exception\UnableToParseRawSchemeStringException;
+use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
 use App\Application\Shared\Scheme\Shared\File\WriteSchemes;
 use App\Application\Shared\Scheme\Shared\Parser\RawSchemeParser;
 use App\Application\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
@@ -26,9 +26,11 @@ final readonly class AddSchemeHandler
     }
 
     /**
+     * @return string Added scheme id
+     *
      * @throws CriticalException
      */
-    public function handle(AddSchemeCommand $command): void
+    public function handle(AddSchemeCommand $command): string
     {
         $schemes = $this->readSchemesListUseCase->handle();
 
@@ -49,6 +51,8 @@ final readonly class AddSchemeHandler
         }
 
         $this->writeSchemes->write($schemes);
+
+        return $newScheme->getHash();
 
     }
 }
