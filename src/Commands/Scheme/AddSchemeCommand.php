@@ -15,7 +15,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'scheme:add', description: 'Add scheme')]
+#[AsCommand(name: 'scheme:add', description: 'Add scheme', aliases: ['sc:add'])]
 final class AddSchemeCommand extends AbstractCommand
 {
     public function __construct(

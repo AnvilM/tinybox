@@ -18,7 +18,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use function Psl\Str\length;
 
-#[AsCommand(name: 'scheme:list', description: 'List schemes')]
+#[AsCommand(name: 'scheme:list', description: 'List schemes', aliases: ['sc:list'])]
 final class ListSchemesCommand extends AbstractCommand
 {
     public function __construct(
