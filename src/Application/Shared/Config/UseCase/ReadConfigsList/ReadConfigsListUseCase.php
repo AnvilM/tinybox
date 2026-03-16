@@ -31,32 +31,59 @@ final readonly class ReadConfigsListUseCase
     }
 
     /**
+     * Read configs list from file
+     *
+     * @return ConfigMap Map of configs entity
+     *
      * @throws CriticalException
      */
     public function handle(): ConfigMap
     {
         try {
-            $rawConfigsListArray = $this->readConfigs->read();
+            /**
+             * Read configs
+             */
+            $rawConfigsList = $this->readConfigs->read();
 
-            $this->configsListFormatValidator->validate($rawConfigsListArray);
+
+            /**
+             * Validate configs
+             */
+            $this->configsListFormatValidator->validate($rawConfigsList);
 
 
-            /** @var array<array{name: string, schemes: string[]}> $rawConfigsListArray */
+            /** @var array<array{name: string, schemes: string[]}> $rawConfigsList */
 
-        } catch (UnableToReadFileException $e) {
-            throw new CriticalException("Unable to read configs list", $e->getMessage());
-        } catch (UnableToDecodeJsonException|InvalidConfigsListFormatException $e) {
-            throw new CriticalException("Invalid configs list format", $e->getMessage());
+        } catch (UnableToReadFileException|UnableToDecodeJsonException|InvalidConfigsListFormatException $e) {
+            throw new CriticalException($e instanceof UnableToReadFileException
+                ? "Unable to read configs list"
+                : "Invalid configs list format",
+                $e->getMessage()
+            );
         }
 
 
+        /**
+         * Read schemes
+         */
         $schemes = $this->readSchemesListUseCase->handle();
+
+
+        /**
+         * Create empty configs map
+         */
         $configs = new ConfigMap();
 
-        foreach ($rawConfigsListArray as $rawConfig) {
+        foreach ($rawConfigsList as $rawConfig) {
+            /**
+             * Create empty config schemes map
+             */
             $configSchemes = new UniqueSchemesMap();
 
             foreach ($rawConfig['schemes'] as $rawConfigScheme) {
+                /**
+                 * Try to find scheme with specific id
+                 */
                 try {
                     $scheme = $schemes->getById($rawConfigScheme);
                 } catch (SchemeNotFoundException) {
@@ -64,18 +91,27 @@ final readonly class ReadConfigsListUseCase
                     //TODO: Add reporter event
                 }
 
+
+                /**
+                 * Try to add found scheme to config schemes map
+                 */
                 try {
                     $configSchemes->add($scheme);
                 } catch (SchemeAlreadyExistsException) {
                     continue;
                     //TODO: Add reporter event
                 }
-
             }
 
+
+            /**
+             * Try to create new config and add it to configs map
+             */
             try {
                 $configs->add(
-                    new Config(new ConfigNameVO($rawConfig['name']), $configSchemes)
+                    new Config(
+                        new ConfigNameVO($rawConfig['name']),
+                        $configSchemes)
                 );
             } catch (ConfigAlreadyExistsException|InvalidConfigNameException) {
                 continue;

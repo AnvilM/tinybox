@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Commands\Scheme;
 
-use App\Application\AddScheme\Handler\AddSchemeHandler;
+use App\Application\Services\Scheme\AddScheme\Handler\AddSchemeHandler;
 use App\Commands\AbstractCommand;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use League\CLImate\CLImate;
@@ -30,7 +30,7 @@ final class AddSchemeCommand extends AbstractCommand
     {
         new CLImate()->out(
             $this->addSchemeHandler->handle(
-                new \App\Application\AddScheme\Command\AddSchemeCommand(
+                new \App\Application\Services\Scheme\AddScheme\Command\AddSchemeCommand(
                     $input->getArgument('scheme'),
                 )
             )

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ListConfigs\Handler;
+namespace App\Application\Services\Config\ListConfigs\Handler;
 
 use App\Application\Shared\Config\UseCase\ReadConfigsList\ReadConfigsListUseCase;
 use App\Domain\Shared\Exception\CriticalException;

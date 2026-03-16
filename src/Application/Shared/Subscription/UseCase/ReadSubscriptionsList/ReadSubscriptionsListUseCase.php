@@ -33,32 +33,61 @@ final readonly class ReadSubscriptionsListUseCase
     }
 
     /**
+     * Read subscriptions list from file
+     *
+     * @return SubscriptionsMap Map of subscription entity
+     *
      * @throws CriticalException
      */
     public function handle(): SubscriptionsMap
     {
         try {
-            $rawSubscriptionsListArray = $this->readSubscriptions->read();
+            /**
+             * Read subscriptions list
+             */
+            $rawSubscriptionsList = $this->readSubscriptions->read();
 
-            $this->subscriptionsListFormatValidator->validate($rawSubscriptionsListArray);
+
+            /**
+             * Validate subscriptions list
+             */
+            $this->subscriptionsListFormatValidator->validate($rawSubscriptionsList);
 
 
-            /** @var array<array{name: string, url: string, schemes: string[]}> $rawSubscriptionsListArray */
+            /** @var array<array{name: string, url: string, schemes: string[]}> $rawSubscriptionsList */
 
-        } catch (UnableToReadFileException $e) {
-            throw new CriticalException("Unable to read subscriptions list", $e->getMessage());
-        } catch (UnableToDecodeJsonException|InvalidSubscriptionsListFormatException $e) {
-            throw new CriticalException("Invalid subscriptions list format", $e->getMessage());
+        } catch (UnableToReadFileException|UnableToDecodeJsonException|InvalidSubscriptionsListFormatException $e) {
+            throw new CriticalException($e instanceof UnableToReadFileException
+                ? "Unable to read subscriptions list"
+                : "Invalid subscriptions list format",
+                $e->getMessage()
+            );
         }
 
+
+        /**
+         * Read schemes
+         */
         $schemes = $this->readSchemesListUseCase->handle();
 
+
+        /**
+         * Create empty subscriptions map
+         */
         $subscriptions = new SubscriptionsMap();
 
-        foreach ($rawSubscriptionsListArray as $rawSubscription) {
+
+        foreach ($rawSubscriptionsList as $rawSubscription) {
+            /**
+             * Create empty subscription schemes map
+             */
             $subscriptionSchemes = new UniqueSchemesMap();
 
+
             foreach ($rawSubscription['schemes'] as $rawSubscriptionScheme) {
+                /**
+                 * Try to find scheme with specific id
+                 */
                 try {
                     $scheme = $schemes->getById($rawSubscriptionScheme);
                 } catch (SchemeNotFoundException) {
@@ -66,6 +95,10 @@ final readonly class ReadSubscriptionsListUseCase
                     //TODO: Add reporter event
                 }
 
+
+                /**
+                 * Try to add found scheme to subscription schemes map
+                 */
                 try {
                     $subscriptionSchemes->add($scheme);
                 } catch (SchemeAlreadyExistsException) {
@@ -75,6 +108,10 @@ final readonly class ReadSubscriptionsListUseCase
 
             }
 
+
+            /**
+             * Try to add subscription to subscriptions map
+             */
             try {
                 $subscriptions->add(
                     new Subscription(

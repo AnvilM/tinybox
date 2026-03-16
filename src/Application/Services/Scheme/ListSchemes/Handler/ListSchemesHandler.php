@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\ListSchemes\Handler;
+namespace App\Application\Services\Scheme\ListSchemes\Handler;
 
 use App\Application\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
 use App\Domain\Shared\Exception\CriticalException;

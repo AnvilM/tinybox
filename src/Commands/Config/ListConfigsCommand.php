@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Commands\Config;
 
-use App\Application\ListConfigs\Handler\ListConfigsHandler;
+use App\Application\Services\Config\ListConfigs\Handler\ListConfigsHandler;
 use App\Commands\AbstractCommand;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use League\CLImate\CLImate;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Commands\Config;
 
-use App\Application\AddSchemeToConfig\Handler\AddSchemeToConfigHandler;
+use App\Application\Services\Config\AddSchemeToConfig\Handler\AddSchemeToConfigHandler;
 use App\Commands\AbstractCommand;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -28,7 +28,7 @@ final class AddSchemeToConfigCommand extends AbstractCommand
     protected function handle(InputInterface $input, OutputInterface $output): int
     {
         $this->addSchemeToConfigHandler->handle(
-            new \App\Application\AddSchemeToConfig\Command\AddSchemeToConfigCommand(
+            new \App\Application\Services\Config\AddSchemeToConfig\Command\AddSchemeToConfigCommand(
                 $input->getArgument('configName'),
                 $input->getArgument('schemeId')
             )

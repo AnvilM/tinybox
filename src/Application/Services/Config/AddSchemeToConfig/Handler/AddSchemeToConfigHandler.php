@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Application\AddSchemeToConfig\Handler;
+namespace App\Application\Services\Config\AddSchemeToConfig\Handler;
 
-use App\Application\AddSchemeToConfig\Command\AddSchemeToConfigCommand;
+use App\Application\Services\Config\AddSchemeToConfig\Command\AddSchemeToConfigCommand;
 use App\Application\Shared\Config\Shared\File\WriteConfigs;
 use App\Application\Shared\Config\UseCase\ReadConfigsList\ReadConfigsListUseCase;
 use App\Application\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
@@ -29,21 +29,39 @@ final readonly class AddSchemeToConfigHandler
     }
 
     /**
+     * Add scheme to config
+     *
+     * @param AddSchemeToConfigCommand $command Command with config name and scheme id
+     *
      * @throws CriticalException
      */
     public function handle(AddSchemeToConfigCommand $command): void
     {
+        /**
+         * Read schemes list
+         */
         $schemes = $this->readSchemesListUseCase->handle();
 
+
+        /**
+         * Try to find scheme with provided id in schemes list
+         */
         try {
             $scheme = $schemes->getById($command->schemeId);
         } catch (SchemeNotFoundException) {
             throw new CriticalException("Scheme with id $command->schemeId does not exist");
         }
 
+
+        /**
+         * Read configs list
+         */
         $configs = $this->readConfigsListUseCase->handle();
 
 
+        /**
+         * Try to create config name
+         */
         try {
             $configName = new ConfigNameVO($command->name);
         } catch (InvalidConfigNameException) {
@@ -51,12 +69,17 @@ final readonly class AddSchemeToConfigHandler
         }
 
 
+        /**
+         * Try to find config with provided name in config list
+         */
         try {
             $configs->getByName($configName)->getSchemes()->add($scheme);
         } catch (ConfigNotFoundException) {
             $schemes = new UniqueSchemesMap();
 
-
+            /**
+             * Try to create new config with scheme found by provided scheme id
+             */
             try {
                 $schemes->add($scheme);
 
@@ -74,6 +97,10 @@ final readonly class AddSchemeToConfigHandler
 
         }
 
+
+        /**
+         * Write configs list to file
+         */
         $this->writeConfigs->write(
             $configs
         );
