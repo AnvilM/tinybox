@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Subscription\Entity;
 
+use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Shared\VO\Shared\SchemesIdsVO;
 use App\Domain\Subscription\VO\SubscriptionNameVO;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
@@ -12,13 +13,13 @@ final readonly class Subscription
 {
     private SubscriptionNameVO $name;
     private SubscriptionURLVO $url;
-    private SchemesIdsVO $schemesIds;
+    private UniqueSchemesMap $schemes;
 
-    public function __construct(SubscriptionNameVO $name, SubscriptionURLVO $url, SchemesIdsVO $schemesIds)
+    public function __construct(SubscriptionNameVO $name, SubscriptionURLVO $url, UniqueSchemesMap $schemes)
     {
         $this->name = $name;
         $this->url = $url;
-        $this->schemesIds = $schemesIds;
+        $this->schemes = $schemes;
     }
 
 
@@ -47,11 +48,11 @@ final readonly class Subscription
     /**
      * Get subscription schemes value object
      *
-     * @return SchemesIdsVO Subscription schemes
+     * @return UniqueSchemesMap Subscription schemes
      */
-    public function getSchemesIds(): SchemesIdsVO
+    public function getSchemes(): UniqueSchemesMap
     {
-        return $this->schemesIds;
+        return $this->schemes;
     }
 
 

@@ -34,7 +34,7 @@ final readonly class WriteSubscriptions
         try {
             $this->saveFileNotifyPort->notifyStartAndSuccess(
                 "Saving subscriptions...",
-                "Schemes successfully saved",
+                "Subscriptions successfully saved",
             )->save($path, $subscriptionsMap->toJson());
         } catch (UnableToSaveFileException|UnableToEncodeJsonException) {
             throw new CriticalException("Unable to save subscriptions", $path);

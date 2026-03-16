@@ -8,13 +8,12 @@ use App\Application\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase
 use App\Application\Shared\Subscription\Exception\Shared\Validator\InvalidSubscriptionsListFormatException;
 use App\Application\Shared\Subscription\Shared\File\ReadSubscriptions;
 use App\Application\Shared\Subscription\Shared\Validator\SubscriptionsListFormatValidator;
-use App\Domain\Config\Exception\InvalidSchemeIdException;
+use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
+use App\Domain\Scheme\Exception\SchemeNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
-use App\Domain\Shared\VO\Shared\SchemeIdVO;
-use App\Domain\Shared\VO\Shared\SchemesIdsVO;
 use App\Domain\Subscription\Collection\SubscriptionsMap;
 use App\Domain\Subscription\Entity\Subscription;
 use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
@@ -57,21 +56,18 @@ final readonly class ReadSubscriptionsListUseCase
         $subscriptions = new SubscriptionsMap();
 
         foreach ($rawSubscriptionsListArray as $rawSubscription) {
-            $schemesIdsVo = new SchemesIdsVO();
+            $subscriptionSchemes = new UniqueSchemesMap();
 
             foreach ($rawSubscription['schemes'] as $rawSubscriptionScheme) {
                 try {
-                    $schemeIdVo = new SchemeIdVO($rawSubscriptionScheme);
-                } catch (InvalidSchemeIdException) {
+                    $scheme = $schemes->getById($rawSubscriptionScheme);
+                } catch (SchemeNotFoundException) {
                     continue;
                     //TODO: Add reporter event
                 }
 
-                if (!$schemes->containsSchemeId($schemeIdVo->getSchemeId())) continue;
-                //TODO: Add reporter event
-
                 try {
-                    $schemesIdsVo->add($schemeIdVo);
+                    $subscriptionSchemes->add($scheme);
                 } catch (SchemeAlreadyExistsException) {
                     continue;
                     //TODO: Add reporter event
@@ -84,7 +80,7 @@ final readonly class ReadSubscriptionsListUseCase
                     new Subscription(
                         new SubscriptionNameVO($rawSubscription['name']),
                         new SubscriptionURLVO($rawSubscription['url']),
-                        $schemesIdsVo
+                        $subscriptionSchemes
                     )
                 );
             } catch (SubscriptionAlreadyExistsException|InvalidSubscriptionNameException|InvalidSubscriptionURLException) {

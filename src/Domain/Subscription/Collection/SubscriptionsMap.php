@@ -61,10 +61,11 @@ final readonly class SubscriptionsMap
     public function containsSubscriptionUrlOrName(SubscriptionURLVO $subscriptionUrl, SubscriptionNameVO $subscriptionName): bool
     {
         foreach ($this->map as $subscription) {
-            return (
+
+            if (
                 $subscription->getUrl() === $subscriptionUrl->getUrl()
                 || $subscription->getName() === $subscriptionName->getName()
-            );
+            ) return true;
         }
 
         return false;
@@ -100,7 +101,7 @@ final readonly class SubscriptionsMap
             $array[] = [
                 'name' => $subscription->getName(),
                 'url' => $subscription->getUrl(),
-                'schemes' => $subscription->getSchemesIds()->getSchemesIdsArray()
+                'schemes' => $subscription->getSchemes()->getIds()->toArray(),
             ];
         }
 

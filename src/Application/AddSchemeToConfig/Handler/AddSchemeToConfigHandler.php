@@ -12,12 +12,11 @@ use App\Domain\Config\Entity\Config;
 use App\Domain\Config\Exception\ConfigAlreadyExistsException;
 use App\Domain\Config\Exception\ConfigNotFoundException;
 use App\Domain\Config\Exception\InvalidConfigNameException;
-use App\Domain\Config\Exception\InvalidSchemeIdException;
 use App\Domain\Config\VO\ConfigNameVO;
+use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
+use App\Domain\Scheme\Exception\SchemeNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
-use App\Domain\Shared\VO\Shared\SchemeIdVO;
-use App\Domain\Shared\VO\Shared\SchemesIdsVO;
 
 final readonly class AddSchemeToConfigHandler
 {
@@ -37,13 +36,10 @@ final readonly class AddSchemeToConfigHandler
         $schemes = $this->readSchemesListUseCase->handle();
 
         try {
-            $schemeIdVo = new SchemeIdVO($command->schemeId);
-        } catch (InvalidSchemeIdException) {
-            throw new CriticalException("Invalid scheme id provided", $command->schemeId);
+            $scheme = $schemes->getById($command->schemeId);
+        } catch (SchemeNotFoundException) {
+            throw new CriticalException("Scheme with id $command->schemeId does not exist");
         }
-
-        if (!$schemes->containsSchemeId($schemeIdVo->getSchemeId()))
-            throw new CriticalException("Scheme with id {$schemeIdVo->getSchemeId()} does not exist");
 
         $configs = $this->readConfigsListUseCase->handle();
 
@@ -56,20 +52,25 @@ final readonly class AddSchemeToConfigHandler
 
 
         try {
-            $configs->getByName($configName)->getSchemesIds()->add($schemeIdVo);
+            $configs->getByName($configName)->getSchemes()->add($scheme);
         } catch (ConfigNotFoundException) {
+            $schemes = new UniqueSchemesMap();
+
+
             try {
+                $schemes->add($scheme);
+
                 $configs->add(new Config(
                     $configName,
-                    new SchemesIdsVO()->add($schemeIdVo),
+                    $schemes
                 ));
             } catch (SchemeAlreadyExistsException) {
-                throw new CriticalException("Scheme with id {$schemeIdVo->getSchemeId()} already exists in config {$configName->getName()} ", $command->schemeId);
+                throw new CriticalException("Scheme with id {$scheme->getHash()} already exists in config {$configName->getName()} ", $command->schemeId);
             } catch (ConfigAlreadyExistsException) {
                 throw new CriticalException("Unknown error");
             }
         } catch (SchemeAlreadyExistsException) {
-            throw new CriticalException("Scheme with id {$schemeIdVo->getSchemeId()} already exists in config {$configName->getName()} ", $command->schemeId);
+            throw new CriticalException("Scheme with id {$scheme->getHash()} already exists in config {$configName->getName()} ", $command->schemeId);
 
         }
 

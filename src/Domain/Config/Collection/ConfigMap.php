@@ -53,7 +53,7 @@ final readonly class ConfigMap
         foreach ($this->map as $config) {
             $array[] = [
                 'name' => $config->getName(),
-                'schemes' => $config->getSchemesIds()->getSchemesIdsArray()
+                'schemes' => $config->getSchemes()->getIds()->toArray(),
             ];
         }
 
