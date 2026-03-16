@@ -11,12 +11,12 @@ use JsonException;
 use Psl\Collection\MutableMap;
 use Psl\Collection\MutableVector;
 
-final class SchemeMap
+class SchemeMap
 {
     /**
      * @var MutableMap<string, Scheme> $map Schemes map
      */
-    private MutableMap $map;
+    protected MutableMap $map;
 
 
     public function __construct()

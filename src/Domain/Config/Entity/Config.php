@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace App\Domain\Config\Entity;
 
-use App\Domain\Config\VO\NameVO;
-use App\Domain\Config\VO\SchemesIdsVO;
+use App\Domain\Config\VO\ConfigNameVO;
+use App\Domain\Shared\VO\Shared\SchemesIdsVO;
 
 final readonly class Config
 {
 
-    private NameVO $name;
+    private ConfigNameVO $name;
 
     private SchemesIdsVO $schemesIds;
 
     /**
      * Constructor
      *
-     * @param NameVO $name Config name
+     * @param ConfigNameVO $name Config name
      * @param SchemesIdsVO $schemesIds Schemes ids
      */
-    public function __construct(NameVO $name, SchemesIdsVO $schemesIds)
+    public function __construct(ConfigNameVO $name, SchemesIdsVO $schemesIds)
     {
         /**
          * Set name
@@ -47,10 +47,10 @@ final readonly class Config
     /**
      * Get config name
      *
-     * @return NameVO Config name
+     * @return string Config name
      */
-    public function getName(): NameVO
+    public function getName(): string
     {
-        return $this->name;
+        return $this->name->getName();
     }
 }

@@ -7,7 +7,7 @@ namespace App\Domain\Config\Collection;
 use App\Domain\Config\Entity\Config;
 use App\Domain\Config\Exception\ConfigAlreadyExistsException;
 use App\Domain\Config\Exception\ConfigNotFoundException;
-use App\Domain\Config\VO\NameVO;
+use App\Domain\Config\VO\ConfigNameVO;
 use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
 use JsonException;
 use Psl\Collection\MutableMap;
@@ -52,7 +52,7 @@ final readonly class ConfigMap
          */
         foreach ($this->map as $config) {
             $array[] = [
-                'name' => $config->getName()->getName(),
+                'name' => $config->getName(),
                 'schemes' => $config->getSchemesIds()->getSchemesIdsArray()
             ];
         }
@@ -74,13 +74,13 @@ final readonly class ConfigMap
     /**
      * Get config by name
      *
-     * @param NameVO $name Config name
+     * @param ConfigNameVO $name Config name
      *
      * @return Config Config
      *
      * @throws ConfigNotFoundException If config not fund
      */
-    public function getByName(NameVO $name): Config
+    public function getByName(ConfigNameVO $name): Config
     {
         /**
          * Get config
@@ -110,7 +110,7 @@ final readonly class ConfigMap
         $configNames = new MutableVector([]);
 
         foreach ($this->map as $config) {
-            $configNames->add($config->getName()->getName());
+            $configNames->add($config->getName());
         }
 
         return $configNames;
@@ -134,7 +134,7 @@ final readonly class ConfigMap
         /**
          * Add config to map
          */
-        $this->map->add($config->getName()->getName(), $config);
+        $this->map->add($config->getName(), $config);
     }
 
     /**
@@ -146,6 +146,6 @@ final readonly class ConfigMap
      */
     public function containsConfig(Config $config): bool
     {
-        return $this->map->containsKey($config->getName()->getName());
+        return $this->map->containsKey($config->getName());
     }
 }

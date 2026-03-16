@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Shared\Scheme\Shared\Validator;
 
 use App\Application\Shared\Scheme\Exception\Shared\Validator\InvalidSchemesListFormatException;
+use InvalidArgumentException;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Validator;
 
@@ -37,10 +38,14 @@ final readonly class SchemesListFormatValidator
      */
     public function validate(array $rawSchemesArray): void
     {
-        $validation = $this->validator->validate(
-            Helper::toJSON($rawSchemesArray),
-            $this->schema
-        );
+        try {
+            $validation = $this->validator->validate(
+                Helper::toJSON($rawSchemesArray),
+                $this->schema
+            );
+        } catch (InvalidArgumentException $e) {
+            throw new InvalidSchemesListFormatException();
+        }
 
         if ($validation->hasError()) throw new InvalidSchemesListFormatException();
     }

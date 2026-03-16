@@ -13,11 +13,11 @@ use App\Domain\Config\Exception\ConfigAlreadyExistsException;
 use App\Domain\Config\Exception\ConfigNotFoundException;
 use App\Domain\Config\Exception\InvalidConfigNameException;
 use App\Domain\Config\Exception\InvalidSchemeIdException;
-use App\Domain\Config\VO\NameVO;
-use App\Domain\Config\VO\SchemeIdVO;
-use App\Domain\Config\VO\SchemesIdsVO;
+use App\Domain\Config\VO\ConfigNameVO;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Shared\Exception\CriticalException;
+use App\Domain\Shared\VO\Shared\SchemeIdVO;
+use App\Domain\Shared\VO\Shared\SchemesIdsVO;
 
 final readonly class AddSchemeToConfigHandler
 {
@@ -49,7 +49,7 @@ final readonly class AddSchemeToConfigHandler
 
 
         try {
-            $configName = new NameVO($command->name);
+            $configName = new ConfigNameVO($command->name);
         } catch (InvalidConfigNameException) {
             throw new CriticalException("Invalid config name provided", $command->name);
         }

@@ -7,7 +7,7 @@ namespace App\Application\Shared\Config\Shared\Mapper;
 use App\Domain\Config\Entity\Config;
 use App\Domain\Config\Exception\InvalidConfigNameException;
 use App\Domain\Config\Exception\InvalidSchemeIdException;
-use App\Domain\Config\VO\SchemesIdsVO;
+use App\Domain\Shared\VO\Shared\SchemesIdsVO;
 
 final readonly class RawConfigMapper
 {
