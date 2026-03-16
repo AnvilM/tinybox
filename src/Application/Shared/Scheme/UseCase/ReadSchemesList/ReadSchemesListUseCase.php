@@ -35,31 +35,45 @@ final readonly class ReadSchemesListUseCase
     /**
      * Read schemes list from file
      *
-     * @return SchemeMap Scheme map from file
+     * @return SchemeMap Map of scheme entity
      *
      * @throws CriticalException
      */
     public function handle(): SchemeMap
     {
         try {
-            $rawSchemesStringArray = $this->readSchemes->read();
-        } catch (UnableToReadFileException $e) {
-            throw new CriticalException("Unable to read schemes list", $e->getMessage());
-        } catch (UnableToDecodeJsonException $e) {
-            throw new CriticalException("Invalid schemes list format", $e->getMessage());
+            /**
+             * Read schemes
+             */
+            $rawSchemesList = $this->readSchemes->read();
+
+            /**
+             * Validate schemes
+             */
+            $this->schemesListFormatValidator->validate($rawSchemesList);
+
+
+            /** @var string[] $rawSchemesList */
+
+        } catch (UnableToReadFileException|UnableToDecodeJsonException|InvalidSchemesListFormatException $e) {
+            throw new CriticalException($e instanceof UnableToReadFileException
+                ? "Unable to read schemes list"
+                : "Invalid schemes list format",
+                $e->getMessage()
+            );
         }
 
-        try {
-            $this->schemesListFormatValidator->validate($rawSchemesStringArray);
-        } catch (InvalidSchemesListFormatException) {
-            throw new CriticalException("Invalid schemes list format");
-        }
 
-
+        /**
+         * Create empty schemes map
+         */
         $schemes = new SchemeMap();
 
-        foreach ($rawSchemesStringArray as $rawSchemeString) {
 
+        foreach ($rawSchemesList as $rawSchemeString) {
+            /**
+             * Try to create and add scheme to schemes map
+             */
             try {
                 $schemes->add(SchemeFactory::fromRawSchemeVO(
                     $this->rawSchemeParser->parse($rawSchemeString)

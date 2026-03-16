@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Commands\Scheme;
 
-use App\Application\ListSchemes\Handler\ListSchemesHandler;
+use App\Application\Services\Scheme\ListSchemes\Handler\ListSchemesHandler;
 use App\Commands\AbstractCommand;
 use App\Domain\Scheme\Entity\Scheme;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;

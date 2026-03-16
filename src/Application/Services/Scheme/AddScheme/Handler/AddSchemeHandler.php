@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Application\AddScheme\Handler;
+namespace App\Application\Services\Scheme\AddScheme\Handler;
 
-use App\Application\AddScheme\Command\AddSchemeCommand;
+use App\Application\Services\Scheme\AddScheme\Command\AddSchemeCommand;
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
 use App\Application\Shared\Scheme\Shared\File\WriteSchemes;
 use App\Application\Shared\Scheme\Shared\Parser\RawSchemeParser;
@@ -26,14 +26,23 @@ final readonly class AddSchemeHandler
     }
 
     /**
+     * Add new scheme to schemes list
+     *
      * @return string Added scheme id
      *
      * @throws CriticalException
      */
     public function handle(AddSchemeCommand $command): string
     {
+        /**
+         * Read schemes list
+         */
         $schemes = $this->readSchemesListUseCase->handle();
 
+
+        /**
+         * Try to create new scheme
+         */
         try {
             $newScheme = SchemeFactory::fromRawSchemeVO(
                 $this->rawSchemeParser->parse(
@@ -44,14 +53,26 @@ final readonly class AddSchemeHandler
             throw new CriticalException("Invalid scheme provided", $command->schemeString);
         }
 
+
+        /**
+         * Try to add new scheme to schemes list
+         */
         try {
             $schemes->add($newScheme);
         } catch (SchemeAlreadyExistsException) {
             throw new CriticalException("Provided scheme already exists", $command->schemeString);
         }
 
+
+        /**
+         * Write schemes to file
+         */
         $this->writeSchemes->write($schemes);
 
+
+        /**
+         * Return new scheme id
+         */
         return $newScheme->getHash();
 
     }

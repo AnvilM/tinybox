@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\AddSchemeToConfig\Command;
+namespace App\Application\Services\Config\AddSchemeToConfig\Command;
 
 final readonly class AddSchemeToConfigCommand
 {
