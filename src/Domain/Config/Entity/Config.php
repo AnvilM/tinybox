@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace App\Domain\Config\Entity;
 
 use App\Domain\Config\VO\ConfigNameVO;
-use App\Domain\Shared\VO\Shared\SchemesIdsVO;
+use App\Domain\Scheme\Collection\UniqueSchemesMap;
 
 final readonly class Config
 {
 
     private ConfigNameVO $name;
 
-    private SchemesIdsVO $schemesIds;
+    private UniqueSchemesMap $schemes;
 
     /**
      * Constructor
      *
      * @param ConfigNameVO $name Config name
-     * @param SchemesIdsVO $schemesIds Schemes ids
+     * @param UniqueSchemesMap $schemes Schemes
      */
-    public function __construct(ConfigNameVO $name, SchemesIdsVO $schemesIds)
+    public function __construct(ConfigNameVO $name, UniqueSchemesMap $schemes)
     {
         /**
          * Set name
@@ -30,18 +30,18 @@ final readonly class Config
         /**
          * Set schemes ids
          */
-        $this->schemesIds = $schemesIds;
+        $this->schemes = $schemes;
     }
 
 
     /**
-     * Get schemes ids value object
+     * Get schemes
      *
-     * @return SchemesIdsVO Schemes ids value object
+     * @return UniqueSchemesMap Schemes
      */
-    public function getSchemesIds(): SchemesIdsVO
+    public function getSchemes(): UniqueSchemesMap
     {
-        return $this->schemesIds;
+        return $this->schemes;
     }
 
     /**

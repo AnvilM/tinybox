@@ -6,6 +6,7 @@ namespace App\Domain\Scheme\Collection;
 
 use App\Domain\Scheme\Entity\Scheme;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
+use App\Domain\Scheme\Exception\SchemeNotFoundException;
 use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
 use JsonException;
 use Psl\Collection\MutableMap;
@@ -128,10 +129,26 @@ class SchemeMap
 
 
     /**
+     * Get schemes ids array
+     *
      * @return MutableVector<string> Mutable vector of schemes ids e.g., ["id1", "id2"]
      */
     public function getIds(): MutableVector
     {
         return $this->map->keys();
+    }
+
+
+    /**
+     * Get scheme by id
+     * @throws SchemeNotFoundException
+     */
+    public function getById(string $schemeId): Scheme
+    {
+        $scheme = $this->map->get($schemeId);
+
+        if ($scheme === null) throw new SchemeNotFoundException();
+
+        return $scheme;
     }
 }

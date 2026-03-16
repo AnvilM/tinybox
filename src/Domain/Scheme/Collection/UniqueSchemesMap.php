@@ -10,6 +10,13 @@ use Override;
 
 final class UniqueSchemesMap extends SchemeMap
 {
+    /**
+     * Add scheme to map
+     *
+     * @param Scheme $scheme Scheme
+     *
+     * @throws SchemeAlreadyExistsException If scheme already exists in map
+     */
     #[Override]
     public function add(Scheme $scheme): void
     {

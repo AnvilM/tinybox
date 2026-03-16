@@ -12,14 +12,13 @@ use App\Domain\Config\Collection\ConfigMap;
 use App\Domain\Config\Entity\Config;
 use App\Domain\Config\Exception\ConfigAlreadyExistsException;
 use App\Domain\Config\Exception\InvalidConfigNameException;
-use App\Domain\Config\Exception\InvalidSchemeIdException;
 use App\Domain\Config\VO\ConfigNameVO;
+use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
+use App\Domain\Scheme\Exception\SchemeNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
-use App\Domain\Shared\VO\Shared\SchemeIdVO;
-use App\Domain\Shared\VO\Shared\SchemesIdsVO;
 
 final readonly class ReadConfigsListUseCase
 {
@@ -55,21 +54,18 @@ final readonly class ReadConfigsListUseCase
         $configs = new ConfigMap();
 
         foreach ($rawConfigsListArray as $rawConfig) {
-            $schemesIdsVo = new SchemesIdsVO();
+            $configSchemes = new UniqueSchemesMap();
 
             foreach ($rawConfig['schemes'] as $rawConfigScheme) {
                 try {
-                    $schemeIdVo = new SchemeIdVO($rawConfigScheme);
-                } catch (InvalidSchemeIdException) {
+                    $scheme = $schemes->getById($rawConfigScheme);
+                } catch (SchemeNotFoundException) {
                     continue;
                     //TODO: Add reporter event
                 }
 
-                if (!$schemes->containsSchemeId($schemeIdVo->getSchemeId())) continue;
-                //TODO: Add reporter event
-
                 try {
-                    $schemesIdsVo->add($schemeIdVo);
+                    $configSchemes->add($scheme);
                 } catch (SchemeAlreadyExistsException) {
                     continue;
                     //TODO: Add reporter event
@@ -79,7 +75,7 @@ final readonly class ReadConfigsListUseCase
 
             try {
                 $configs->add(
-                    new Config(new ConfigNameVO($rawConfig['name']), $schemesIdsVo)
+                    new Config(new ConfigNameVO($rawConfig['name']), $configSchemes)
                 );
             } catch (ConfigAlreadyExistsException|InvalidConfigNameException) {
                 continue;

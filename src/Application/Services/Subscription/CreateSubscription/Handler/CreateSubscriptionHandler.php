@@ -7,8 +7,8 @@ namespace App\Application\Services\Subscription\CreateSubscription\Handler;
 use App\Application\Services\Subscription\CreateSubscription\Command\CreateSubscriptionCommand;
 use App\Application\Shared\Subscription\Shared\File\WriteSubscriptions;
 use App\Application\Shared\Subscription\UseCase\ReadSubscriptionsList\ReadSubscriptionsListUseCase;
+use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Shared\Exception\CriticalException;
-use App\Domain\Shared\VO\Shared\SchemesIdsVO;
 use App\Domain\Subscription\Entity\Subscription;
 use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
 use App\Domain\Subscription\Exception\InvalidSubscriptionURLException;
@@ -44,15 +44,15 @@ final readonly class CreateSubscriptionHandler
 
 
             /**
-             * Create scheme ids
+             * Create unique schemes map
              */
-            $schemeIds = new SchemesIdsVO();
+            $schemes = new UniqueSchemesMap();
 
 
             /**
              * Create new subscription
              */
-            $newSubscription = new Subscription($subscriptionName, $subscriptionUrl, $schemeIds);
+            $newSubscription = new Subscription($subscriptionName, $subscriptionUrl, $schemes);
         } catch (InvalidSubscriptionNameException|InvalidSubscriptionURLException $e) {
             throw new CriticalException($e instanceof InvalidSubscriptionNameException
                 ? "Invalid subscription name provided"
