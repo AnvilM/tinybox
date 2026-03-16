@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Config\VO;
+namespace App\Domain\Shared\VO\Shared;
 
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use Psl\Collection\MutableVector;

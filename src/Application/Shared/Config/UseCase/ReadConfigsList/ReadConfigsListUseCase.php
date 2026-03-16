@@ -13,13 +13,13 @@ use App\Domain\Config\Entity\Config;
 use App\Domain\Config\Exception\ConfigAlreadyExistsException;
 use App\Domain\Config\Exception\InvalidConfigNameException;
 use App\Domain\Config\Exception\InvalidSchemeIdException;
-use App\Domain\Config\VO\NameVO;
-use App\Domain\Config\VO\SchemeIdVO;
-use App\Domain\Config\VO\SchemesIdsVO;
+use App\Domain\Config\VO\ConfigNameVO;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
+use App\Domain\Shared\VO\Shared\SchemeIdVO;
+use App\Domain\Shared\VO\Shared\SchemesIdsVO;
 
 final readonly class ReadConfigsListUseCase
 {
@@ -79,7 +79,7 @@ final readonly class ReadConfigsListUseCase
 
             try {
                 $configs->add(
-                    new Config(new NameVO($rawConfig['name']), $schemesIdsVo)
+                    new Config(new ConfigNameVO($rawConfig['name']), $schemesIdsVo)
                 );
             } catch (ConfigAlreadyExistsException|InvalidConfigNameException) {
                 continue;
