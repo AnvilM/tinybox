@@ -14,7 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'config:add-scheme', description: 'Add scheme to config or create new config with scheme')]
+#[AsCommand(name: 'config:add-scheme', description: 'Add scheme to config or create new config with scheme', aliases: ['cf:add-scheme'])]
 final class AddSchemeToConfigCommand extends AbstractCommand
 {
     public function __construct(

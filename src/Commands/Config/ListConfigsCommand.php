@@ -14,7 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'config:list', description: 'List configs')]
+#[AsCommand(name: 'config:list', description: 'List configs', aliases: ['cf:list'])]
 final class ListConfigsCommand extends AbstractCommand
 {
     public function __construct(
