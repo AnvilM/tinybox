@@ -13,7 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'subscription:create', description: 'List schemes', aliases: ['sub:create'])]
+#[AsCommand(name: 'subscription:create', description: 'Create subscription', aliases: ['sub:create'])]
 final class CreateSubscriptionCommand extends AbstractCommand
 {
     public function __construct(
