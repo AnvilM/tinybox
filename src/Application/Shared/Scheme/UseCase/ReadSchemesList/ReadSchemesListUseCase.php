@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\Scheme\UseCase\ReadSchemesList;
 
+use App\Application\Shared\Common\Scheme\UseCase\CreateSchemeEntityFromStringUseCase;
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
 use App\Application\Shared\Scheme\Exception\Shared\Validator\InvalidSchemesListFormatException;
 use App\Application\Shared\Scheme\Shared\File\ReadSchemes;
-use App\Application\Shared\Scheme\Shared\Parser\RawSchemeParser;
 use App\Application\Shared\Scheme\Shared\Validator\SchemesListFormatValidator;
 use App\Domain\Scheme\Collection\SchemeMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
-use App\Domain\Scheme\Factory\SchemeFactory;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
@@ -23,10 +22,10 @@ use InvalidArgumentException;
 final readonly class ReadSchemesListUseCase
 {
     public function __construct(
-        private ReadSchemes                $readSchemes,
-        private RawSchemeParser            $rawSchemeParser,
-        private SchemesListFormatValidator $schemesListFormatValidator,
-        private ReporterPort               $reporterPort,
+        private ReadSchemes                         $readSchemes,
+        private CreateSchemeEntityFromStringUseCase $createSchemeEntityFromStringUseCase,
+        private SchemesListFormatValidator          $schemesListFormatValidator,
+        private ReporterPort                        $reporterPort,
     )
     {
     }
@@ -75,9 +74,7 @@ final readonly class ReadSchemesListUseCase
              * Try to create and add scheme to schemes map
              */
             try {
-                $schemes->add(SchemeFactory::fromRawSchemeVO(
-                    $this->rawSchemeParser->parse($rawSchemeString)
-                ));
+                $schemes->add($this->createSchemeEntityFromStringUseCase->handle($rawSchemeString));
             } catch (UnsupportedSchemeType|UnableToParseRawSchemeStringException|InvalidArgumentException) {
                 $this->reporterPort->notify(new InvalidSchemeReporterEvent($rawSchemeString));
                 continue;
