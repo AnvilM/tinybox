@@ -118,4 +118,15 @@ final readonly class SubscriptionsMap
             throw new UnableToEncodeJsonException();
         }
     }
+
+
+    /**
+     * Get subscriptions as name => url mutable map
+     *
+     * @return MutableMap<string, string> Subscriptions as name => url mutable map
+     */
+    public function toNameUrlMap(): MutableMap
+    {
+        return $this->map->map(fn(Subscription $subscription) => $subscription->getUrl());
+    }
 }

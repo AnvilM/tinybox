@@ -9,6 +9,7 @@ use App\Commands\Config\ListConfigsCommand;
 use App\Commands\Scheme\AddSchemeCommand;
 use App\Commands\Scheme\ListSchemesCommand;
 use App\Commands\Subscription\CreateSubscriptionCommand;
+use App\Commands\Subscription\ListSubscriptionsCommand;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Application as CliApp;
 use Symfony\Component\Console\Command\Command;
@@ -22,7 +23,8 @@ final class CommandsBootstrapper
         ListSchemesCommand::class,
         AddSchemeToConfigCommand::class,
         ListConfigsCommand::class,
-        CreateSubscriptionCommand::class
+        CreateSubscriptionCommand::class,
+        ListSubscriptionsCommand::class
     ];
 
 
