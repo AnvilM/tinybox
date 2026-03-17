@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Application\Services\Scheme\AddScheme\Handler;
 
 use App\Application\Services\Scheme\AddScheme\Command\AddSchemeCommand;
+use App\Application\Shared\Common\Scheme\Parser\RawSchemeParser;
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
 use App\Application\Shared\Scheme\Shared\File\WriteSchemes;
-use App\Application\Shared\Scheme\Shared\Parser\RawSchemeParser;
 use App\Application\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;

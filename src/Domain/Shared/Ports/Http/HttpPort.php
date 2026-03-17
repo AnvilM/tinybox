@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Ports\Http;
 
+use App\Domain\Shared\Exception\HTTP\HttpException;
 use Closure;
 use Exception;
+use Psr\Http\Message\ResponseInterface;
 
-interface HttpProt
+interface HttpPort
 {
     /**
      * Sends concurrent async http GET requests
@@ -25,4 +27,17 @@ interface HttpProt
         ?Closure $fulfilled = null,
         ?Closure $rejected = null
     ): void;
+
+
+    /**
+     * Sends http GET request
+     *
+     * @param float $timeout Timeout in seconds
+     * @param string $url Url to send request
+     *
+     * @return ResponseInterface Response
+     *
+     * @throws HttpException If unable to send request e.g. invalid url, or timeout
+     */
+    public function get(float $timeout, string $url): ResponseInterface;
 }

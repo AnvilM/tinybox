@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Application\Providers\App\Shared;
 
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
-use App\Domain\Shared\Ports\Http\HttpProt;
+use App\Domain\Shared\Ports\Http\HttpPort;
 use App\Domain\Shared\Ports\IO\Directory\ScanDirectoryForFilesPort;
 use App\Domain\Shared\Ports\IO\File\ReadFilePort;
 use App\Domain\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
@@ -37,7 +37,7 @@ final readonly class SharedProviders implements ProviderInterface
     {
         return [
             ReadFilePort::class => autowire(ReadFile::class),
-            HttpProt::class => autowire(Http::class),
+            HttpPort::class => autowire(Http::class),
             ReporterPort::class => autowire(Reporter::class),
             SaveFilePort::class => autowire(SaveFile::class),
             ConfigInstancePort::class => autowire(ConfigInstance::class),
