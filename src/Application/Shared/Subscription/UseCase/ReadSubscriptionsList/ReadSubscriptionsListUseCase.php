@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\Subscription\UseCase\ReadSubscriptionsList;
 
-use App\Application\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
+use App\Application\Shared\Shared\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
 use App\Application\Shared\Subscription\Exception\Shared\Validator\InvalidSubscriptionsListFormatException;
 use App\Application\Shared\Subscription\Shared\File\ReadSubscriptions;
 use App\Application\Shared\Subscription\Shared\Validator\SubscriptionsListFormatValidator;

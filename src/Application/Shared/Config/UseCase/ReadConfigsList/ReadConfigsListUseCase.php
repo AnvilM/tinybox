@@ -7,7 +7,7 @@ namespace App\Application\Shared\Config\UseCase\ReadConfigsList;
 use App\Application\Shared\Config\Exception\Shared\Validator\InvalidConfigsListFormatException;
 use App\Application\Shared\Config\Shared\File\ReadConfigs;
 use App\Application\Shared\Config\Shared\Validator\ConfigsListFormatValidator;
-use App\Application\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
+use App\Application\Shared\Shared\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
 use App\Domain\Config\Collection\ConfigMap;
 use App\Domain\Config\Entity\Config;
 use App\Domain\Config\Exception\ConfigAlreadyExistsException;

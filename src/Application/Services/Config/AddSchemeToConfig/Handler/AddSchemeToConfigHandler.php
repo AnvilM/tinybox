@@ -7,7 +7,7 @@ namespace App\Application\Services\Config\AddSchemeToConfig\Handler;
 use App\Application\Services\Config\AddSchemeToConfig\Command\AddSchemeToConfigCommand;
 use App\Application\Shared\Config\Shared\File\WriteConfigs;
 use App\Application\Shared\Config\UseCase\ReadConfigsList\ReadConfigsListUseCase;
-use App\Application\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
+use App\Application\Shared\Shared\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
 use App\Domain\Config\Entity\Config;
 use App\Domain\Config\Exception\ConfigAlreadyExistsException;
 use App\Domain\Config\Exception\ConfigNotFoundException;

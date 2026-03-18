@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Application\Services\Subscription\CreateSubscription\Handler;
 
 use App\Application\Services\Subscription\CreateSubscription\Command\CreateSubscriptionCommand;
+use App\Application\Shared\Subscription\Exception\UseCase\FetchSchemes\NoValidSchemesFoundException;
 use App\Application\Shared\Subscription\Shared\File\WriteSubscriptions;
+use App\Application\Shared\Subscription\UseCase\FetchSchemes\FetchSchemesUseCase;
 use App\Application\Shared\Subscription\UseCase\ReadSubscriptionsList\ReadSubscriptionsListUseCase;
-use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Subscription\Entity\Subscription;
 use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
@@ -20,7 +21,8 @@ final readonly class CreateSubscriptionHandler
 {
     public function __construct(
         private ReadSubscriptionsListUseCase $readSubscriptionsListUseCase,
-        private WriteSubscriptions           $writeSubscriptions
+        private WriteSubscriptions           $writeSubscriptions,
+        private FetchSchemesUseCase          $fetchSchemesUseCase,
     )
     {
     }
@@ -41,23 +43,21 @@ final readonly class CreateSubscriptionHandler
              * Create subscription url
              */
             $subscriptionUrl = new SubscriptionUrlVO($command->url);
-
-
-            /**
-             * Create unique schemes map
-             */
-            $schemes = new UniqueSchemesMap();
-
-
-            /**
-             * Create new subscription
-             */
-            $newSubscription = new Subscription($subscriptionName, $subscriptionUrl, $schemes);
         } catch (InvalidSubscriptionNameException|InvalidSubscriptionURLException $e) {
             throw new CriticalException($e instanceof InvalidSubscriptionNameException
                 ? "Invalid subscription name provided"
                 : "Invalid subscription url provided"
             );
+        }
+
+
+        /**
+         * Try to fetch subscription schemes
+         */
+        try {
+            $schemes = $this->fetchSchemesUseCase->handle($subscriptionUrl);
+        } catch (NoValidSchemesFoundException) {
+            throw new CriticalException ("No valid schemes found", $subscriptionUrl->getUrl());
         }
 
 
@@ -71,11 +71,14 @@ final readonly class CreateSubscriptionHandler
          * Try to add new subscription
          */
         try {
-            $subscriptions->add($newSubscription);
+            $subscriptions->add(new Subscription(
+                $subscriptionName,
+                $subscriptionUrl,
+                $schemes
+            ));
         } catch (SubscriptionAlreadyExistsException) {
             throw new CriticalException ("Subscription with provided name or url already exists");
         }
-
 
         /**
          * Write subscriptions

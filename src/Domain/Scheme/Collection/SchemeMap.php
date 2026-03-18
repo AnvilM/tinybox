@@ -27,47 +27,6 @@ class SchemeMap
 
 
     /**
-     * Add scheme to map
-     *
-     * @param Scheme $scheme Scheme
-     *
-     * @throws SchemeAlreadyExistsException If scheme already exists in map
-     */
-    public function add(Scheme $scheme): void
-    {
-        /**
-         * Check scheme already exists
-         */
-        if ($this->containsScheme($scheme)) {
-            throw new SchemeAlreadyExistsException();
-        }
-
-
-        /**
-         * Add scheme to map
-         */
-        $this->map->add($scheme->getHash(), $scheme);
-    }
-
-
-    /**
-     * Check scheme exists in map
-     *
-     * @param Scheme $scheme Scheme
-     *
-     * @return bool Returns true if exists
-     */
-    public function containsScheme(Scheme $scheme): bool
-    {
-        foreach ($this->map as $schemeItem) {
-            if ($schemeItem->equals($scheme)) return true;
-        }
-
-        return false;
-    }
-
-
-    /**
      * Check scheme with provided id exists in map
      *
      * @param string $schemeId Scheme id
@@ -118,16 +77,6 @@ class SchemeMap
         }
     }
 
-
-    /**
-     * @return MutableMap<string, Scheme> Schemes map
-     */
-    public function getMap(): MutableMap
-    {
-        return clone $this->map;
-    }
-
-
     /**
      * Get schemes ids array
      *
@@ -137,7 +86,6 @@ class SchemeMap
     {
         return $this->map->keys();
     }
-
 
     /**
      * Get scheme by id
@@ -150,5 +98,75 @@ class SchemeMap
         if ($scheme === null) throw new SchemeNotFoundException();
 
         return $scheme;
+    }
+
+    /**
+     * Merge two schemes map
+     *
+     * Schemes that already exist in map will be skipped
+     *
+     * @param SchemeMap $schemeMap Scheme map to merge with current map
+     *
+     * @return static
+     */
+    public function merge(self $schemeMap): static
+    {
+        foreach ($schemeMap->getMap() as $scheme) {
+            try {
+                $this->add($scheme);
+            } catch (SchemeAlreadyExistsException) {
+                continue;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return MutableMap<string, Scheme> Schemes map
+     */
+    public function getMap(): MutableMap
+    {
+        return clone $this->map;
+    }
+
+    /**
+     * Add scheme to map
+     *
+     * @param Scheme $scheme Scheme
+     *
+     * @throws SchemeAlreadyExistsException If scheme already exists in map
+     */
+    public function add(Scheme $scheme): void
+    {
+        /**
+         * Check scheme already exists
+         */
+        if ($this->containsScheme($scheme)) {
+            throw new SchemeAlreadyExistsException();
+        }
+
+
+        /**
+         * Add scheme to map
+         */
+        $this->map->add($scheme->getHash(), $scheme);
+    }
+
+
+    /**
+     * Check scheme exists in map
+     *
+     * @param Scheme $scheme Scheme
+     *
+     * @return bool Returns true if exists
+     */
+    public function containsScheme(Scheme $scheme): bool
+    {
+        foreach ($this->map as $schemeItem) {
+            if ($schemeItem->equals($scheme)) return true;
+        }
+
+        return false;
     }
 }

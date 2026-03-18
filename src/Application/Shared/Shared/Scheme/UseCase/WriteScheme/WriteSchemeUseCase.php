@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Scheme\UseCase\AddScheme;
+namespace App\Application\Shared\Shared\Scheme\UseCase\WriteScheme;
 
-use App\Application\Shared\Common\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
 use App\Application\Shared\Scheme\Shared\File\WriteSchemes;
+use App\Application\Shared\Shared\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
 use App\Domain\Scheme\Collection\SchemeMap;
 use App\Domain\Scheme\Entity\Scheme;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
@@ -13,7 +13,7 @@ use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
 
-final readonly class AddSchemeUseCase
+final readonly class WriteSchemeUseCase
 {
     public function __construct(
         private WriteSchemes           $writeSchemes,
@@ -55,7 +55,7 @@ final readonly class AddSchemeUseCase
          */
         try {
             $this->writeSchemes->write($schemes);
-        } catch (UnableToSaveFileException|UnableToEncodeJsonException $e) {
+        } catch (UnableToSaveFileException|UnableToEncodeJsonException) {
             throw new CriticalException('Unable to save schemes');
         }
 

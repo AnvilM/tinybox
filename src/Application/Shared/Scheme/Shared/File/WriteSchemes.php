@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application\Shared\Scheme\Shared\File;
 
 use App\Domain\Scheme\Collection\SchemeMap;
-use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -21,20 +20,19 @@ final readonly class WriteSchemes
     }
 
     /**
-     * @throws CriticalException
+     * Write schemes map to schemes file
+     *
+     * @throws UnableToEncodeJsonException If unable to convert schemes map to JSON
+     * @throws UnableToSaveFileException If unable to save schemes to file
      */
     public function write(SchemeMap $schemeMap): void
     {
         $path = $this->configInstancePort->get()->schemesListPath;
 
-        try {
-            $this->saveFileNotifyPort->notifyStartAndSuccess(
-                "Saving schemes...",
-                "Schemes successfully saved",
-            )->save($path, $schemeMap->toJson());
-        } catch (UnableToSaveFileException|UnableToEncodeJsonException) {
-            throw new CriticalException("Unable to save schemes", $path);
-        }
+        $this->saveFileNotifyPort->notifyStartAndSuccess(
+            "Saving schemes...",
+            "Schemes successfully saved",
+        )->save($path, $schemeMap->toJson());
 
 
     }
