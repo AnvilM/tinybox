@@ -31,20 +31,16 @@
     "ramsey/collection": "^2.1",
     "azjezz/psl": "^5.3"
   },
-  "require-dev": {
-    "pestphp/pest": "^4.1"
-  },
   "scripts": {
-    "test": "vendor/bin/pest",
+    "test": "vendor/bin/phpunit",
     "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
     "check": [
       "@analyse",
       "@test"
     ]
   },
-  "config": {
-    "allow-plugins": {
-      "pestphp/pest-plugin": true
-    }
+  "require-dev": {
+    "phpunit/phpunit": "^13.0",
+    "mockery/mockery": "^1.6"
   }
 }

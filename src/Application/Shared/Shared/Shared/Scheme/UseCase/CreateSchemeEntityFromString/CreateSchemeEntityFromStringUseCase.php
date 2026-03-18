@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Common\Scheme\UseCase;
+namespace App\Application\Shared\Common\Scheme\UseCase\CreateSchemeEntityFromString;
 
 use App\Application\Shared\Common\Scheme\Parser\RawSchemeParser;
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;

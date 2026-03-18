@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Scheme\UseCase\ReadSchemesList;
+namespace App\Application\Shared\Common\Scheme\UseCase\ReadSchemesList;
 
-use App\Application\Shared\Common\Scheme\UseCase\CreateSchemeEntityFromStringUseCase;
+use App\Application\Shared\Common\Scheme\UseCase\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
 use App\Application\Shared\Scheme\Exception\Shared\Validator\InvalidSchemesListFormatException;
 use App\Application\Shared\Scheme\Shared\File\ReadSchemes;

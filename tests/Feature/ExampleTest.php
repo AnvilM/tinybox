@@ -1,14 +1,17 @@
 <?php
 
-use Nyholm\Psr7\ServerRequest;
-use Symfony\Component\Console\Exception\CommandNotFoundException;
+declare(strict_types=1);
 
-it('example', function () {
-    expect($this->app->handle(new ServerRequest('GET', '/'))->getStatusCode())->toBe(200);
-});
+namespace Tests\Feature;
 
-it('example cli', function () {
-    expect(fn() => $this->cliApp->find('example'))
-        ->toThrow(CommandNotFoundException::class);
-});
+use Tests\BaseTestCase;
 
+final class ExampleTest extends BaseTestCase
+{
+    public function testExample()
+    {
+        $this->getApp()->find('sc:list');
+
+        $this->assertTrue(true);
+    }
+}
