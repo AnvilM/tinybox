@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Application\Services\Scheme\AddScheme\Handler;
 
 use App\Application\Services\Scheme\AddScheme\Command\AddSchemeCommand;
-use App\Application\Shared\Common\Scheme\Parser\RawSchemeParser;
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
-use App\Application\Shared\Scheme\Shared\File\WriteSchemes;
-use App\Application\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
-use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
+use App\Application\Shared\Shared\Scheme\UseCase\WriteScheme\WriteSchemeUseCase;
+use App\Application\Shared\Shared\Shared\Scheme\Parser\RawSchemeParser;
+use App\Application\Shared\Shared\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Domain\Scheme\Factory\SchemeFactory;
 use App\Domain\Shared\Exception\CriticalException;
@@ -20,7 +19,7 @@ final readonly class AddSchemeHandler
     public function __construct(
         private ReadSchemesListUseCase $readSchemesListUseCase,
         private RawSchemeParser        $rawSchemeParser,
-        private WriteSchemes           $writeSchemes,
+        private WriteSchemeUseCase     $writeSchemeUseCase,
     )
     {
     }
@@ -34,12 +33,6 @@ final readonly class AddSchemeHandler
      */
     public function handle(AddSchemeCommand $command): string
     {
-        /**
-         * Read schemes list
-         */
-        $schemes = $this->readSchemesListUseCase->handle();
-
-
         /**
          * Try to create new scheme
          */
@@ -55,19 +48,9 @@ final readonly class AddSchemeHandler
 
 
         /**
-         * Try to add new scheme to schemes list
+         * Write new scheme
          */
-        try {
-            $schemes->add($newScheme);
-        } catch (SchemeAlreadyExistsException) {
-            throw new CriticalException("Provided scheme already exists", $command->schemeString);
-        }
-
-
-        /**
-         * Write schemes to file
-         */
-        $this->writeSchemes->write($schemes);
+        $this->writeSchemeUseCase->handle($newScheme);
 
 
         /**

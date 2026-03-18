@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\Subscription\UseCase\FetchSchemes;
 
-use App\Application\Shared\Common\Scheme\UseCase\CreateSchemeEntityFromStringUseCase;
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
+use App\Application\Shared\Shared\Scheme\UseCase\WriteSchemeMap\WriteSchemeMapUseCase;
+use App\Application\Shared\Shared\Shared\Scheme\UseCase\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
 use App\Application\Shared\Subscription\Exception\UseCase\FetchSchemes\NoValidSchemesFoundException;
+use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\HTTP\HttpException;
 use App\Domain\Shared\Ports\Http\HttpPort;
-use App\Domain\Subscription\Entity\Subscription;
+use App\Domain\Subscription\VO\SubscriptionURLVO;
 use InvalidArgumentException;
 use Psl\Encoding\Base64;
 use Psl\Encoding\Exception\IncorrectPaddingException;
@@ -24,27 +26,28 @@ final readonly class FetchSchemesUseCase
     public function __construct(
         private HttpPort                            $httpPort,
         private CreateSchemeEntityFromStringUseCase $createSchemeEntityFromStringUseCase,
+        private WriteSchemeMapUseCase               $writeSchemeMapUseCase,
     )
     {
     }
 
     /**
-     * Fetch schemes and add them to provided subscription
+     * Fetch schemes from provided url
      *
-     * @param Subscription $subscription Subscription to fetch
+     * @param SubscriptionURLVO $subscriptionUrl Subscription url to fetch schemes
      *
-     * @return Subscription Subscription with schemes
+     * @return UniqueSchemesMap Unique schemes map
      *
      * @throws CriticalException
      * @throws NoValidSchemesFoundException If no valid schemes found
      */
-    public function handle(Subscription $subscription): Subscription
+    public function handle(SubscriptionURLVO $subscriptionUrl): UniqueSchemesMap
     {
         /**
          * Try to load schemes
          */
         try {
-            $rawEncodedSchemesString = $this->httpPort->get(10.0, $subscription->getUrl())
+            $rawEncodedSchemesString = $this->httpPort->get(10.0, $subscriptionUrl->getUrl())
                 ->getBody()
                 ->getContents();
         } catch (RuntimeException $e) {
@@ -70,12 +73,17 @@ final readonly class FetchSchemesUseCase
         $rawSchemesStrings = explode("\n", $rawSchemesString);
 
 
+        /**
+         * Create empty unique schemes map
+         */
+        $schemes = new UniqueSchemesMap();
+
         foreach ($rawSchemesStrings as $rawSchemeString) {
             /**
              * Try to create scheme entity from string and add it to scheme mao
              */
             try {
-                $subscription->getSchemes()->add(
+                $schemes->add(
                     $this->createSchemeEntityFromStringUseCase->handle($rawSchemeString)
                 );
             } catch (UnableToParseRawSchemeStringException|InvalidArgumentException|UnsupportedSchemeType|SchemeAlreadyExistsException) {
@@ -88,12 +96,18 @@ final readonly class FetchSchemesUseCase
         /**
          * Check if schemes map is not empty
          */
-        if ($subscription->getSchemes()->getMap()->isEmpty()) throw new NoValidSchemesFoundException();
+        if ($schemes->getMap()->isEmpty()) throw new NoValidSchemesFoundException();
 
 
         /**
+         * Write schemes to file
+         */
+        $this->writeSchemeMapUseCase->handle($schemes);
+
+        
+        /**
          * Return subscriptions
          */
-        return $subscription;
+        return $schemes;
     }
 }

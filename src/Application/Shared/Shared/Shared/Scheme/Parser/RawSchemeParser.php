@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Common\Scheme\Parser;
+namespace App\Application\Shared\Shared\Shared\Scheme\Parser;
 
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
 use App\Domain\Scheme\VO\RawSchemeVO;

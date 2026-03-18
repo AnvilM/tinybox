@@ -33,11 +33,6 @@ abstract class AbstractCommand extends Command
             ));
 
             return Command::FAILURE;
-        } catch (Throwable $e) {
-            $this->reporterPort->notify(new FatalErrorReporterEvent(
-                "Unhandled exception",
-                new ReporterEventDebugMessagesVO([$e->getMessage()])
-            ));
         }
 
         return Command::FAILURE;
