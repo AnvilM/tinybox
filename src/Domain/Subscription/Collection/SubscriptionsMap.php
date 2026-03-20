@@ -7,6 +7,7 @@ namespace App\Domain\Subscription\Collection;
 use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
 use App\Domain\Subscription\Entity\Subscription;
 use App\Domain\Subscription\Exception\SubscriptionAlreadyExistsException;
+use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
 use App\Domain\Subscription\VO\SubscriptionNameVO;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
 use JsonException;
@@ -128,5 +129,37 @@ final readonly class SubscriptionsMap
     public function toNameUrlMap(): MutableMap
     {
         return $this->map->map(fn(Subscription $subscription) => $subscription->getUrl());
+    }
+
+
+    /**
+     * Check map contains subscription with specific name
+     *
+     * @param SubscriptionNameVO $subscriptionName Subscription name
+     *
+     * @return bool True if contains
+     */
+    public function containsSubscriptionName(SubscriptionNameVO $subscriptionName): bool
+    {
+        return $this->map->contains($subscriptionName->getName());
+    }
+
+
+    /**
+     * Get subscription with specific name
+     *
+     * @param SubscriptionNameVO $subscriptionName Subscription name
+     *
+     * @return Subscription Subscription with provided name
+     *
+     * @throws SubscriptionNotFoundException If subscription with provided name not found
+     */
+    public function getSubscriptionByName(SubscriptionNameVO $subscriptionName): Subscription
+    {
+        $subscription = $this->map->get($subscriptionName->getName());
+
+        if ($subscription === null) throw new SubscriptionNotFoundException();
+
+        return $subscription;
     }
 }

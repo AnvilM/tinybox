@@ -50,6 +50,18 @@ final readonly class CreateSubscriptionHandler
             );
         }
 
+        /**
+         * Read subscription list
+         */
+        $subscriptions = $this->readSubscriptionsListUseCase->handle();
+
+
+        /**
+         * Check subscription with provided name or url already exists
+         */
+        if ($subscriptions->containsSubscriptionUrlOrName($subscriptionUrl, $subscriptionName))
+            throw new CriticalException("Subscription with name {$subscriptionName->getName()} or url {$subscriptionUrl->getUrl()} already exists");
+
 
         /**
          * Try to fetch subscription schemes
@@ -59,12 +71,6 @@ final readonly class CreateSubscriptionHandler
         } catch (NoValidSchemesFoundException) {
             throw new CriticalException ("No valid schemes found", $subscriptionUrl->getUrl());
         }
-
-
-        /**
-         * Read subscription list
-         */
-        $subscriptions = $this->readSubscriptionsListUseCase->handle();
 
 
         /**

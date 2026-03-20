@@ -20,6 +20,7 @@ use Psl\Encoding\Base64;
 use Psl\Encoding\Exception\IncorrectPaddingException;
 use Psl\Encoding\Exception\RangeException;
 use RuntimeException;
+use Throwable;
 
 final readonly class FetchSchemesUseCase
 {
@@ -89,6 +90,8 @@ final readonly class FetchSchemesUseCase
             } catch (UnableToParseRawSchemeStringException|InvalidArgumentException|UnsupportedSchemeType|SchemeAlreadyExistsException) {
                 continue;
                 //TODO: add reporter event
+            } catch (Throwable) {
+                continue;
             }
         }
 
@@ -104,7 +107,7 @@ final readonly class FetchSchemesUseCase
          */
         $this->writeSchemeMapUseCase->handle($schemes);
 
-        
+
         /**
          * Return subscriptions
          */
