@@ -23,13 +23,13 @@ final readonly class ConfigFactory
      * @param array $rawConfig Raw, json decoded config
      * @param ConfigVO $defaultConfig Default config used if some field in raw config not found
      *
-     * @return ConfigVO Config value object
+     * @return ConfigVO SchemeGroup value object
      */
     public function create(array $rawConfig, ConfigVO $defaultConfig): ConfigVO
     {
         return new ConfigVO(
             $this->normalizePath($rawConfig['subscriptions_list'] ?? null) ?? $defaultConfig->subscriptionsListPath,
-            $this->normalizePath($rawConfig['configs_list'] ?? null) ?? $defaultConfig->configsListPath,
+            $this->normalizePath($rawConfig['scheme_groups_list'] ?? null) ?? $defaultConfig->schemeGroupsListPath,
             $this->normalizePath($rawConfig['schemes_list'] ?? null) ?? $defaultConfig->schemesListPath,
             new SingBoxConfigVO(
                 $rawConfig['sing_box']['binary'] ?? $defaultConfig->singBoxConfig->binary,
