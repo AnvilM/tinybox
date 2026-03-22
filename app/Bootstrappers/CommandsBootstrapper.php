@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Bootstrappers;
 
 use App\Commands\Config\AddSchemeToConfigCommand;
+use App\Commands\Config\ApplyConfigCommand;
 use App\Commands\Config\ListConfigsCommand;
 use App\Commands\Scheme\AddSchemeCommand;
 use App\Commands\Scheme\ListSchemesCommand;
@@ -26,7 +27,8 @@ final class CommandsBootstrapper
         ListConfigsCommand::class,
         CreateSubscriptionCommand::class,
         ListSubscriptionsCommand::class,
-        ApplySubscriptionCommand::class
+        ApplySubscriptionCommand::class,
+        ApplyConfigCommand::class
     ];
 
 

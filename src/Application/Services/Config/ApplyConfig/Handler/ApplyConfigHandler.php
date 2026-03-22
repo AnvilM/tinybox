@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Services\Subscription\ApplySubscription\Handler;
+namespace App\Application\Services\Config\ApplyConfig\Handler;
 
-use App\Application\Services\Subscription\ApplySubscription\Command\ApplySubscriptionCommand;
+use App\Application\Services\Config\ApplyConfig\Command\ApplyConfigCommand;
 use App\Application\Services\Subscription\ApplySubscription\Exception\UnableToRestartSingBoxServiceException;
+use App\Application\Shared\Config\UseCase\ReadConfigsList\ReadConfigsListUseCase;
 use App\Application\Shared\Shared\Utils\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
 use App\Application\Shared\Shared\Utils\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
-use App\Application\Shared\Subscription\UseCase\ReadSubscriptionsList\ReadSubscriptionsListUseCase;
+use App\Domain\Config\Exception\ConfigNotFoundException;
+use App\Domain\Config\Exception\InvalidConfigNameException;
+use App\Domain\Config\VO\ConfigNameVO;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Factory\OutboundFactory;
@@ -16,15 +19,12 @@ use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\SaveFilePort;
-use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
-use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
-use App\Domain\Subscription\VO\SubscriptionNameVO;
 use InvalidArgumentException;
 
-final readonly class ApplySubscriptionHandler
+final readonly class ApplyConfigHandler
 {
     public function __construct(
-        private ReadSubscriptionsListUseCase $readSubscriptionsListUseCase,
+        private ReadConfigsListUseCase       $readConfigsListUseCase,
         private CreateSingBoxConfigUseCase   $createSingBoxConfigUseCase,
         private SaveFilePort                 $saveFilePort,
         private ConfigInstancePort           $configInstancePort,
@@ -36,31 +36,31 @@ final readonly class ApplySubscriptionHandler
     /**
      * @throws CriticalException
      */
-    public function handle(ApplySubscriptionCommand $command): void
+    public function handle(ApplyConfigCommand $command): void
     {
         /**
-         * Read list of all saved subscriptions
+         * Read list of all configs
          */
-        $subscriptions = $this->readSubscriptionsListUseCase->handle();
+        $configs = $this->readConfigsListUseCase->handle();
 
 
         /**
-         * Try to create subscription name
+         * Try to create config name
          */
         try {
-            $subscriptionName = new SubscriptionNameVO($command->subscriptionName);
-        } catch (InvalidSubscriptionNameException) {
-            throw new CriticalException("Invalid subscription name provided");
+            $configName = new ConfigNameVO($command->configName);
+        } catch (InvalidConfigNameException) {
+            throw new CriticalException('Invalid config name: ' . $command->configName);
         }
 
 
         /**
-         * Try to find subscription with provided name
+         * Try to find config with provided name
          */
         try {
-            $subscription = $subscriptions->getSubscriptionByName($subscriptionName);
-        } catch (SubscriptionNotFoundException) {
-            throw new CriticalException("Subscription with name {$subscriptionName->getName()} not found");
+            $config = $configs->getByName($configName);
+        } catch (ConfigNotFoundException) {
+            throw new CriticalException('Config with name ' . $configName->getName() . ' not found');
         }
 
 
@@ -70,7 +70,7 @@ final readonly class ApplySubscriptionHandler
         $outboundsMap = new OutboundMap();
 
 
-        foreach ($subscription->getSchemes()->getMap() as $scheme) {
+        foreach ($config->getSchemes()->getMap() as $scheme) {
             /**
              * Try to create outbound from scheme and add it to outbounds map
              */
@@ -109,5 +109,7 @@ final readonly class ApplySubscriptionHandler
         } catch (UnableToRestartSingBoxServiceException) {
             throw new CriticalException("Unable to restart sing-box service");
         }
+
+
     }
 }

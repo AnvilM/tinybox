@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Services\Subscription\ApplySubscription\Process;
+namespace App\Application\Shared\Shared\Utils\UseCase\RestartSingBoxService\Process;
 
 use App\Application\Services\Subscription\ApplySubscription\Exception\UnableToRestartSingBoxServiceException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
