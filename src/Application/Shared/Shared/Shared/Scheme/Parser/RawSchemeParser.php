@@ -22,6 +22,7 @@ final readonly class RawSchemeParser
     public function parse(string $rawSchemeString): RawSchemeVO
     {
 
+        if (trim($rawSchemeString) === '') throw new UnableToParseRawSchemeStringException("Invalid raw scheme string");
 
         $parsed = parse_url($rawSchemeString);
         if (!$parsed) {
