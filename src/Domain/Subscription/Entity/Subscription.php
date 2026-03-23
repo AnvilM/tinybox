@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Subscription\Entity;
 
 use App\Domain\Scheme\Collection\UniqueSchemesMap;
-use App\Domain\Shared\VO\Shared\SchemesIdsVO;
 use App\Domain\Subscription\VO\SubscriptionNameVO;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
 
-final readonly class Subscription
+final class Subscription
 {
     private SubscriptionNameVO $name;
     private SubscriptionURLVO $url;
@@ -53,6 +52,17 @@ final readonly class Subscription
     public function getSchemes(): UniqueSchemesMap
     {
         return $this->schemes;
+    }
+
+
+    /**
+     * Set subscription schemes
+     *
+     * @param UniqueSchemesMap $schemes Subscription schemes
+     */
+    public function setSchemes(UniqueSchemesMap $schemes): void
+    {
+        $this->schemes = $schemes;
     }
 
 
