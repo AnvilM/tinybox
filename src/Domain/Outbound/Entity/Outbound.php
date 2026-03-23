@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Outbound\Entity;
 
 use App\Domain\Outbound\Entity\TLS\TLS;
+use App\Domain\Shared\VO\Outbound\OutboundTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
-use App\Domain\Shared\VO\Shared\OutboundTypeVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 
 final readonly class Outbound

@@ -11,7 +11,6 @@ use App\Application\Shared\Scheme\Shared\Validator\SchemesListFormatValidator;
 use App\Application\Shared\Shared\Shared\Scheme\UseCase\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
 use App\Domain\Scheme\Collection\SchemeMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
-use App\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
@@ -75,7 +74,7 @@ final readonly class ReadSchemesListUseCase
              */
             try {
                 $schemes->add($this->createSchemeEntityFromStringUseCase->handle($rawSchemeString));
-            } catch (UnsupportedSchemeType|UnableToParseRawSchemeStringException|InvalidArgumentException) {
+            } catch (UnableToParseRawSchemeStringException|InvalidArgumentException) {
                 $this->reporterPort->notify(new InvalidSchemeReporterEvent($rawSchemeString));
                 continue;
             } catch (SchemeAlreadyExistsException) {

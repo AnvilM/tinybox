@@ -4,105 +4,70 @@ declare(strict_types=1);
 
 namespace App\Domain\Scheme\Entity;
 
-use App\Domain\Scheme\Exception\UnsupportedSchemeType;
-use App\Domain\Shared\VO\Shared\OutboundTypeVO;
+use App\Domain\Shared\VO\Outbound\OutboundTypeVO;
+use App\Domain\Shared\VO\Outbound\Transport\TransportTypeVO;
+use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
+use App\Domain\Shared\VO\Shared\PortVO;
 use InvalidArgumentException;
 use Psl\Hash\Algorithm;
-use ValueError;
 
 final readonly class Scheme
 {
     private OutboundTypeVO $type;
-    private string $uuid;
-    private string $server;
-    private int $server_port;
-    private string $sni;
-    private string $pbk;
-    private string $sid;
-    private string $tag;
-    private ?string $flow;
-    private ?string $fp;
+    private NonEmptyStringVO $uuid;
+    private NonEmptyStringVO $server;
+    private PortVO $server_port;
+    private NonEmptyStringVO $sni;
+    private NonEmptyStringVO $pbk;
+    private NonEmptyStringVO $sid;
+    private NonEmptyStringVO $tag;
+    private ?NonEmptyStringVO $flow;
+    private ?NonEmptyStringVO $fp;
+    private ?TransportTypeVO $transportType;
 
     /**
      * @throws InvalidArgumentException Throws if given invalid data
-     * @throws UnsupportedSchemeType
      */
     public function __construct(
-        ?string $type,
-        ?string $tag,
-        ?string $uuid,
-        ?string $server,
-        ?int    $server_port,
-        ?string $sni,
-        ?string $pbk,
-        ?string $sid,
-        ?string $flow,
-        ?string $fp
+        OutboundTypeVO    $type,
+        NonEmptyStringVO  $uuid,
+        NonEmptyStringVO  $server,
+        PortVO            $server_port,
+        NonEmptyStringVO  $sni,
+        NonEmptyStringVO  $pbk,
+        NonEmptyStringVO  $sid,
+        ?NonEmptyStringVO $tag,
+        ?NonEmptyStringVO $flow,
+        ?NonEmptyStringVO $fp,
+        ?TransportTypeVO  $transportType
     )
     {
-        $this->type = $this->assertTypeVO($type);
-        $this->uuid = $this->assertNonEmptyString($uuid, 'uuid');
-        $this->server = $this->assertNonEmptyString($server, 'server');
-        $this->server_port = $this->assertPositiveInt($server_port, 'server_port');
-        $this->sni = $this->assertNonEmptyString($sni, 'sni');
-        $this->pbk = $this->assertNonEmptyString($pbk, 'pbk');
-        $this->sid = $this->assertNonEmptyString($sid, 'sid');
-        $this->flow = $this->assertNullableString($flow);
-        $this->fp = $this->assertNullableString($fp);
+        $this->type = $type;
+        $this->uuid = $uuid;
+        $this->server = $server;
+        $this->server_port = $server_port;
+        $this->sni = $sni;
+        $this->pbk = $pbk;
+        $this->sid = $sid;
 
-        if ($tag === null) $tag = $this->generateTag();
-        $this->tag = $this->assertNonEmptyString($tag, 'tag');
+        $this->flow = $flow;
+        $this->fp = $fp;
+        $this->transportType = $transportType;
+        $this->tag = $tag ?? new NonEmptyStringVO($this->generateTag());
 
-    }
-
-    /**
-     * @throws UnsupportedSchemeType
-     */
-    private function assertTypeVO(string $value): OutboundTypeVO
-    {
-        try {
-            return OutboundTypeVO::from($value);
-        } catch (ValueError) {
-            throw new UnsupportedSchemeType($value);
-        }
-    }
-
-    private function assertNonEmptyString(?string $value, string $field): string
-    {
-        if (!$value || trim($value) === '') {
-            throw new InvalidArgumentException("$field is required");
-        }
-
-        return $value;
-    }
-
-    private function assertPositiveInt(?int $value, string $field): int
-    {
-        if (!$value || $value <= 0) {
-            throw new InvalidArgumentException("$field is invalid");
-        }
-        return $value;
-    }
-
-    private function assertNullableString(?string $value): ?string
-    {
-        if ($value === null || trim($value) === '') return null;
-
-
-        return trim($value);
     }
 
     private function generateTag(): string
     {
         $rawTag = $this->type->value;
-        $rawTag .= $this->uuid;
-        $rawTag .= $this->server;
-        $rawTag .= $this->server_port;
-        $rawTag .= $this->sni;
-        $rawTag .= $this->pbk;
-        $rawTag .= $this->sid;
-        $rawTag .= $this->flow;
-        $rawTag .= $this->fp;
+        $rawTag .= $this->uuid->getValue();
+        $rawTag .= $this->server->getValue();
+        $rawTag .= $this->server_port->getPort();
+        $rawTag .= $this->sni->getValue();
+        $rawTag .= $this->pbk->getValue();
+        $rawTag .= $this->sid->getValue();
+        $rawTag .= $this->flow?->getValue();
+        $rawTag .= $this->fp?->getValue();
 
         return \Psl\Hash\hash($rawTag, Algorithm::Murmur3F);
     }
@@ -110,15 +75,16 @@ final readonly class Scheme
     public function equals(Scheme $scheme): bool
     {
         return (
-            $this->type === $scheme->getType() &&
-            $this->uuid === $scheme->getUuid() &&
-            $this->server === $scheme->getServer() &&
-            $this->server_port === $scheme->getServerPort() &&
-            $this->sni === $scheme->getSni() &&
-            $this->pbk === $scheme->getPbk() &&
-            $this->sid === $scheme->getSid() &&
-            $this->flow === $scheme->getFlow() &&
-            $this->getFp() === $scheme->getFp()
+            $this->getType() === $scheme->getType() &&
+            $this->getUuid() === $scheme->getUuid() &&
+            $this->getServer() === $scheme->getServer() &&
+            $this->getServerPort() === $scheme->getServerPort() &&
+            $this->getSni() === $scheme->getSni() &&
+            $this->getPbk() === $scheme->getPbk() &&
+            $this->getSid() === $scheme->getSid() &&
+            $this->getFlow() === $scheme->getFlow() &&
+            $this->getFp() === $scheme->getFp() &&
+            $this->getTransportType() === $scheme->getTransportType()
         );
     }
 
@@ -129,47 +95,52 @@ final readonly class Scheme
 
     public function getUuid(): string
     {
-        return $this->uuid;
+        return $this->uuid->getValue();
     }
 
     public function getServer(): string
     {
-        return $this->server;
+        return $this->server->getValue();
     }
 
     public function getServerPort(): int
     {
-        return $this->server_port;
+        return $this->server_port->getPort();
     }
 
     public function getSni(): string
     {
-        return $this->sni;
+        return $this->sni->getValue();
     }
 
     public function getPbk(): string
     {
-        return $this->pbk;
+        return $this->pbk->getValue();
     }
 
     public function getSid(): string
     {
-        return $this->sid;
+        return $this->sid->getValue();
     }
 
     public function getFlow(): ?string
     {
-        return $this->flow;
+        return $this->flow?->getValue();
     }
 
     public function getFp(): ?string
     {
-        return $this->fp;
+        return $this->fp?->getValue();
+    }
+
+    public function getTransportType(): TransportTypeVO
+    {
+        return $this->transportType;
     }
 
     public function getTag(): string
     {
-        return $this->tag;
+        return $this->tag->getValue();
     }
 
     public function getHash(): string
@@ -180,18 +151,20 @@ final readonly class Scheme
     public function toRawScheme(): string
     {
         $rawScheme = $this->type->value . "://";
-        $rawScheme .= $this->uuid . "@";
-        $rawScheme .= $this->server . ":";
-        $rawScheme .= $this->server_port . "?";
-        $rawScheme .= "sni=" . $this->sni;
-        $rawScheme .= "&pbk=" . $this->pbk;
-        $rawScheme .= "&sid=" . $this->sid;
+        $rawScheme .= $this->uuid->getValue() . "@";
+        $rawScheme .= $this->server->getValue() . ":";
+        $rawScheme .= $this->server_port->getPort() . "?";
+        $rawScheme .= "sni=" . $this->sni->getValue();
+        $rawScheme .= "&pbk=" . $this->pbk->getValue();
+        $rawScheme .= "&sid=" . $this->sid->getValue();
 
-        if ($this->flow) $rawScheme .= "&flow=" . $this->flow;
-        if ($this->fp) $rawScheme .= "&fp=" . $this->fp;
+        if ($this->flow) $rawScheme .= "&flow=" . $this->flow->getValue();
+        if ($this->fp) $rawScheme .= "&fp=" . $this->fp->getValue();
+        if ($this->getTransportType()) $rawScheme .= "&type=" . $this->getTransportType()->value;
 
-        $rawScheme .= "#" . $this->tag;
+        $rawScheme .= "#" . $this->tag->getValue();
 
         return $rawScheme;
     }
+
 }

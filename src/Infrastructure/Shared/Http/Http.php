@@ -23,7 +23,7 @@ final readonly class Http implements HttpPort
         /**
          * Create HTTP client
          */
-        $client = new Client(['timeout' => $timeout]);
+        $client = new Client(['timeout' => 100.0]);
 
 
         /**

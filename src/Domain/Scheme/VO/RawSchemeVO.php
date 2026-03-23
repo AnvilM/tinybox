@@ -16,7 +16,8 @@ final readonly class RawSchemeVO
         public ?string $pbk,
         public ?string $sid,
         public ?string $flow,
-        public ?string $fp
+        public ?string $fp,
+        public ?string $transportType,
     )
     {
     }
@@ -33,6 +34,7 @@ final readonly class RawSchemeVO
         $string .= "sid: $this->sid\n";
         $string .= "flow: $this->flow\n";
         $string .= "fp: $this->fp\n";
+        $string .= "transportType: $this->transportType\n";
 
         return $string;
 

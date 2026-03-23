@@ -10,7 +10,6 @@ use App\Application\Shared\Shared\Shared\Scheme\UseCase\CreateSchemeEntityFromSt
 use App\Application\Shared\Subscription\Exception\UseCase\FetchSchemes\NoValidSchemesFoundException;
 use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
-use App\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\HTTP\HttpException;
 use App\Domain\Shared\Ports\Http\HttpPort;
@@ -87,7 +86,7 @@ final readonly class FetchSchemesUseCase
                 $schemes->add(
                     $this->createSchemeEntityFromStringUseCase->handle($rawSchemeString)
                 );
-            } catch (UnableToParseRawSchemeStringException|InvalidArgumentException|UnsupportedSchemeType|SchemeAlreadyExistsException) {
+            } catch (UnableToParseRawSchemeStringException|InvalidArgumentException|SchemeAlreadyExistsException) {
                 continue;
                 //TODO: add reporter event
             } catch (Throwable) {
