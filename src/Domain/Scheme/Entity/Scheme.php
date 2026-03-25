@@ -133,7 +133,7 @@ final readonly class Scheme
         return $this->fp?->getValue();
     }
 
-    public function getTransportType(): TransportTypeVO
+    public function getTransportType(): ?TransportTypeVO
     {
         return $this->transportType;
     }
@@ -150,7 +150,7 @@ final readonly class Scheme
 
     public function toRawScheme(): string
     {
-        $rawScheme = $this->type->value . "://";
+        $rawScheme = $this->getType()->value . "://";
         $rawScheme .= $this->uuid->getValue() . "@";
         $rawScheme .= $this->server->getValue() . ":";
         $rawScheme .= $this->server_port->getPort() . "?";
@@ -158,8 +158,8 @@ final readonly class Scheme
         $rawScheme .= "&pbk=" . $this->pbk->getValue();
         $rawScheme .= "&sid=" . $this->sid->getValue();
 
-        if ($this->flow) $rawScheme .= "&flow=" . $this->flow->getValue();
-        if ($this->fp) $rawScheme .= "&fp=" . $this->fp->getValue();
+        if ($this->getFlow()) $rawScheme .= "&flow=" . $this->flow->getValue();
+        if ($this->getFp()) $rawScheme .= "&fp=" . $this->fp->getValue();
         if ($this->getTransportType()) $rawScheme .= "&type=" . $this->getTransportType()->value;
 
         $rawScheme .= "#" . $this->tag->getValue();
