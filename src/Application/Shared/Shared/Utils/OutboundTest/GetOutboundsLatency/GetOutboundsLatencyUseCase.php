@@ -9,7 +9,6 @@ use App\Application\Shared\Shared\Utils\OutboundTest\GetOutboundsLatency\Socket\
 use App\Application\Shared\Shared\Utils\OutboundTest\Shared\File\WriteOutboundTestSingBoxConfig;
 use App\Application\Shared\Shared\Utils\OutboundTest\Shared\UseCase\CreateOutboundTestSingBoxConfig\CreateOutboundTestSingBoxConfigUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
-use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -33,7 +32,7 @@ final readonly class GetOutboundsLatencyUseCase
      * @param OutboundMap $outboundsMap Map of outbounds to test
      * @param LatencyTestMethod $method Method to test outbounds latency e.g. get via proxy or tcp ping
      *
-     * @return MutableMap<Outbound, string> Mutable map of outboundTag => (delay in ms)|null e.g. [Outbound1 => 1000, Outbound2 => null, ...]
+     * @return MutableMap<string, string> Mutable map of outboundTag => (delay in ms)|null e.g. [Outbound1 => 1000, Outbound2 => null, ...]
      *
      * @throws CriticalException
      *

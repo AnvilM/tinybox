@@ -11,6 +11,7 @@ use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
 use App\Domain\Outbound\Factory\OutboundFactory;
+use App\Domain\Scheme\Exception\SchemeNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\LatencyTestMethod;
@@ -65,6 +66,7 @@ final readonly class TestSubscriptionHandler
          */
         if ($subscription->getSchemes()->isEmpty()) throw new CriticalException("Subscription  {$subscriptionName->getName()} has no schemes");
 
+
         /**
          * Create empty outbounds map
          */
@@ -84,9 +86,21 @@ final readonly class TestSubscriptionHandler
             }
         }
 
-        return $this->getOutboundsLatencyUseCase->handle(
+        $map = new MutableMap([]);
+
+        $res = $this->getOutboundsLatencyUseCase->handle(
             $outboundsMap,
             LatencyTestMethod::tryFrom($command->testMethod ?? '')
             ?? $this->configInstancePort->get()->singBoxConfig->outboundTest->latency->method);
+
+        foreach ($res as $tag => $latency) {
+            try {
+                $map->add($subscription->getSchemes()->getByTag($tag)->getHash(), new MutableMap([])->add($tag, $latency));
+            } catch (SchemeNotFoundException) {
+                continue;
+            }
+        }
+
+        return $map;
     }
 }

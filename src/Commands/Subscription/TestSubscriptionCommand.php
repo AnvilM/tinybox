@@ -36,37 +36,51 @@ final class TestSubscriptionCommand extends AbstractCommand
             )
         );
 
-        $longestTagLength = 0;
+        $maxIdLength = length('Id');
+        $maxTagLength = length('Tag');
+        $maxLatencyLength = length('Latency');
 
-        foreach ($result as $tag => $latency) {
-            $tagLength = length($tag);
-            if ($tagLength > $longestTagLength) {
-                $longestTagLength = $tagLength;
+        foreach ($result as $id => $tags) {
+            $maxIdLength = max($maxIdLength, length($id));
+
+            foreach ($tags as $tag => $latency) {
+                $maxTagLength = max($maxTagLength, length($tag));
+                $maxLatencyLength = max($maxLatencyLength, length($latency === null ? "N/A" : (string)$latency));
             }
         }
 
         $cli = new CLImate();
 
-        $cli->inline('     Tag');
-        for ($i = 0; $i < $longestTagLength - length('Tag') + 2; $i++) {
-            $cli->inline(' ');
-        }
-        $cli->inline('Latency');
-        $cli->br();
-
-        foreach ($result as $tag => $latency) {
-            $cli->green()->inline('[+]  ');
-            $cli->green()->inline($tag);
-
-            $tagLength = length($tag);
-            for ($i = 0; $i < $longestTagLength - $tagLength + 2; $i++) {
+        $pad = static function (CLImate $cli, int $currentLength, int $targetLength): void {
+            for ($i = 0; $i < $targetLength - $currentLength + 2; $i++) {
                 $cli->inline(' ');
             }
+        };
 
-            $cli->green()->inline($latency ?? 'N/A');
-            $cli->br();
+        $cli->inline('     Id');
+        $pad($cli, length('Id'), $maxIdLength);
+
+        $cli->inline('Tag');
+        $pad($cli, length('Tag'), $maxTagLength);
+
+        $cli->inline(' Latency');
+        $cli->br();
+
+        foreach ($result as $id => $tags) {
+            foreach ($tags as $tag => $latency) {
+                $cli->green()->inline('[+]  ');
+
+                $cli->green()->inline($id);
+                $pad($cli, length($id), $maxIdLength);
+
+                $cli->green()->inline($tag);
+                $pad($cli, length($tag), $maxTagLength);
+
+                $value = $latency === null ? "N/A" : (string)$latency;
+                $cli->green()->inline($value);
+                $cli->br();
+            }
         }
-
 
         return self::SUCCESS;
     }

@@ -6,6 +6,7 @@ namespace App\Domain\Scheme\Collection;
 
 use App\Domain\Scheme\Entity\Scheme;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
+use App\Domain\Scheme\Exception\SchemeNotFoundException;
 use Override;
 
 final class UniqueSchemesMap extends SchemeMap
@@ -50,5 +51,25 @@ final class UniqueSchemesMap extends SchemeMap
         }
 
         return false;
+    }
+
+
+    /**
+     * Get scheme with provided tag
+     *
+     * @param string $tag Tag
+     * @return Scheme Scheme
+     *
+     * @throws SchemeNotFoundException If scheme with provided tag does not exist
+     */
+    public function getByTag(string $tag): Scheme
+    {
+        foreach ($this->map as $scheme) {
+            if ($scheme->getTag() === $tag) {
+                return $scheme;
+            }
+        }
+
+        throw new SchemeNotFoundException();
     }
 }
