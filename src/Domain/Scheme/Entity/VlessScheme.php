@@ -54,8 +54,10 @@ final readonly class VlessScheme extends Scheme
     #[Override]
     public function equals(Scheme $scheme): bool
     {
+        if (!($scheme instanceof self)) return false;
+
         return (
-            $this->getType() === $scheme->getType() &&
+            $this->getType()->value === $scheme->getType()->value &&
             $this->getUuid() === $scheme->getUuid() &&
             $this->getServer() === $scheme->getServer() &&
             $this->getServerPort() === $scheme->getServerPort() &&
@@ -121,13 +123,6 @@ final readonly class VlessScheme extends Scheme
     }
 
     #[Override]
-    public function getHash(): string
-    {
-        return \Psl\Hash\hash($this->toRawScheme(), Algorithm::Murmur3F);
-    }
-
-
-    #[Override]
     public function toRawScheme(): string
     {
         $rawScheme = $this->getType()->value . "://";
@@ -151,7 +146,7 @@ final readonly class VlessScheme extends Scheme
     #[Override]
     protected function generateTag(): string
     {
-        $rawTag = $this->getTag();
+        $rawTag = $this->getType()->value;
         $rawTag .= $this->uuid->getValue();
         $rawTag .= $this->server->getValue();
         $rawTag .= $this->server_port->getPort();

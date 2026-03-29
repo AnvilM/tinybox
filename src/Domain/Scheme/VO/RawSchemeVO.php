@@ -18,6 +18,7 @@ final readonly class RawSchemeVO
         public ?string $flow,
         public ?string $fp,
         public ?string $transportType,
+        public ?string $shadowsocksPlugin,
     )
     {
     }
@@ -35,6 +36,7 @@ final readonly class RawSchemeVO
         $string .= "flow: $this->flow\n";
         $string .= "fp: $this->fp\n";
         $string .= "transportType: $this->transportType\n";
+        $string .= "shadowsocksPlugin: $this->shadowsocksPlugin\n";
 
         return $string;
 

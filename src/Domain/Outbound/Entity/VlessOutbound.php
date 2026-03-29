@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Outbound\Entity;
 
 use App\Domain\Outbound\Entity\TLS\TLS;
+use App\Domain\Outbound\VO\OutboundTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use Override;
@@ -41,7 +42,7 @@ final readonly class VlessOutbound extends Outbound
     public function toArray(): array
     {
         return array_filter([
-            'type' => $this->getType(),
+            'type' => $this->getType()->value,
             'tag' => $this->getTag(),
             'server' => $this->server->getValue(),
             'server_port' => $this->serverPort->getPort(),
@@ -53,8 +54,8 @@ final readonly class VlessOutbound extends Outbound
 
 
     #[Override]
-    protected function getType(): string
+    public function getType(): OutboundTypeVO
     {
-        return 'vless';
+        return OutboundTypeVO::Vless;
     }
 }

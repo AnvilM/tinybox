@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\Entity;
 
+use App\Domain\Outbound\VO\OutboundTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 
 abstract readonly class Outbound
@@ -37,7 +38,7 @@ abstract readonly class Outbound
     /**
      * Get outbound type
      *
-     * @return string Outbound type
+     * @return OutboundTypeVO Outbound type
      */
-    protected abstract function getType(): string;
+    public abstract function getType(): OutboundTypeVO;
 }

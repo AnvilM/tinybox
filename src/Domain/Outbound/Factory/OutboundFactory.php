@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Outbound\Factory;
 
 use App\Domain\Outbound\Entity\Outbound;
+use App\Domain\Outbound\Entity\ShadowsocksOutbound;
 use App\Domain\Outbound\Entity\TLS\Reality;
 use App\Domain\Outbound\Entity\TLS\TLS;
 use App\Domain\Outbound\Entity\TLS\UTLS;
 use App\Domain\Outbound\Entity\VlessOutbound;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
-use App\Domain\Outbound\VO\OutboundTypeVO;
 use App\Domain\Scheme\Entity\Scheme;
+use App\Domain\Scheme\Entity\ShadowsocksScheme;
 use App\Domain\Scheme\Entity\VlessScheme;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
@@ -31,10 +32,15 @@ final readonly class OutboundFactory
      */
     public static function fromScheme(Scheme $scheme): Outbound
     {
-        return match (OutboundTypeVO::fromSchemeTypeVO($scheme->getType())) {
-            OutboundTypeVO::Vless => self::vlessOutbound($scheme),
-            default => throw new UnsupportedOutboundTypeException($scheme->getType()->value),
-        };
+        if ($scheme instanceof VlessScheme) {
+            return self::vlessOutbound($scheme);
+        }
+
+        if ($scheme instanceof ShadowsocksScheme) {
+            return self::shadowsocksOutbound($scheme);
+        }
+
+        throw new UnsupportedOutboundTypeException($scheme->getType()->value);
     }
 
     /**
@@ -67,6 +73,28 @@ final readonly class OutboundFactory
                 ) : null,
                 true
             )
+        );
+    }
+
+    /**
+     * Creates a shadowsocks outbound entity from Vless scheme entity
+     *
+     * @param ShadowsocksScheme $scheme shadowsocks scheme entity
+     *
+     * @return ShadowsocksOutbound The created shadowsocks outbound entity
+     *
+     * @throws InvalidArgumentException If required fields are missing or empty
+     */
+    private static function shadowsocksOutbound(ShadowsocksScheme $scheme): ShadowsocksOutbound
+    {
+        return new ShadowsocksOutbound(
+            new NonEmptyStringVO($scheme->getTag()),
+            new NonEmptyStringVO($scheme->getServer()),
+            new PortVO($scheme->getServerPort()),
+            new NonEmptyStringVO($scheme->getMethod()->value),
+            new NonEmptyStringVO($scheme->getPassword()),
+            $scheme->getPlugin() === null ? null : new NonEmptyStringVO($scheme->getPlugin()->value),
+            $scheme->getPluginOptions() === null ? null : new NonEmptyStringVO($scheme->getPluginOptions()),
         );
     }
 }

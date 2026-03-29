@@ -67,7 +67,6 @@ final readonly class ApplySubscriptionHandler
             throw new CriticalException("Subscription with name {$subscriptionName->getName()} not found");
         }
 
-
         /**
          * Check if subscription has schemes
          */

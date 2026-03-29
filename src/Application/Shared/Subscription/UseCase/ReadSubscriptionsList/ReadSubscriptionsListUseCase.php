@@ -76,7 +76,6 @@ final readonly class ReadSubscriptionsListUseCase
          */
         $subscriptions = new SubscriptionsMap();
 
-
         foreach ($rawSubscriptionsList as $rawSubscription) {
             /**
              * Create empty subscription schemes map

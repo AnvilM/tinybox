@@ -14,11 +14,11 @@ final readonly class SubscriptionNameVO extends NonEmptyStringVO
     /**
      * Constructor
      *
-     * @param string $name Subscription name
+     * @param string|null $name Subscription name
      *
      * @throws InvalidSubscriptionNameException If provided name is invalid
      */
-    public function __construct(string $name)
+    public function __construct(?string $name)
     {
 
         try {

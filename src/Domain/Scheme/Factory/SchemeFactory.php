@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Scheme\Factory;
 
 use App\Domain\Scheme\Entity\Scheme;
+use App\Domain\Scheme\Entity\ShadowsocksScheme;
 use App\Domain\Scheme\Entity\VlessScheme;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Domain\Scheme\VO\RawSchemeVO;
 use App\Domain\Scheme\VO\SchemeTypeVO;
+use App\Domain\Scheme\VO\ShadowsocksScheme\Plugin\ShadowsocksPluginVO;
+use App\Domain\Scheme\VO\ShadowsocksScheme\Userinfo\ShadowsocksUserinfoVO;
 use App\Domain\Shared\VO\Outbound\Transport\TransportTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
@@ -31,6 +34,7 @@ final readonly class SchemeFactory
     {
         return match (SchemeTypeVO::fromString($rawSchemeVO->type)) {
             SchemeTypeVO::Vless => self::vlessScheme($rawSchemeVO),
+            SchemeTypeVO::SS => self::shadowsocksScheme($rawSchemeVO),
             default => throw new UnsupportedSchemeType($rawSchemeVO->type),
         };
     }
@@ -63,5 +67,26 @@ final readonly class SchemeFactory
         } catch (ValueError) {
             throw new InvalidArgumentException();
         }
+    }
+
+
+    /**
+     * Creates a shadowsocks scheme entity from RawSchemeVO value object
+     *
+     * @param RawSchemeVO $rawSchemeVO RawSchemeVO value object
+     *
+     * @return ShadowsocksScheme Created shadowsocks scheme entity
+     *
+     * @throws InvalidArgumentException If required fields are missing or provided invalid fields
+     */
+    private static function shadowsocksScheme(RawSchemeVO $rawSchemeVO): ShadowsocksScheme
+    {
+        return new ShadowsocksScheme(
+            $rawSchemeVO->tag === null ? null : new NonEmptyStringVO($rawSchemeVO->tag),
+            new ShadowsocksUserinfoVO($rawSchemeVO->uuid),
+            $rawSchemeVO->shadowsocksPlugin === null ? null : new ShadowsocksPluginVO($rawSchemeVO->shadowsocksPlugin),
+            new NonEmptyStringVO($rawSchemeVO->server),
+            new PortVO($rawSchemeVO->server_port),
+        );
     }
 }

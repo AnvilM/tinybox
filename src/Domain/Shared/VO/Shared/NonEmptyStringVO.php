@@ -17,12 +17,12 @@ readonly class NonEmptyStringVO
      *
      * @throws InvalidArgumentException If invalid string provided
      */
-    public function __construct(string $value)
+    public function __construct(?string $value)
     {
         try {
             $this->value = non_empty_string()->coerce($value);
         } catch (CoercionException) {
-            throw new InvalidArgumentException();
+            throw new InvalidArgumentException("Invalid string: " . "'" . ($value ?? 'null') . "'");
         }
     }
 
