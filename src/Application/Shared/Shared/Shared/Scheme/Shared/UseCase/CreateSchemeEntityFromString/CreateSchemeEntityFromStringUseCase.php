@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Shared\Shared\Scheme\UseCase\CreateSchemeEntityFromString;
+namespace App\Application\Shared\Shared\Shared\Scheme\Shared\UseCase\CreateSchemeEntityFromString;
 
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
-use App\Application\Shared\Shared\Shared\Scheme\Parser\RawSchemeParser;
+use App\Application\Shared\Shared\Shared\Scheme\Shared\Shared\Parser\RawSchemeParser;
 use App\Domain\Scheme\Entity\Scheme;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Domain\Scheme\Factory\SchemeFactory;

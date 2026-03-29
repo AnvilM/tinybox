@@ -8,7 +8,7 @@ use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawScheme
 use App\Application\Shared\Scheme\Exception\Shared\Validator\InvalidSchemesListFormatException;
 use App\Application\Shared\Scheme\Shared\File\ReadSchemes;
 use App\Application\Shared\Scheme\Shared\Validator\SchemesListFormatValidator;
-use App\Application\Shared\Shared\Shared\Scheme\UseCase\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
+use App\Application\Shared\Shared\Shared\Scheme\Shared\UseCase\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
 use App\Domain\Scheme\Collection\SchemeMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;

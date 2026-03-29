@@ -6,7 +6,7 @@ namespace App\Application\Shared\Subscription\UseCase\FetchSchemes;
 
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
 use App\Application\Shared\Shared\Scheme\UseCase\WriteSchemeMap\WriteSchemeMapUseCase;
-use App\Application\Shared\Shared\Shared\Scheme\UseCase\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
+use App\Application\Shared\Shared\Shared\Scheme\Shared\UseCase\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
 use App\Application\Shared\Subscription\Exception\UseCase\FetchSchemes\NoValidSchemesFoundException;
 use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;

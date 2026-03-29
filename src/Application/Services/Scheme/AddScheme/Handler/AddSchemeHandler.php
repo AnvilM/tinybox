@@ -7,7 +7,7 @@ namespace App\Application\Services\Scheme\AddScheme\Handler;
 use App\Application\Services\Scheme\AddScheme\Command\AddSchemeCommand;
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
 use App\Application\Shared\Shared\Scheme\UseCase\WriteScheme\WriteSchemeUseCase;
-use App\Application\Shared\Shared\Shared\Scheme\UseCase\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
+use App\Application\Shared\Shared\Shared\Scheme\Shared\UseCase\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Domain\Shared\Exception\CriticalException;
 use InvalidArgumentException;

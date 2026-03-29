@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Shared\Shared\Scheme\Parser;
+namespace App\Application\Shared\Shared\Shared\Scheme\Shared\Shared\Parser;
 
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
+use App\Application\Shared\Shared\Shared\Scheme\Shared\Shared\Parser\Utils\TagEncodingDetector;
+use App\Application\Shared\Shared\Shared\Scheme\Shared\Shared\Parser\Utils\TagEncodingType;
 use App\Domain\Scheme\VO\RawSchemeVO;
 
 
@@ -34,9 +36,19 @@ final readonly class RawSchemeParser
             parse_str($parsed['query'], $queryParams);
         }
 
+        $tag = $parsed['fragment'] ?? null;
+
+        if ($tag != null) {
+            $tag = match (TagEncodingDetector::detect($tag)) {
+                TagEncodingType::BASE64 => base64_decode($tag),
+                TagEncodingType::URL_ENCODED => urldecode($tag),
+                default => $tag
+            };
+        }
+
         return new RawSchemeVO(
             $parsed['scheme'] ?? null,
-            $parsed['fragment'] ?? null,
+            $tag,
             $parsed['user'] ?? null,
             $parsed['host'] ?? null,
             (int)$parsed['port'] ?? null,
