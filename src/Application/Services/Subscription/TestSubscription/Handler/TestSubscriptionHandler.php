@@ -91,11 +91,23 @@ final readonly class TestSubscriptionHandler
         $res = $this->getOutboundsLatencyUseCase->handle(
             $outboundsMap,
             LatencyTestMethod::tryFrom($command->testMethod ?? '')
-            ?? $this->configInstancePort->get()->singBoxConfig->outboundTest->latency->method);
+            ?? $this->configInstancePort->get()->singBoxConfig->outboundTest->latency->method
+        );
 
-        foreach ($res as $tag => $latency) {
+        $resArray = $res->toArray();
+
+        uasort($resArray, function ($a, $b) {
+            if ($a === null) return 1;
+            if ($b === null) return -1;
+            return $a <=> $b;
+        });
+
+        foreach ($resArray as $tag => $latency) {
             try {
-                $map->add($subscription->getSchemes()->getByTag($tag)->getHash(), new MutableMap([])->add($tag, $latency));
+                $map->add(
+                    $subscription->getSchemes()->getByTag($tag)->getHash(),
+                    new MutableMap([])->add($tag, $latency)
+                );
             } catch (SchemeNotFoundException) {
                 continue;
             }
