@@ -78,6 +78,16 @@ class SchemeMap
     }
 
     /**
+     * Check if schemes map is empty
+     *
+     * @return bool True if is empty
+     */
+    public function isEmpty(): bool
+    {
+        return $this->map->isEmpty();
+    }
+
+    /**
      * Get schemes ids array
      *
      * @return MutableVector<string> Mutable vector of schemes ids e.g., ["id1", "id2"]
@@ -152,7 +162,6 @@ class SchemeMap
          */
         $this->map->add($scheme->getHash(), $scheme);
     }
-
 
     /**
      * Check scheme exists in map

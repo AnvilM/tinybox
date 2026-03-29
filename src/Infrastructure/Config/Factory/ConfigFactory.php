@@ -6,6 +6,11 @@ namespace App\Infrastructure\Config\Factory;
 
 use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
 use App\Domain\Shared\VO\Config\ConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Availability\AvailabilityOutboundTestSingBoxConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Availability\AvailabilityTestMethod;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\FetchIp\FetchIpOutboundTestSingBoxConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\OutboundTestSingBoxConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Templates\OutboundTestTemplatesSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
 
@@ -28,20 +33,35 @@ final readonly class ConfigFactory
     public function create(array $rawConfig, ConfigVO $defaultConfig): ConfigVO
     {
         return new ConfigVO(
-            $this->normalizePath($rawConfig['subscriptions_list'] ?? null) ?? $defaultConfig->subscriptionsListPath,
-            $this->normalizePath($rawConfig['scheme_groups_list'] ?? null) ?? $defaultConfig->schemeGroupsListPath,
-            $this->normalizePath($rawConfig['schemes_list'] ?? null) ?? $defaultConfig->schemesListPath,
+            $this->normalizePath($rawConfig['subscriptions_list'] ?? $defaultConfig->subscriptionsListPath),
+            $this->normalizePath($rawConfig['scheme_groups_list'] ?? $defaultConfig->schemeGroupsListPath),
+            $this->normalizePath($rawConfig['schemes_list'] ?? $defaultConfig->schemesListPath),
             new SingBoxConfigVO(
                 $rawConfig['sing_box']['binary'] ?? $defaultConfig->singBoxConfig->binary,
                 new TemplatesSingBoxConfigVO(
-                    $this->normalizePath($rawConfig['sing_box']['templates']['outbound'] ?? null) ?? $defaultConfig->singBoxConfig->templates->outbound,
-                    $this->normalizePath($rawConfig['sing_box']['templates']['outbound_urltest'] ?? null) ?? $defaultConfig->singBoxConfig->templates->outboundUrltest,
-                    $this->normalizePath($rawConfig['sing_box']['templates']['config'] ?? null) ?? $defaultConfig->singBoxConfig->templates->config,
+                    $this->normalizePath($rawConfig['sing_box']['templates']['outbound'] ?? $defaultConfig->singBoxConfig->templates->outbound),
+                    $this->normalizePath($rawConfig['sing_box']['templates']['outbound_urltest'] ?? $defaultConfig->singBoxConfig->templates->outboundUrltest),
+                    $this->normalizePath($rawConfig['sing_box']['templates']['config'] ?? $defaultConfig->singBoxConfig->templates->config),
                 ),
-                $this->normalizePath($rawConfig['sing_box']['default_config_path'] ?? null) ?? $defaultConfig->singBoxConfig->defaultConfigPath,
-                $rawConfig['sing_box']['systemd_service_name'] ?? $defaultConfig->singBoxConfig->systemdServiceName
-
-            )
+                $this->normalizePath($rawConfig['sing_box']['default_config_path'] ?? $defaultConfig->singBoxConfig->defaultConfigPath),
+                $rawConfig['sing_box']['systemd_service_name'] ?? $defaultConfig->singBoxConfig->systemdServiceName,
+                new OutboundTestSingBoxConfigVO(
+                    new OutboundTestTemplatesSingBoxConfigVO(
+                        $this->normalizePath($rawConfig['sing_box']['outbound_test']['templates']['outbound'] ?? $defaultConfig->singBoxConfig->outboundTest->templates->outbound),
+                        $this->normalizePath($rawConfig['sing_box']['outbound_test']['templates']['config'] ?? $defaultConfig->singBoxConfig->outboundTest->templates->config),
+                    ),
+                    $this->normalizePath($rawConfig['sing_box']['outbound_test']['sing_box_config'] ?? $defaultConfig->singBoxConfig->outboundTest->singBoxConfig),
+                    new FetchIpOutboundTestSingBoxConfigVO(
+                        $this->normalizePath($rawConfig['sing_box']['outbound_test']['fetch_ip']['geoip_database'] ?? $defaultConfig->singBoxConfig->outboundTest->fetchIp->geoIpDatabase),
+                        $rawConfig['sing_box']['outbound_test']['fetch_ip']['url'] ?? $defaultConfig->singBoxConfig->outboundTest->fetchIp->url,
+                    ),
+                    $rawConfig['sing_box']['outbound_test']['sing_box_instance_count'] ?? $defaultConfig->singBoxConfig->outboundTest->singBoxInstancesCount,
+                    new AvailabilityOutboundTestSingBoxConfigVO(
+                        $rawConfig['sing_box']['outbound_test']['availability']['url'] ?? $defaultConfig->singBoxConfig->outboundTest->availability->url,
+                        AvailabilityTestMethod::tryFrom($rawConfig['sing_box']['outbound_test']['availability']['method'] ?? '') ?? $defaultConfig->singBoxConfig->outboundTest->availability->method,
+                    )
+                ),
+            ),
         );
     }
 

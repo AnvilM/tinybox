@@ -29,7 +29,8 @@
     "guzzlehttp/guzzle": "^7.0",
     "league/climate": "^3.10",
     "ramsey/collection": "^2.1",
-    "azjezz/psl": "^5.3"
+    "azjezz/psl": "^5.3",
+    "geoip2/geoip2": "^3.3"
   },
   "scripts": {
     "test": "vendor/bin/phpunit",

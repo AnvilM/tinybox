@@ -7,8 +7,9 @@ namespace App\Application\Services\Subscription\ApplySubscription\Command;
 final readonly class ApplySubscriptionCommand
 {
     public function __construct(
-        public string $subscriptionName,
-        public bool   $asSystemdService
+        public string  $subscriptionName,
+        public bool    $asSystemdService,
+        public ?string $denyCountry,
     )
     {
     }

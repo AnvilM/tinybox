@@ -7,10 +7,10 @@ namespace App\Domain\SchemeGroup\Entity;
 use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 
-final readonly class SchemeGroup
+final class SchemeGroup
 {
 
-    private NonEmptyStringVO $name;
+    private readonly NonEmptyStringVO $name;
 
     private UniqueSchemesMap $schemes;
 
@@ -45,12 +45,32 @@ final readonly class SchemeGroup
     }
 
     /**
-     * Get config name
+     * Set Scheme group schemes
+     *
+     * @param UniqueSchemesMap $schemes Scheme group schemes
+     */
+    public function setSchemes(UniqueSchemesMap $schemes): void
+    {
+        $this->schemes = $schemes;
+    }
+
+    /**
+     * Get schemes group name
      *
      * @return string SchemeGroup name
      */
     public function getName(): string
     {
         return $this->name->getValue();
+    }
+
+    /**
+     * Get schemes group name VO
+     *
+     * @return NonEmptyStringVO SchemeGroup name as VO
+     */
+    public function getNameVO(): NonEmptyStringVO
+    {
+        return clone $this->name;
     }
 }

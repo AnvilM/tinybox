@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Subscription\VO;
 
+use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
-use Psl\Type\Exception\CoercionException;
-use function Psl\Type\non_empty_string;
+use InvalidArgumentException;
 
-final readonly class SubscriptionNameVO
+final readonly class SubscriptionNameVO extends NonEmptyStringVO
 {
-    private string $name;
 
     /**
      * Constructor
@@ -21,13 +20,18 @@ final readonly class SubscriptionNameVO
      */
     public function __construct(string $name)
     {
+
         try {
-            $this->name = non_empty_string()->coerce($name);
-        } catch (CoercionException) {
+            parent::__construct($name);
+        } catch (InvalidArgumentException) {
             throw new InvalidSubscriptionNameException();
         }
     }
 
+    public static function fromNonEmptyString(NonEmptyStringVO $nonEmptyStringVO): self
+    {
+        return new self($nonEmptyStringVO->getValue());
+    }
 
     /**
      * Get subscription name
@@ -36,6 +40,6 @@ final readonly class SubscriptionNameVO
      */
     public function getName(): string
     {
-        return $this->name;
+        return $this->getValue();
     }
 }

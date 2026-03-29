@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use Psl\Type\Exception\CoercionException;
 use function Psl\Type\non_empty_string;
 
-final readonly class NonEmptyStringVO
+readonly class NonEmptyStringVO
 {
     private string $value;
 

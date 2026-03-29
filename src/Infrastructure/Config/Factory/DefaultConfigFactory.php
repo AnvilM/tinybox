@@ -7,6 +7,11 @@ namespace App\Infrastructure\Config\Factory;
 use App\Domain\Shared\Ports\OS\Directories\GetConfigsDirectoryPort;
 use App\Domain\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
 use App\Domain\Shared\VO\Config\ConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Availability\AvailabilityOutboundTestSingBoxConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Availability\AvailabilityTestMethod;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\FetchIp\FetchIpOutboundTestSingBoxConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\OutboundTestSingBoxConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Templates\OutboundTestTemplatesSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
 
@@ -34,9 +39,24 @@ final readonly class DefaultConfigFactory
                     $this->getConfigsDirectory->execute() . '/templates/config.json',
                 ),
                 "/etc/sing-box/config.json",
-                "sing-box"
-            )
-
+                "sing-box",
+                new OutboundTestSingBoxConfigVO(
+                    new OutboundTestTemplatesSingBoxConfigVO(
+                        $this->getConfigsDirectory->execute() . '/templates/outbound.json',
+                        $this->getConfigsDirectory->execute() . '/templates/config.json',
+                    ),
+                    $this->getDataHomeDirectory->execute() . '/outbound_test/sing-box_config.json',
+                    new FetchIpOutboundTestSingBoxConfigVO(
+                        $this->getDataHomeDirectory->execute() . '/geoip.mmdb',
+                        "https://ifconfig.me/ip"
+                    ),
+                    3,
+                    new AvailabilityOutboundTestSingBoxConfigVO(
+                        "https://google.com",
+                        AvailabilityTestMethod::PROXY_GET,
+                    )
+                )
+            ),
         );
     }
 

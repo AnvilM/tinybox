@@ -6,6 +6,7 @@ namespace App\Application\Services\Subscription\ApplySubscription\Handler;
 
 use App\Application\Services\Subscription\ApplySubscription\Command\ApplySubscriptionCommand;
 use App\Application\Services\Subscription\ApplySubscription\Exception\UnableToRestartSingBoxServiceException;
+use App\Application\Shared\Shared\Utils\OutboundTest\GetIpCountyCode\GetIpCountryCodesMapUseCase;
 use App\Application\Shared\Shared\Utils\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
 use App\Application\Shared\Shared\Utils\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
 use App\Application\Shared\Subscription\UseCase\ReadSubscriptionsList\ReadSubscriptionsListUseCase;
@@ -29,6 +30,8 @@ final readonly class ApplySubscriptionHandler
         private SaveFilePort                 $saveFilePort,
         private ConfigInstancePort           $configInstancePort,
         private RestartSingBoxServiceUseCase $restartSingBoxServiceUseCase,
+        private GetIpCountryCodesMapUseCase  $getIpCountryCodesMapUseCase,
+
     )
     {
     }
@@ -65,6 +68,12 @@ final readonly class ApplySubscriptionHandler
 
 
         /**
+         * Check if subscription has schemes
+         */
+        if ($subscription->getSchemes()->isEmpty()) throw new CriticalException("Subscription  {$subscriptionName->getName()} has no schemes");
+
+
+        /**
          * Create empty outbounds map
          */
         $outboundsMap = new OutboundMap();
@@ -81,6 +90,21 @@ final readonly class ApplySubscriptionHandler
                 // TODO: Add reporter event
             }
         }
+
+
+        /**
+         *  Filter outbounds if needed
+         */
+        if ($command->denyCountry != null) {
+            $outboundsCountyCodes = $this->getIpCountryCodesMapUseCase->getCountryCodesMap($outboundsMap);
+
+            foreach ($outboundsCountyCodes as $outboundTag => $countyCode) {
+                if ($countyCode == $command->denyCountry) $outboundsMap->removeWithTag($outboundTag);
+            }
+
+            if ($outboundsMap->isEmpty()) throw new CriticalException("No valid outbounds found");
+        }
+
 
         /**
          * Create sing-box config from outbounds map
@@ -99,7 +123,6 @@ final readonly class ApplySubscriptionHandler
         } catch (UnableToSaveFileException) {
             throw new CriticalException("Unable to save the configuration file");
         }
-
 
         /**
          * Try to restart sing box service

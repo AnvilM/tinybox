@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Application\Providers\App\Shared;
 
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
+use App\Domain\Shared\Ports\Geoip\GetIpCountryCodePort;
 use App\Domain\Shared\Ports\Http\HttpPort;
 use App\Domain\Shared\Ports\IO\Directory\ScanDirectoryForFilesPort;
 use App\Domain\Shared\Ports\IO\File\ReadFilePort;
@@ -17,6 +18,7 @@ use App\Domain\Shared\Ports\OS\Directories\GetConfigsDirectoryPort;
 use App\Domain\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
 use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
 use App\Infrastructure\Config\Instance\ConfigInstance;
+use App\Infrastructure\Geoip\GetIpCountryCode;
 use App\Infrastructure\IO\File\ReadJsonFile;
 use App\Infrastructure\IO\File\ReadJsonFileNotify;
 use App\Infrastructure\IO\File\SaveFileNotify;
@@ -48,6 +50,7 @@ final readonly class SharedProviders implements ProviderInterface
             NormalizePathPort::class => autowire(NormalizePath::class),
             GetConfigsDirectoryPort::class => autowire(GetConfigsDirectory::class),
             GetDataHomeDirectoryPort::class => autowire(GetDataHomeDirectory::class),
+            GetIpCountryCodePort::class => autowire(GetIpCountryCode::class),
         ];
     }
 }

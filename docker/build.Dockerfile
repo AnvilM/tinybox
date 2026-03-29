@@ -18,7 +18,9 @@ COPY composer.json ./
 
 
 # Installing packages
-RUN composer install --optimize-autoloader --no-dev
+RUN composer install --optimize-autoloader --no-dev \
+    --ignore-platform-req=ext-bcmath \
+    --ignore-platform-req=ext-intl
 
 
 # Copying src
@@ -43,10 +45,10 @@ WORKDIR /app
 # Installing spc
 RUN wget -qO- https://dl.static-php.dev/static-php-cli/spc-bin/nightly/spc-linux-x86_64.tar.gz | tar -xz
 RUN chmod +x ./spc
-RUN ./spc download php-src --for-extensions "iconv,phar,zlib" --with-php=8.4
+RUN ./spc download php-src --for-extensions "iconv,phar,zlib,bcmath,intl,filter" --with-php=8.4
 RUN ./spc install-pkg upx
 RUN ./spc doctor --auto-fix
-RUN ./spc build --build-micro "iconv,phar,zlib" --with-upx-pack
+RUN ./spc build --build-micro "iconv,phar,zlib,bcmath,intl,filter" --with-upx-pack
 
 
 # Copying phar
