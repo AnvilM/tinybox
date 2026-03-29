@@ -8,7 +8,11 @@ use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Entity\TLS\Reality;
 use App\Domain\Outbound\Entity\TLS\TLS;
 use App\Domain\Outbound\Entity\TLS\UTLS;
+use App\Domain\Outbound\Entity\VlessOutbound;
+use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
+use App\Domain\Outbound\VO\OutboundTypeVO;
 use App\Domain\Scheme\Entity\Scheme;
+use App\Domain\Scheme\Entity\VlessScheme;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use InvalidArgumentException;
@@ -23,11 +27,28 @@ final readonly class OutboundFactory
      * @return Outbound The created Outbound entity
      *
      * @throws InvalidArgumentException If required fields are missing or empty
+     * @throws UnsupportedOutboundTypeException If outbound type is unsupported
      */
     public static function fromScheme(Scheme $scheme): Outbound
     {
-        return new Outbound(
-            $scheme->getType(),
+        return match (OutboundTypeVO::fromSchemeTypeVO($scheme->getType())) {
+            OutboundTypeVO::Vless => self::vlessOutbound($scheme),
+            default => throw new UnsupportedOutboundTypeException($scheme->getType()->value),
+        };
+    }
+
+    /**
+     * Creates a Vless outbound entity from Vless scheme entity
+     *
+     * @param VlessScheme $scheme Vless scheme entity
+     *
+     * @return VlessOutbound The created Vless outbound entity
+     *
+     * @throws InvalidArgumentException If required fields are missing or empty
+     */
+    private static function vlessOutbound(VlessScheme $scheme): VlessOutbound
+    {
+        return new VlessOutbound(
             new NonEmptyStringVO($scheme->getTag()),
             new NonEmptyStringVO($scheme->getServer()),
             new PortVO($scheme->getServerPort()),

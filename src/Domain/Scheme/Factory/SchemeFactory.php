@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Scheme\Factory;
 
 use App\Domain\Scheme\Entity\Scheme;
+use App\Domain\Scheme\Entity\VlessScheme;
+use App\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Domain\Scheme\VO\RawSchemeVO;
-use App\Domain\Shared\VO\Outbound\OutboundTypeVO;
+use App\Domain\Scheme\VO\SchemeTypeVO;
 use App\Domain\Shared\VO\Outbound\Transport\TransportTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
@@ -23,12 +25,30 @@ final readonly class SchemeFactory
      * @return Scheme Created Scheme entity
      *
      * @throws InvalidArgumentException If required fields are missing
+     * @throws UnsupportedSchemeType If scheme type is unsupported
      */
     public static function fromRawSchemeVO(RawSchemeVO $rawSchemeVO): Scheme
     {
+        return match (SchemeTypeVO::fromString($rawSchemeVO->type)) {
+            SchemeTypeVO::Vless => self::vlessScheme($rawSchemeVO),
+            default => throw new UnsupportedSchemeType($rawSchemeVO->type),
+        };
+    }
+
+
+    /**
+     * Creates a Vless scheme entity from RawSchemeVO value object
+     *
+     * @param RawSchemeVO $rawSchemeVO RawSchemeVO value object
+     *
+     * @return VlessScheme Created vless scheme entity
+     *
+     * @throws InvalidArgumentException If required fields are missing or provided invalid fields
+     */
+    private static function vlessScheme(RawSchemeVO $rawSchemeVO): VlessScheme
+    {
         try {
-            return new Scheme(
-                OutboundTypeVO::from($rawSchemeVO->type),
+            return new VlessScheme(
                 new NonEmptyStringVO($rawSchemeVO->uuid),
                 new NonEmptyStringVO($rawSchemeVO->server),
                 new PortVO($rawSchemeVO->server_port),
@@ -43,6 +63,5 @@ final readonly class SchemeFactory
         } catch (ValueError) {
             throw new InvalidArgumentException();
         }
-
     }
 }

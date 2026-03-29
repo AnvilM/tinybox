@@ -11,6 +11,7 @@ use App\Application\Shared\Shared\Utils\UseCase\CreateSingBoxConfig\CreateSingBo
 use App\Application\Shared\Shared\Utils\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
+use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
 use App\Domain\Outbound\Factory\OutboundFactory;
 use App\Domain\SchemeGroup\Exception\SchemeGroupNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
@@ -75,7 +76,7 @@ final readonly class ApplySchemeGroupHandler
              */
             try {
                 $outboundsMap->add(OutboundFactory::fromScheme($scheme));
-            } catch (OutboundAlreadyExistsException|InvalidArgumentException) {
+            } catch (OutboundAlreadyExistsException|InvalidArgumentException|UnsupportedOutboundTypeException) {
                 continue;
                 // TODO: Add reporter event
             }

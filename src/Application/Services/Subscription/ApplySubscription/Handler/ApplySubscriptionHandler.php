@@ -12,6 +12,7 @@ use App\Application\Shared\Shared\Utils\UseCase\RestartSingBoxService\RestartSin
 use App\Application\Shared\Subscription\UseCase\ReadSubscriptionsList\ReadSubscriptionsListUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
+use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
 use App\Domain\Outbound\Factory\OutboundFactory;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
@@ -85,7 +86,8 @@ final readonly class ApplySubscriptionHandler
              */
             try {
                 $outboundsMap->add(OutboundFactory::fromScheme($scheme));
-            } catch (OutboundAlreadyExistsException|InvalidArgumentException) {
+            } catch (OutboundAlreadyExistsException|InvalidArgumentException|UnsupportedOutboundTypeException $e) {
+                echo $e->getMessage() . "\n";
                 continue;
                 // TODO: Add reporter event
             }
