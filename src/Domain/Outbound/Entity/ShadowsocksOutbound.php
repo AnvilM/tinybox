@@ -53,4 +53,18 @@ final readonly class ShadowsocksOutbound extends Outbound
     {
         return OutboundTypeVO::Shadowsocks;
     }
+
+
+    #[Override]
+    public function getServer(): ?string
+    {
+        return $this->server->getValue();
+    }
+
+
+    #[Override]
+    public function getServerPort(): ?int
+    {
+        return $this->serverPort->getPort();
+    }
 }

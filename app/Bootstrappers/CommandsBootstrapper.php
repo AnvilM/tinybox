@@ -12,6 +12,7 @@ use App\Commands\SchemeGroup\ListSchemeGroupsCommand;
 use App\Commands\Subscription\ApplySubscriptionCommand;
 use App\Commands\Subscription\CreateSubscriptionCommand;
 use App\Commands\Subscription\ListSubscriptionsCommand;
+use App\Commands\Subscription\TestSubscriptionCommand;
 use App\Commands\Subscription\UpdateSubscriptionCommand;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Application as CliApp;
@@ -30,7 +31,8 @@ final class CommandsBootstrapper
         ListSubscriptionsCommand::class,
         ApplySubscriptionCommand::class,
         ApplySchemeGroupCommand::class,
-        UpdateSubscriptionCommand::class
+        UpdateSubscriptionCommand::class,
+        TestSubscriptionCommand::class
     ];
 
 

@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Shared\Utils\OutboundTest\GetIpCountyCode;
+namespace App\Application\Shared\Shared\Utils\OutboundTest\GetOutboundsLatency;
 
-use App\Application\Shared\Shared\Utils\OutboundTest\GetIpCountyCode\SingBox\GetOutboundIp;
+use App\Application\Shared\Shared\Utils\OutboundTest\GetOutboundsLatency\Process\SingBoxFetch;
+use App\Application\Shared\Shared\Utils\OutboundTest\GetOutboundsLatency\Socket\TCPPing;
 use App\Application\Shared\Shared\Utils\OutboundTest\Shared\File\WriteOutboundTestSingBoxConfig;
 use App\Application\Shared\Shared\Utils\OutboundTest\Shared\UseCase\CreateOutboundTestSingBoxConfig\CreateOutboundTestSingBoxConfigUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
@@ -12,32 +13,32 @@ use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
-use App\Domain\Shared\Ports\Geoip\GetIpCountryCodePort;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\LatencyTestMethod;
 use Psl\Collection\MutableMap;
-use Psl\Collection\MutableVector;
-use UnexpectedValueException;
 
-final readonly class GetIpCountryCodesMapUseCase
+final readonly class GetOutboundsLatencyUseCase
 {
     public function __construct(
-        private GetOutboundIp                          $getOutboundIp,
-        private GetIpCountryCodePort                   $getIpCountryCodePort,
         private CreateOutboundTestSingBoxConfigUseCase $createOutboundTestSingBoxConfigUseCase,
         private WriteOutboundTestSingBoxConfig         $writeOutboundTestSingBoxConfig,
         private ConfigInstancePort                     $configInstancePort,
+        private SingBoxFetch                           $singBoxFetch,
+        private TCPPing                                $tcpPing,
+
     )
     {
     }
 
     /**
-     * @param OutboundMap $outboundsMap Map of outbounds to fetch ip
+     * @param OutboundMap $outboundsMap Map of outbounds to test
+     * @param LatencyTestMethod $method Method to test outbounds latency e.g. get via proxy or tcp ping
      *
-     * @return MutableMap<Outbound, string> Mutable map of outboundTag => IsoCode e.g. [Outbound1 => US, Outbound2 => UK, ...]
+     * @return MutableMap<Outbound, string> Mutable map of outboundTag => (delay in ms)|null e.g. [Outbound1 => 1000, Outbound2 => null, ...]
      *
      * @throws CriticalException
      *
      */
-    public function getCountryCodesMap(OutboundMap $outboundsMap): MutableMap
+    public function handle(OutboundMap $outboundsMap, LatencyTestMethod $method): MutableMap
     {
         /**
          * Check if provided outbounds map is not empty
@@ -62,48 +63,29 @@ final readonly class GetIpCountryCodesMapUseCase
 
 
         /**
-         * Get outbounds map checked by max sing-box instance count
+         * Get outbounds map chunked by max sing-box instance count
          */
         $chunkedOutboundsMaps = $outboundsMap->getChunks($this->configInstancePort->get()->singBoxConfig->outboundTest->maxParallelRequests);
 
 
         /**
-         * Create empty outbounds ips DTO vector
+         * Create empty outbounds fetch results DTO mutable map
          */
-        $outboundsIps = new MutableVector([]);
+        $outboundsFetchResults = new MutableMap([]);
 
 
         /**
-         * Get outbounds ips chunked
+         * Get outbounds fetch results chunked
          */
         foreach ($chunkedOutboundsMaps as $chunkedOutboundsMap) {
-            foreach ($this->getOutboundIp->getOutboundIp($chunkedOutboundsMap) as $outboundIp) {
-                $outboundsIps->add($outboundIp);
+            foreach (match ($method) {
+                LatencyTestMethod::PROXY_GET => $this->singBoxFetch->fetch($chunkedOutboundsMap),
+                LatencyTestMethod::TCP_PING => $this->tcpPing->ping($chunkedOutboundsMap),
+            } as $outboundFetchResult) {
+                $outboundsFetchResults->add($outboundFetchResult->outboundTag, $outboundFetchResult->getDelay());
             }
         }
 
-
-        /**
-         * Create empty mutable map of outboundTag => IsoCode
-         *
-         * @var $isoMap MutableMap<string, string>
-         */
-        $isoMap = new MutableMap([]);
-
-
-        foreach ($outboundsIps as $outboundIp) {
-
-            /**
-             * Try to get iso code for ip
-             */
-            try {
-                $isoMap->add($outboundIp->outboundTag, $this->getIpCountryCodePort->getCountryCode($outboundIp->ip));
-            } catch (UnexpectedValueException) {
-                continue;
-                // TODO: Add reporter event
-            }
-        }
-
-        return $isoMap;
+        return $outboundsFetchResults;
     }
 }

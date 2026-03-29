@@ -58,4 +58,18 @@ final readonly class VlessOutbound extends Outbound
     {
         return OutboundTypeVO::Vless;
     }
+
+
+    #[Override]
+    public function getServer(): ?string
+    {
+        return $this->server->getValue();
+    }
+
+
+    #[Override]
+    public function getServerPort(): ?int
+    {
+        return $this->serverPort->getPort();
+    }
 }

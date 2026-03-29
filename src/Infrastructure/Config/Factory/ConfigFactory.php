@@ -6,9 +6,9 @@ namespace App\Infrastructure\Config\Factory;
 
 use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
 use App\Domain\Shared\VO\Config\ConfigVO;
-use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Availability\AvailabilityOutboundTestSingBoxConfigVO;
-use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Availability\AvailabilityTestMethod;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\FetchIp\FetchIpOutboundTestSingBoxConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\LatencyTestMethod;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\OutboundLatencyTestSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\OutboundTestSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Templates\OutboundTestTemplatesSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
@@ -55,10 +55,10 @@ final readonly class ConfigFactory
                         $this->normalizePath($rawConfig['sing_box']['outbound_test']['fetch_ip']['geoip_database'] ?? $defaultConfig->singBoxConfig->outboundTest->fetchIp->geoIpDatabase),
                         $rawConfig['sing_box']['outbound_test']['fetch_ip']['url'] ?? $defaultConfig->singBoxConfig->outboundTest->fetchIp->url,
                     ),
-                    $rawConfig['sing_box']['outbound_test']['sing_box_instance_count'] ?? $defaultConfig->singBoxConfig->outboundTest->singBoxInstancesCount,
-                    new AvailabilityOutboundTestSingBoxConfigVO(
-                        $rawConfig['sing_box']['outbound_test']['availability']['url'] ?? $defaultConfig->singBoxConfig->outboundTest->availability->url,
-                        AvailabilityTestMethod::tryFrom($rawConfig['sing_box']['outbound_test']['availability']['method'] ?? '') ?? $defaultConfig->singBoxConfig->outboundTest->availability->method,
+                    $rawConfig['sing_box']['outbound_test']['max_parallel_requests'] ?? $defaultConfig->singBoxConfig->outboundTest->maxParallelRequests,
+                    new OutboundLatencyTestSingBoxConfigVO(
+                        $rawConfig['sing_box']['outbound_test']['latency']['url'] ?? $defaultConfig->singBoxConfig->outboundTest->latency->url,
+                        LatencyTestMethod::tryFrom($rawConfig['sing_box']['outbound_test']['latency']['method'] ?? '') ?? $defaultConfig->singBoxConfig->outboundTest->latency->method,
                     )
                 ),
             ),

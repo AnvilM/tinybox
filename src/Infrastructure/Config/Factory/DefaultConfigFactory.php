@@ -7,9 +7,9 @@ namespace App\Infrastructure\Config\Factory;
 use App\Domain\Shared\Ports\OS\Directories\GetConfigsDirectoryPort;
 use App\Domain\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
 use App\Domain\Shared\VO\Config\ConfigVO;
-use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Availability\AvailabilityOutboundTestSingBoxConfigVO;
-use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Availability\AvailabilityTestMethod;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\FetchIp\FetchIpOutboundTestSingBoxConfigVO;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\LatencyTestMethod;
+use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\OutboundLatencyTestSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\OutboundTestSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Templates\OutboundTestTemplatesSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
@@ -51,9 +51,9 @@ final readonly class DefaultConfigFactory
                         "https://ifconfig.me/ip"
                     ),
                     3,
-                    new AvailabilityOutboundTestSingBoxConfigVO(
+                    new OutboundLatencyTestSingBoxConfigVO(
                         "https://google.com",
-                        AvailabilityTestMethod::PROXY_GET,
+                        LatencyTestMethod::PROXY_GET,
                     )
                 )
             ),

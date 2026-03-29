@@ -41,4 +41,20 @@ abstract readonly class Outbound
      * @return OutboundTypeVO Outbound type
      */
     public abstract function getType(): OutboundTypeVO;
+
+
+    /**
+     * Get outbound server, if outbound has no server field, e.g. direct outbound, return null
+     *
+     * @return string|null Outbound server or null if outbound has no server field, e.g. direct outbound
+     */
+    public abstract function getServer(): ?string;
+
+
+    /**
+     * Get outbound server port, if outbound has no server port field, e.g. direct outbound, return null
+     *
+     * @return int|null Outbound server port or null if outbound has no server port field, e.g. direct outbound
+     */
+    public abstract function getServerPort(): ?int;
 }
