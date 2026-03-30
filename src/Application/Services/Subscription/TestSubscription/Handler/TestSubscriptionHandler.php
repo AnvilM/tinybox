@@ -7,7 +7,7 @@ namespace App\Application\Services\Subscription\TestSubscription\Handler;
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Repository\Subscription\GetSubscriptionWithNameRepository;
 use App\Application\Services\Subscription\TestSubscription\Command\TestSubscriptionCommand;
-use App\Application\Shared\Shared\Utils\OutboundTest\GetOutboundsLatency\GetOutboundsLatencyUseCase;
+use App\Application\Shared\Utils\OutboundTest\GetOutboundsLatency\GetOutboundsLatencyUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;

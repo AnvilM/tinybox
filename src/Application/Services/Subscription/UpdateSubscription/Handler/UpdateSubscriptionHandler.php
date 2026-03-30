@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Application\Services\Subscription\UpdateSubscription\Handler;
 
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Exception\Services\Shared\FetchSchemes\NoValidSchemesFoundException;
 use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Application\Repository\Subscription\UpdateSubscriptionSchemesRepository;
+use App\Application\Services\Subscription\Shared\FetchSchemes\FetchSchemesUseCase;
 use App\Application\Services\Subscription\UpdateSubscription\Command\UpdateSubscriptionCommand;
-use App\Application\Shared\Subscription\Exception\UseCase\FetchSchemes\NoValidSchemesFoundException;
-use App\Application\Shared\Subscription\UseCase\FetchSchemes\FetchSchemesUseCase;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
 use App\Domain\Subscription\Exception\SubscriptionNotFoundException;

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Application\Repository\SchemeGroup\Shared;
 
 use App\Application\Exception\Repository\Scheme\UnableToGetSchemesListException;
+use App\Application\Exception\Repository\SchemeGroup\Validator\InvalidSchemeGroupListFormatException;
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Exception\Repository\Shared\UnableToSaveListException;
-use App\Application\Repository\Scheme\GetSchemesList;
+use App\Application\Repository\Scheme\GetSchemesListRepository;
 use App\Application\Repository\SchemeGroup\Shared\File\ReadSchemeGroups;
 use App\Application\Repository\SchemeGroup\Shared\File\WriteSchemeGroups;
 use App\Application\Repository\SchemeGroup\Shared\Validator\SchemeGroupsListFormatValidator;
-use App\Application\Shared\SchemeGroup\Exception\Shared\Validator\InvalidSchemeGroupListFormatException;
 use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\SchemeNotFoundException;
@@ -33,7 +33,7 @@ class SchemeGroupRepository
     public function __construct(
         private readonly ReadSchemeGroups                $readSchemeGroups,
         private readonly SchemeGroupsListFormatValidator $schemeGroupsListFormatValidator,
-        private readonly GetSchemesList                  $getSchemesList,
+        private readonly GetSchemesListRepository        $getSchemesList,
         protected readonly WriteSchemeGroups             $writeSchemeGroups,
     )
     {

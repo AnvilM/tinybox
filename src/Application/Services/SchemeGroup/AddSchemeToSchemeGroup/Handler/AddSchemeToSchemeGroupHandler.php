@@ -7,7 +7,7 @@ namespace App\Application\Services\SchemeGroup\AddSchemeToSchemeGroup\Handler;
 use App\Application\Exception\Repository\Scheme\UnableToGetSchemesListException;
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Exception\Repository\Shared\UnableToSaveListException;
-use App\Application\Repository\Scheme\GetSchemesList;
+use App\Application\Repository\Scheme\GetSchemesListRepository;
 use App\Application\Repository\SchemeGroup\AddSchemeToSchemeGroupOrCreateNewRepository;
 use App\Application\Repository\SchemeGroup\SaveSchemeGroupListRepository;
 use App\Application\Services\SchemeGroup\AddSchemeToSchemeGroup\Command\AddSchemeToSchemeGroupCommand;
@@ -20,7 +20,7 @@ use InvalidArgumentException;
 final readonly class AddSchemeToSchemeGroupHandler
 {
     public function __construct(
-        private GetSchemesList                              $getSchemesList,
+        private GetSchemesListRepository                    $getSchemesList,
         private AddSchemeToSchemeGroupOrCreateNewRepository $addSchemeToSchemeGroupOrCreateNewRepository,
         private SaveSchemeGroupListRepository               $saveSchemeGroupListRepository,
     )

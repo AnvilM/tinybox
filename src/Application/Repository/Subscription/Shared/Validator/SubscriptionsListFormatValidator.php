@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Subscription\Shared\Validator;
 
-use App\Application\Shared\Subscription\Exception\Shared\Validator\InvalidSubscriptionsListFormatException;
+use App\Application\Exception\Repository\Subscription\Validator\InvalidSubscriptionsListFormatException;
 use InvalidArgumentException;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Validator;

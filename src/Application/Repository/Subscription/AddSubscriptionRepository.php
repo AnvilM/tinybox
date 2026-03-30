@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Repository\Subscription;
 
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
-use App\Application\Repository\Scheme\GetSchemesList;
+use App\Application\Repository\Scheme\GetSchemesListRepository;
 use App\Application\Repository\Subscription\Shared\File\ReadSubscriptions;
 use App\Application\Repository\Subscription\Shared\File\WriteSubscriptions;
 use App\Application\Repository\Subscription\Shared\SubscriptionRepository;
@@ -19,7 +19,7 @@ final class AddSubscriptionRepository extends SubscriptionRepository
     public function __construct(
         ReadSubscriptions                $readSubscriptions,
         SubscriptionsListFormatValidator $subscriptionsListFormatValidator,
-        GetSchemesList                   $getSchemesList,
+        GetSchemesListRepository         $getSchemesList,
         WriteSubscriptions               $writeSubscriptions
     )
     {

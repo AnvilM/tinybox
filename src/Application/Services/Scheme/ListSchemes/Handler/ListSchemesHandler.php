@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Application\Services\Scheme\ListSchemes\Handler;
 
 use App\Application\Exception\Repository\Scheme\UnableToGetSchemesListException;
-use App\Application\Repository\Scheme\GetSchemesList;
+use App\Application\Repository\Scheme\GetSchemesListRepository;
 use App\Domain\Shared\Exception\CriticalException;
 use Psl\Collection\MutableMap;
 
 final readonly class ListSchemesHandler
 {
     public function __construct(
-        private GetSchemesList $getSchemesList,
+        private GetSchemesListRepository $getSchemesList,
     )
     {
     }

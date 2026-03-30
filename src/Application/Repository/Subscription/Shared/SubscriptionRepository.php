@@ -7,11 +7,11 @@ namespace App\Application\Repository\Subscription\Shared;
 use App\Application\Exception\Repository\Scheme\UnableToGetSchemesListException;
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Exception\Repository\Shared\UnableToSaveListException;
-use App\Application\Repository\Scheme\GetSchemesList;
+use App\Application\Exception\Repository\Subscription\Validator\InvalidSubscriptionsListFormatException;
+use App\Application\Repository\Scheme\GetSchemesListRepository;
 use App\Application\Repository\Subscription\Shared\File\ReadSubscriptions;
 use App\Application\Repository\Subscription\Shared\File\WriteSubscriptions;
 use App\Application\Repository\Subscription\Shared\Validator\SubscriptionsListFormatValidator;
-use App\Application\Shared\Subscription\Exception\Shared\Validator\InvalidSubscriptionsListFormatException;
 use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\SchemeNotFoundException;
@@ -35,7 +35,7 @@ class SubscriptionRepository
     public function __construct(
         private readonly ReadSubscriptions                $readSubscriptions,
         private readonly SubscriptionsListFormatValidator $subscriptionsListFormatValidator,
-        private readonly GetSchemesList                   $getSchemesList,
+        private readonly GetSchemesListRepository         $getSchemesList,
         private readonly WriteSubscriptions               $writeSubscriptions,
     )
     {

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Scheme\Shared;
 
-use App\Application\Exception\Repository\Scheme\UnableToGetSchemesListException;
+use App\Application\Exception\Repository\Scheme\Validator\InvalidSchemesListFormatException;
+use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Exception\Repository\Shared\UnableToSaveListException;
+use App\Application\Exception\Shared\Scheme\CreateSchemeEntityFromString\UnableToParseRawSchemeStringException;
 use App\Application\Repository\Scheme\Shared\File\ReadSchemes;
 use App\Application\Repository\Scheme\Shared\File\WriteSchemes;
 use App\Application\Repository\Scheme\Shared\Validator\SchemesListFormatValidator;
-use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
-use App\Application\Shared\Scheme\Exception\Shared\Validator\InvalidSchemesListFormatException;
-use App\Application\Shared\Shared\Shared\Scheme\Shared\UseCase\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
+use App\Application\Shared\Scheme\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
 use App\Domain\Scheme\Collection\SchemeMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
@@ -43,7 +43,7 @@ class SchemeRepository
      *
      * @return SchemeMap Scheme map
      *
-     * @throws UnableToGetSchemesListException If unable to read file or schemes file is invalid format
+     * @throws UnableToGetListException If unable to read file or schemes file is invalid format
      */
     protected function getSchemesList(): SchemeMap
     {
@@ -68,7 +68,7 @@ class SchemeRepository
             /** @var string[] $rawSchemesList */
 
         } catch (UnableToReadFileException|UnableToDecodeJsonException|InvalidSchemesListFormatException $e) {
-            throw new UnableToGetSchemesListException($e instanceof UnableToReadFileException
+            throw new UnableToGetListException($e instanceof UnableToReadFileException
                 ? "Unable to read schemes list file"
                 : "Invalid schemes list format",
                 $e->getMessage()

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Repository\SchemeGroup;
 
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
-use App\Application\Repository\Scheme\GetSchemesList;
+use App\Application\Repository\Scheme\GetSchemesListRepository;
 use App\Application\Repository\SchemeGroup\Shared\File\ReadSchemeGroups;
 use App\Application\Repository\SchemeGroup\Shared\File\WriteSchemeGroups;
 use App\Application\Repository\SchemeGroup\Shared\SchemeGroupRepository;
@@ -16,7 +16,7 @@ use App\Domain\SchemeGroup\Exception\SchemeGroupAlreadyExistsException;
 
 final class AddSchemeGroupRepository extends SchemeGroupRepository
 {
-    public function __construct(ReadSchemeGroups $readSchemeGroups, SchemeGroupsListFormatValidator $schemeGroupsListFormatValidator, GetSchemesList $getSchemesList, WriteSchemeGroups $writeSchemeGroups)
+    public function __construct(ReadSchemeGroups $readSchemeGroups, SchemeGroupsListFormatValidator $schemeGroupsListFormatValidator, GetSchemesListRepository $getSchemesList, WriteSchemeGroups $writeSchemeGroups)
     {
         parent::__construct($readSchemeGroups, $schemeGroupsListFormatValidator, $getSchemesList, $writeSchemeGroups);
     }
@@ -45,7 +45,7 @@ final class AddSchemeGroupRepository extends SchemeGroupRepository
          * Add scheme group to scheme groups list
          */
         $schemeGroupsList->add($schemeGroup);
-        
+
         return $schemeGroupsList;
     }
 
