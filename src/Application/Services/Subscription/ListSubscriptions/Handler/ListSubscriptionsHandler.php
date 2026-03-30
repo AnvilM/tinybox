@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services\Subscription\ListSubscriptions\Handler;
 
-use App\Application\Shared\Subscription\UseCase\ReadSubscriptionsList\ReadSubscriptionsListUseCase;
+use App\Application\Shared\Subscription\Shared\UseCase\ReadSubscriptionsList\ReadSubscriptionsListUseCase;
 use App\Domain\Shared\Exception\CriticalException;
 use Psl\Collection\MutableMap;
 

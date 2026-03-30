@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Subscription\UseCase\ReadSubscriptionsList;
+namespace App\Application\Shared\Subscription\Shared\UseCase\ReadSubscriptionsList;
 
 use App\Application\Shared\Shared\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
 use App\Application\Shared\Subscription\Exception\Shared\Validator\InvalidSubscriptionsListFormatException;
-use App\Application\Shared\Subscription\Shared\File\ReadSubscriptions;
-use App\Application\Shared\Subscription\Shared\Validator\SubscriptionsListFormatValidator;
+use App\Application\Shared\Subscription\Shared\Shared\File\ReadSubscriptions;
+use App\Application\Shared\Subscription\Shared\Shared\Validator\SubscriptionsListFormatValidator;
 use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\SchemeNotFoundException;

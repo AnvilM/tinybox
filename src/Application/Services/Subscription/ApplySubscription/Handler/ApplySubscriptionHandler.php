@@ -9,7 +9,7 @@ use App\Application\Services\Subscription\ApplySubscription\Exception\UnableToRe
 use App\Application\Shared\Shared\Utils\OutboundTest\GetIpCountyCode\GetIpCountryCodesMapUseCase;
 use App\Application\Shared\Shared\Utils\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
 use App\Application\Shared\Shared\Utils\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
-use App\Application\Shared\Subscription\UseCase\ReadSubscriptionsList\ReadSubscriptionsListUseCase;
+use App\Application\Shared\Subscription\UseCase\GetSubscription\GetSubscriptionUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
@@ -18,15 +18,12 @@ use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\SaveFilePort;
-use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
-use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
-use App\Domain\Subscription\VO\SubscriptionNameVO;
 use InvalidArgumentException;
 
 final readonly class ApplySubscriptionHandler
 {
     public function __construct(
-        private ReadSubscriptionsListUseCase $readSubscriptionsListUseCase,
+        private GetSubscriptionUseCase       $getSubscriptionUseCase,
         private CreateSingBoxConfigUseCase   $createSingBoxConfigUseCase,
         private SaveFilePort                 $saveFilePort,
         private ConfigInstancePort           $configInstancePort,
@@ -43,34 +40,15 @@ final readonly class ApplySubscriptionHandler
     public function handle(ApplySubscriptionCommand $command): void
     {
         /**
-         * Read list of all saved subscriptions
+         * Getting subscription with provided name
          */
-        $subscriptions = $this->readSubscriptionsListUseCase->handle();
+        $subscription = $this->getSubscriptionUseCase->handle($command->subscriptionName);
 
-
-        /**
-         * Try to create subscription name
-         */
-        try {
-            $subscriptionName = new SubscriptionNameVO($command->subscriptionName);
-        } catch (InvalidSubscriptionNameException) {
-            throw new CriticalException("Invalid subscription name provided");
-        }
-
-
-        /**
-         * Try to find subscription with provided name
-         */
-        try {
-            $subscription = $subscriptions->getSubscriptionByName($subscriptionName);
-        } catch (SubscriptionNotFoundException) {
-            throw new CriticalException("Subscription with name {$subscriptionName->getName()} not found");
-        }
-
+        
         /**
          * Check if subscription has schemes
          */
-        if ($subscription->getSchemes()->isEmpty()) throw new CriticalException("Subscription  {$subscriptionName->getName()} has no schemes");
+        if ($subscription->getSchemes()->isEmpty()) throw new CriticalException("Subscription  {$subscription->getName()} has no schemes");
 
 
         /**

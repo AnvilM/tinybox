@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Subscription\Shared\Validator;
+namespace App\Application\Shared\Subscription\Shared\Shared\Validator;
 
 use App\Application\Shared\Subscription\Exception\Shared\Validator\InvalidSubscriptionsListFormatException;
 use InvalidArgumentException;
