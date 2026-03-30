@@ -35,6 +35,17 @@ templates.
     - Store configurations
     - Apply configurations
 
+- **Other Features**
+    - Filtering outbounds
+    - Multiple methods for outbounds testing
+
+## Supported protocols
+
+- Vless
+- Shadowsocks
+
+> Other protocols will be added later.
+
 ## Supported Platforms
 
 Tinybox is supported on:
@@ -50,109 +61,10 @@ Tinybox requires the following software to function properly:
 - **sing-box** — required sing-box cli.
 - **sudo** — required for operations that need elevated privileges.
 
-## Commands
-
-### tinybox subscription:list
-
-**Description**
-
-Displays the list of added subscriptions.
-
-**Usage example**
-
-```bash
-tinybox subscription:list
-```
-
-### tinybox subscription:add
-
-**Description**
-
-Add subscription to subscriptions list.
-
-**Arguments**
-
-`subscriptionName` — subscription name.
-
-`subscriptionUrl` — subscription url.
-
-**Usage example**
-
-```bash
-tinybox subscription:add subName https://example.com
-```
-
-### tinybox subscription:update
-
-**Description**
-
-Updates existing subscriptions.
-
-If the `subscriptionName` argument is not provided — all subscriptions are updated.  
-If the argument is provided — only the specified subscription is updated.
-
-**Arguments**
-
-`subscriptionName` — subscription name (optional).
-
-**Flags**
-
-`-a`, `--apply` — apply the subscription after updating.  
-If a subscription is specified, only that one is applied.  
-If no subscription is specified, you must explicitly provide the name of the subscription to apply, for example:  
-`tinybox subscription:update -a subName` — all subscriptions will be updated, but only `subName` will be applied.
-
-`-s`, `--systemd` — when applying, use the sing-box systemd service instead of launching via the binary.
-
-**Examples**
-
-```bash
-# Update subscription "sub"
-tinybox subscription:update sub
-
-# Update all subscriptions and apply subscription "mySub" using sing-box systemd service
-tinybox subscription:update -a mySub -s
-```
-
-### tinybox subscription:apply
-
-**Description**
-
-Applies a specific configuration.
-
-**Arguments**
-
-`subscriptionName` — name of the subscription to apply
-
-**Flags**
-
-`-u`, `--update` — update the subscription before applying.
-
-`-s`, `--systemd` — use the sing-box systemd service instead of launching via the binary.  
-sing-box can be started directly as a binary or as a systemd service; this flag forces systemd mode.
-
-**Examples**
-
-```bash
-# Apply configuration "mySub"
-tinybox subscription:apply mySub
-```
-
-### tinybox config:list
-
-**Description**
-
-Shows the list of generated configuration files.
-
-**Example**
-
-```bash
-tinybox config:list
-```
-
-## Global Flags
-
-`-d`, `--debug` — enables debug log output.
+> [!NOTE]
+> For tinybox to work correctly, you need to create a systemd service for sing-box. (In most cases, it is created
+> automatically when installing sing-box.) You can check whether this service exists using the command
+> `systemctl status sing-box`
 
 ## Configuration
 
@@ -162,38 +74,123 @@ If the configuration file is missing or some parameters are not specified, defau
 
 ```json
 {
-  "subscriptions_list": "/home/user/.local/share/tinybox/subscriptions.json",
-  "generated_configs_dir": "/home/user/.local/share/tinybox/configs/",
+  "subscriptions_list": "~/.local/share/tinybox/subscriptions.json",
+  "scheme_groups_list": "~/.local/share/tinybox/scheme_groups.json",
+  "schemes_list": "~/.local/share/tinybox/schemes.json",
   "sing_box": {
     "binary": "sing-box",
     "default_config_path": "/etc/sing-box/config.json",
     "systemd_service_name": "sing-box",
     "templates": {
-      "outbound": "/home/user/.config/tinybox/templates/outbound.json",
-      "outbound_urltest": "/home/user/.config/tinybox/templates/outbound_urltest.json",
-      "config": "/home/user/.config/tinybox/templates/config.json"
+      "outbound": "~/.config/tinybox/templates/outbound.json",
+      "outbound_urltest": "~/.config/tinybox/templates/outbound_urltest.json",
+      "config": "~/.config/tinybox/templates/config.json"
+    },
+    "outbound_test": {
+      "sing_box_config": "~/.local/share/tinybox/outbound_test/sing-box_config.json",
+      "max_parallel_requests": 3,
+      "templates": {
+        "outbound": "~/.config/tinybox/templates/outbound.json",
+        "config": "~/.config/tinybox/templates/config.json"
+      },
+      "fetch_ip": {
+        "geoip_database": "~/.local/share/tinybox/geoip.mmdb",
+        "url": "https://ifconfig.me/ip"
+      },
+      "latency": {
+        "url": "https://google.com",
+        "method": "proxy_get"
+      }
     }
   }
 }
 ```
 
-## Templates
+> [!WARNING]
+> Tinybox does not create files automatically, you need to create the necessary files yourself before using it.
 
-Templates are used to generate the final sing-box configuration.
+## Configuration Description
 
-The quality of the resulting configuration fully depends on the correctness of the templates.  
-If a template contains syntax errors or has an incorrect structure, the generated configuration will also be invalid and
-may fail to start.
+The tinybox configuration file is a JSON object that fully defines the application's behavior when working with
+subscriptions, scheme groups, schemes, and integration with **sing-box**. All paths are specified in a POSIX-compatible
+format (the \~ symbol is supported for the user's home directory).
 
-### Default locations
+The configuration is divided into two main levels:
 
-Paths can be overridden in `~/.config/tinybox/config.json`
+- **Root parameters** — paths to the main data storage files.
+- **sing_box section** — settings for integration with the sing-box core, including template paths, systemd service
+  management, and the outbound testing system.
 
-`~/.config/tinybox/templates/config.json` — main template for the entire configuration
+### Root Parameters
 
-`~/.config/tinybox/templates/outbound.json` — template for a single outbound
+| Parameter          | Type   | Description                                                                |
+|--------------------|--------|----------------------------------------------------------------------------|
+| subscriptions_list | string | Path to the JSON file that stores the list of all subscriptions (sources). |
+| scheme_groups_list | string | Path to the JSON file containing the list of scheme groups.                |
+| schemes_list       | string | Path to the JSON file containing all available schemes (outbound schemes). |
 
-`~/.config/tinybox/templates/outbound_urltest.json` — template for an urltest group
+These files serve as the primary state storage for the application and are automatically created or updated by tinybox.
+
+### sing_box Section
+
+#### Basic Settings
+
+| Parameter            | Type   | Description                                                                                 |
+|----------------------|--------|---------------------------------------------------------------------------------------------|
+| binary               | string | Name of the sing-box executable (must be available in $PATH).                               |
+| default_config_path  | string | Path to the main sing-box configuration file used by the systemd service.                   |
+| systemd_service_name | string | Name of the systemd service (default: sing-box) that tinybox controls (start/stop/restart). |
+
+#### Configuration Templates (templates)
+
+tinybox uses JSON template files to generate working sing-box configurations. The parameters below contain **paths to
+these template files**. When applying a scheme, the necessary fields are overwritten on top of the loaded template.
+
+| Parameter        | Type   | Description                                                    |
+|------------------|--------|----------------------------------------------------------------|
+| outbound         | string | Path to the base template for a single outbound.               |
+| outbound_urltest | string | Path to the template for an outbound of type urltest.          |
+| config           | string | Path to the full template for the main sing-box configuration. |
+
+#### Outbound Testing Settings (outbound_test)
+
+This block is responsible for automatic testing of proxy server performance and availability.
+
+**General parameters:**
+
+- sing_box_config — path to the temporary configuration file created specifically for running tests.
+- max_parallel_requests — maximum number of parallel requests/tests.
+
+**Test templates:**
+
+The parameters below are **paths to template files** used during test configuration generation:
+
+- outbound — path to the outbound template.
+- config — path to the full sing-box configuration template for tests.
+
+**Real IP and Geolocation Determination (fetch_ip):**
+
+| Parameter      | Type   | Description                                                                               |
+|----------------|--------|-------------------------------------------------------------------------------------------|
+| geoip_database | string | Path to the GeoIP2 .mmdb database (MaxMind), used to determine location by IP.            |
+| url            | string | HTTP endpoint that must return **only** the IP address in the response body (plain text). |
+
+**Latency Testing (latency):**
+
+| Parameter | Type   | Description                                                                                                                                                                                 |
+|-----------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| url       | string | Target URL for the test (used with the proxy_get method).                                                                                                                                   |
+| method    | string | Testing method. Supported values: • proxy_get — performs a GET request through the outbound to the specified URL. • tcp_ping — direct TCP ping to the IP address specified in the outbound. |
+
+### Recommendations
+
+- All paths may use \~ to represent the home directory.
+- Template files must contain valid JSON compatible with sing-box.
+- When generating a configuration, tinybox performs a deep merge of the template and scheme data.
+- For correct test operation, it is recommended to use stable and fast endpoints.
+
+This structure provides high flexibility for managing multiple subscriptions and sing-box schemes within a single
+utility.
 
 ### Template Purpose
 
