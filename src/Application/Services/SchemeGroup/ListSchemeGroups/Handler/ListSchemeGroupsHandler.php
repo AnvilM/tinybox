@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Application\Services\SchemeGroup\ListSchemeGroups\Handler;
 
-use App\Application\Shared\SchemeGroup\UseCase\ReadSchemeGroupsList\ReadSchemeGroupsListUseCase;
+use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Repository\SchemeGroup\GetSchemeGroupListRepository;
 use App\Domain\Shared\Exception\CriticalException;
 use Psl\Collection\MutableVector;
 
 final readonly class ListSchemeGroupsHandler
 {
     public function __construct(
-        private ReadSchemeGroupsListUseCase $readSchemeGroupsListUseCase,
+        private GetSchemeGroupListRepository $getSchemeGroupsList,
     )
     {
     }
@@ -23,6 +24,10 @@ final readonly class ListSchemeGroupsHandler
      */
     public function handle(): MutableVector
     {
-        return $this->readSchemeGroupsListUseCase->handle()->getSchemeGroupNames();
+        try {
+            return $this->getSchemeGroupsList->getSchemeGroupsList()->getSchemeGroupNames();
+        } catch (UnableToGetListException $e) {
+            throw new CriticalException($e->getMessage(), $e->getDebugMessage());
+        }
     }
 }

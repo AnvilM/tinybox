@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\SchemeGroup\Shared\Validator;
+namespace App\Application\Repository\Subscription\Shared\Validator;
 
-use App\Application\Shared\SchemeGroup\Exception\Shared\Validator\InvalidSchemeGroupListFormatException;
+use App\Application\Shared\Subscription\Exception\Shared\Validator\InvalidSubscriptionsListFormatException;
 use InvalidArgumentException;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Validator;
 
-final readonly class SchemeGroupsListFormatValidator
+final readonly class SubscriptionsListFormatValidator
 {
     private string $schema;
 
@@ -26,6 +26,10 @@ final readonly class SchemeGroupsListFormatValidator
                         "name": {
                             "type": "string"
                         },
+                        "url": {
+                            "type": "string",
+                            "format": "uri"
+                        },
                         "schemes": {
                             "type": "array",
                             "items": {
@@ -33,7 +37,7 @@ final readonly class SchemeGroupsListFormatValidator
                             }
                         }
                     },
-                    "required": ["name", "schemes"],
+                    "required": ["name", "url", "schemes"],
                     "additionalProperties": false
                 }
             }
@@ -41,25 +45,25 @@ final readonly class SchemeGroupsListFormatValidator
     }
 
     /**
-     * Validate array of raw scheme groups
+     * Validate array of raw subscriptions
      *
-     * @param array $rawSchemeGroupsArray
+     * @param array $rawSubscriptionsArray
      *
      * @return void
      *
-     * @throws InvalidSchemeGroupListFormatException
+     * @throws InvalidSubscriptionsListFormatException
      */
-    public function validate(array $rawSchemeGroupsArray): void
+    public function validate(array $rawSubscriptionsArray): void
     {
         try {
             $validation = $this->validator->validate(
-                Helper::toJSON($rawSchemeGroupsArray),
+                Helper::toJSON($rawSubscriptionsArray),
                 $this->schema
             );
         } catch (InvalidArgumentException) {
-            throw new InvalidSchemeGroupListFormatException();
+            throw new InvalidSubscriptionsListFormatException();
         }
 
-        if ($validation->hasError()) throw new InvalidSchemeGroupListFormatException();
+        if ($validation->hasError()) throw new InvalidSubscriptionsListFormatException();
     }
 }

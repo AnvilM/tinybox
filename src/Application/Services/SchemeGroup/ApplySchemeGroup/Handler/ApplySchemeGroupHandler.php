@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Services\SchemeGroup\ApplySchemeGroup\Handler;
 
+use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Repository\SchemeGroup\GetSchemeGroupListRepository;
 use App\Application\Services\SchemeGroup\ApplySchemeGroup\Command\ApplySchemeGroupCommand;
 use App\Application\Services\Subscription\ApplySubscription\Exception\UnableToRestartSingBoxServiceException;
-use App\Application\Shared\SchemeGroup\UseCase\ReadSchemeGroupsList\ReadSchemeGroupsListUseCase;
 use App\Application\Shared\Shared\Utils\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
 use App\Application\Shared\Shared\Utils\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
@@ -24,7 +25,7 @@ use InvalidArgumentException;
 final readonly class ApplySchemeGroupHandler
 {
     public function __construct(
-        private ReadSchemeGroupsListUseCase  $readSchemeGroupsListUseCase,
+        private GetSchemeGroupListRepository $getSchemeGroupListRepository,
         private CreateSingBoxConfigUseCase   $createSingBoxConfigUseCase,
         private SaveFilePort                 $saveFilePort,
         private ConfigInstancePort           $configInstancePort,
@@ -39,9 +40,13 @@ final readonly class ApplySchemeGroupHandler
     public function handle(ApplySchemeGroupCommand $command): void
     {
         /**
-         * Read list of all schemeGroups
+         * Try to read list of all schemeGroups
          */
-        $schemeGroups = $this->readSchemeGroupsListUseCase->handle();
+        try {
+            $schemeGroups = $this->getSchemeGroupListRepository->getSchemeGroupsList();
+        } catch (UnableToGetListException $e) {
+            throw new CriticalException("Unable to apply scheme group", $e->getDebugMessage());
+        }
 
 
         /**
@@ -89,7 +94,7 @@ final readonly class ApplySchemeGroupHandler
 
 
         /**
-         * Try to save schemeGroup file
+         * Try to save sing-box config file
          */
         try {
             $this->saveFilePort->save(
@@ -97,7 +102,7 @@ final readonly class ApplySchemeGroupHandler
                 $singBoxSchemeGroup
             );
         } catch (UnableToSaveFileException) {
-            throw new CriticalException("Unable to save the schemeGroup file");
+            throw new CriticalException("Unable to save the sing-box config  file");
         }
 
 

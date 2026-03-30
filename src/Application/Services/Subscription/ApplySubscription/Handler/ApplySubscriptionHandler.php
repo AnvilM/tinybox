@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Services\Subscription\ApplySubscription\Handler;
 
+use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Application\Services\Subscription\ApplySubscription\Command\ApplySubscriptionCommand;
 use App\Application\Services\Subscription\ApplySubscription\Exception\UnableToRestartSingBoxServiceException;
 use App\Application\Shared\Shared\Utils\OutboundTest\GetIpCountyCode\GetIpCountryCodesMapUseCase;
 use App\Application\Shared\Shared\Utils\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
 use App\Application\Shared\Shared\Utils\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
-use App\Application\Shared\Subscription\UseCase\GetSubscription\GetSubscriptionUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
@@ -18,17 +19,20 @@ use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\SaveFilePort;
+use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
+use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
+use App\Domain\Subscription\VO\SubscriptionNameVO;
 use InvalidArgumentException;
 
 final readonly class ApplySubscriptionHandler
 {
     public function __construct(
-        private GetSubscriptionUseCase       $getSubscriptionUseCase,
-        private CreateSingBoxConfigUseCase   $createSingBoxConfigUseCase,
-        private SaveFilePort                 $saveFilePort,
-        private ConfigInstancePort           $configInstancePort,
-        private RestartSingBoxServiceUseCase $restartSingBoxServiceUseCase,
-        private GetIpCountryCodesMapUseCase  $getIpCountryCodesMapUseCase,
+        private GetSubscriptionListRepository $getSubscriptionListRepository,
+        private CreateSingBoxConfigUseCase    $createSingBoxConfigUseCase,
+        private SaveFilePort                  $saveFilePort,
+        private ConfigInstancePort            $configInstancePort,
+        private RestartSingBoxServiceUseCase  $restartSingBoxServiceUseCase,
+        private GetIpCountryCodesMapUseCase   $getIpCountryCodesMapUseCase,
 
     )
     {
@@ -40,11 +44,25 @@ final readonly class ApplySubscriptionHandler
     public function handle(ApplySubscriptionCommand $command): void
     {
         /**
-         * Getting subscription with provided name
+         * Try to create subscription name
          */
-        $subscription = $this->getSubscriptionUseCase->handle($command->subscriptionName);
+        try {
+            $subscriptionName = new SubscriptionNameVO($command->subscriptionName);
+        } catch (InvalidSubscriptionNameException) {
+            throw new CriticalException("Invalid subscription name provided", $command->subscriptionName);
+        }
 
-        
+
+        /**
+         * Try to get subscription with provided name
+         */
+        try {
+            $subscription = $this->getSubscriptionListRepository->getSubscriptionsList()->getSubscriptionByName($subscriptionName);
+        } catch (UnableToGetListException|SubscriptionNotFoundException $e) {
+            throw new CriticalException($e->getMessage(), $e->getDebugMessage());
+        }
+
+
         /**
          * Check if subscription has schemes
          */

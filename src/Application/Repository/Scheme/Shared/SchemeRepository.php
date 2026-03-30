@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Shared\Shared\Scheme\UseCase\ReadSchemesList;
+namespace App\Application\Repository\Scheme\Shared;
 
+use App\Application\Exception\Repository\Scheme\UnableToGetSchemesListException;
+use App\Application\Exception\Repository\Shared\UnableToSaveListException;
 use App\Application\Repository\Scheme\Shared\File\ReadSchemes;
+use App\Application\Repository\Scheme\Shared\File\WriteSchemes;
 use App\Application\Repository\Scheme\Shared\Validator\SchemesListFormatValidator;
 use App\Application\Shared\Scheme\Exception\Shared\Parser\UnableToParseRawSchemeStringException;
 use App\Application\Shared\Scheme\Exception\Shared\Validator\InvalidSchemesListFormatException;
@@ -12,34 +15,44 @@ use App\Application\Shared\Shared\Shared\Scheme\Shared\UseCase\CreateSchemeEntit
 use App\Domain\Scheme\Collection\SchemeMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
-use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
+use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
+use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Domain\Shared\ReporterEvent\Events\AddScheme\Handler\AddSchemeHandler\InvalidSchemeReporterEvent;
 use InvalidArgumentException;
 
-final readonly class ReadSchemesListUseCase
+class SchemeRepository
 {
+    private static ?SchemeMap $schemesMap = null;
+
     public function __construct(
-        private ReadSchemes                         $readSchemes,
-        private CreateSchemeEntityFromStringUseCase $createSchemeEntityFromStringUseCase,
-        private SchemesListFormatValidator          $schemesListFormatValidator,
-        private ReporterPort                        $reporterPort,
+        private readonly ReadSchemes                         $readSchemes,
+        private readonly SchemesListFormatValidator          $schemesListFormatValidator,
+        private readonly CreateSchemeEntityFromStringUseCase $createSchemeEntityFromStringUseCase,
+        private readonly ReporterPort                        $reporterPort,
+        private readonly WriteSchemes                        $writeSchemes,
     )
     {
+
     }
 
-
     /**
-     * Read schemes list from file
+     * Get map of all schemes
      *
-     * @return SchemeMap Map of scheme entity
+     * @return SchemeMap Scheme map
      *
-     * @throws CriticalException
+     * @throws UnableToGetSchemesListException If unable to read file or schemes file is invalid format
      */
-    public function handle(): SchemeMap
+    protected function getSchemesList(): SchemeMap
     {
+        /**
+         * Check if schemes map is already exist
+         */
+        if (self::$schemesMap !== null) return self::$schemesMap;
+
+
         try {
             /**
              * Read schemes
@@ -55,8 +68,8 @@ final readonly class ReadSchemesListUseCase
             /** @var string[] $rawSchemesList */
 
         } catch (UnableToReadFileException|UnableToDecodeJsonException|InvalidSchemesListFormatException $e) {
-            throw new CriticalException($e instanceof UnableToReadFileException
-                ? "Unable to read schemes list"
+            throw new UnableToGetSchemesListException($e instanceof UnableToReadFileException
+                ? "Unable to read schemes list file"
                 : "Invalid schemes list format",
                 $e->getMessage()
             );
@@ -84,6 +97,33 @@ final readonly class ReadSchemesListUseCase
             }
         }
 
+
+        /**
+         * Update schemes map
+         */
+        self::$schemesMap = $schemes;
+
         return $schemes;
+    }
+
+
+    /**
+     * Save current schemes list to file
+     *
+     * @throws UnableToSaveListException If unable to write file, or no schemes loaded
+     */
+    protected function save(): SchemeMap
+    {
+        if (self::$schemesMap === null) throw new UnableToSaveListException(
+            "No schemes list available"
+        );
+
+        try {
+            $this->writeSchemes->write(self::$schemesMap);
+        } catch (UnableToSaveFileException|UnableToEncodeJsonException $e) {
+            throw new UnableToSaveListException($e->getMessage(), $e->getDebugMessage());
+        }
+
+        return self::$schemesMap;
     }
 }

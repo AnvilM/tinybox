@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\Services\Subscription\UpdateSubscription\Handler;
 
+use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Repository\Subscription\GetSubscriptionListRepository;
+use App\Application\Repository\Subscription\UpdateSubscriptionSchemesRepository;
 use App\Application\Services\Subscription\UpdateSubscription\Command\UpdateSubscriptionCommand;
 use App\Application\Shared\Subscription\Exception\UseCase\FetchSchemes\NoValidSchemesFoundException;
-use App\Application\Shared\Subscription\Shared\File\WriteSubscriptions;
-use App\Application\Shared\Subscription\Shared\UseCase\ReadSubscriptionsList\ReadSubscriptionsListUseCase;
 use App\Application\Shared\Subscription\UseCase\FetchSchemes\FetchSchemesUseCase;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
@@ -18,9 +19,9 @@ final readonly class UpdateSubscriptionHandler
 {
 
     public function __construct(
-        private ReadSubscriptionsListUseCase $readSubscriptionsListUseCase,
-        private FetchSchemesUseCase          $fetchSchemesUseCase,
-        private WriteSubscriptions           $writeSubscriptions
+        private GetSubscriptionListRepository       $getSubscriptionListRepository,
+        private FetchSchemesUseCase                 $fetchSchemesUseCase,
+        private UpdateSubscriptionSchemesRepository $updateSubscriptionSchemesRepository,
     )
     {
     }
@@ -41,9 +42,13 @@ final readonly class UpdateSubscriptionHandler
 
 
         /**
-         * Read subscriptions list
+         * Try to read subscriptions list
          */
-        $subscriptions = $this->readSubscriptionsListUseCase->handle();
+        try {
+            $subscriptions = $this->getSubscriptionListRepository->getSubscriptionsList();
+        } catch (UnableToGetListException $e) {
+            throw new CriticalException("Unable to get subscriptions list", $e->getDebugMessage());
+        }
 
 
         /**
@@ -67,15 +72,16 @@ final readonly class UpdateSubscriptionHandler
 
 
         /**
-         * Set subscription schemes
+         * Try to update subscription schemes and save subscriptions list
          */
-        $subscription->setSchemes($schemes);
-
-
-        /**
-         * Write subscriptions to file
-         */
-        $this->writeSubscriptions->write($subscriptions);
+        try {
+            $this->updateSubscriptionSchemesRepository->update($subscriptionName, $schemes);
+        } catch (UnableToGetListException|SubscriptionNotFoundException $e) {
+            throw new CriticalException($e instanceof UnableToGetListException
+                ? "Unable to get subscriptions list"
+                : "Subscription with name {$subscriptionName->getName()} does not exist", $e->getDebugMessage()
+            );
+        }
     }
 
 }

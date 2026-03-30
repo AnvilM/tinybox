@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\Shared\Scheme\UseCase\WriteScheme;
 
-use App\Application\Shared\Scheme\Shared\File\WriteSchemes;
+use App\Application\Repository\Scheme\Shared\File\WriteSchemes;
 use App\Application\Shared\Shared\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
 use App\Domain\Scheme\Collection\SchemeMap;
 use App\Domain\Scheme\Entity\Scheme;

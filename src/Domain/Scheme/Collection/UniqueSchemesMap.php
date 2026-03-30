@@ -19,7 +19,7 @@ final class UniqueSchemesMap extends SchemeMap
      * @throws SchemeAlreadyExistsException If scheme already exists in map
      */
     #[Override]
-    public function add(Scheme $scheme): void
+    public function add(Scheme $scheme): static
     {
         /**
          * Check scheme already exists
@@ -32,6 +32,8 @@ final class UniqueSchemesMap extends SchemeMap
          * Add scheme to map
          */
         $this->map->add($scheme->getHash(), $scheme);
+
+        return $this;
     }
 
     /**

@@ -147,7 +147,7 @@ class SchemeMap
      *
      * @throws SchemeAlreadyExistsException If scheme already exists in map
      */
-    public function add(Scheme $scheme): void
+    public function add(Scheme $scheme): static
     {
         /**
          * Check scheme already exists
@@ -161,6 +161,8 @@ class SchemeMap
          * Add scheme to map
          */
         $this->map->add($scheme->getHash(), $scheme);
+
+        return $this;
     }
 
     /**

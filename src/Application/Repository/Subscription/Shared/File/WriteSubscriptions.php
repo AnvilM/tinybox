@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Subscription\Shared\File;
+namespace App\Application\Repository\Subscription\Shared\File;
 
-use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -23,22 +22,19 @@ final readonly class WriteSubscriptions
     /**
      * Write subscriptions list to file
      *
-     * @param SubscriptionsMap $subscriptionsMap Subscriptions map
+     * @param SubscriptionsMap $subscriptionsMap Subscriptions list
      *
-     * @throws CriticalException
+     * @throws UnableToEncodeJsonException If unable to convert subscriptions list to JSON
+     * @throws UnableToSaveFileException If unable to save subscriptions list to file
      */
     public function write(SubscriptionsMap $subscriptionsMap): void
     {
         $path = $this->configInstancePort->get()->subscriptionsListPath;
 
-        try {
-            $this->saveFileNotifyPort->notifyStartAndSuccess(
-                "Saving subscriptions...",
-                "Subscriptions successfully saved",
-            )->save($path, $subscriptionsMap->toJson());
-        } catch (UnableToSaveFileException|UnableToEncodeJsonException) {
-            throw new CriticalException("Unable to save subscriptions", $path);
-        }
+        $this->saveFileNotifyPort->notifyStartAndSuccess(
+            "Saving subscriptions...",
+            "Subscriptions successfully saved",
+        )->save($path, $subscriptionsMap->toJson());
 
 
     }

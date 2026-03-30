@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Scheme\Shared\Validator;
+namespace App\Application\Repository\Scheme\Shared\Validator;
 
 use App\Application\Shared\Scheme\Exception\Shared\Validator\InvalidSchemesListFormatException;
 use InvalidArgumentException;

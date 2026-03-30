@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Application\Services\Subscription\CreateSubscription\Handler;
 
+use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Exception\Repository\Shared\UnableToSaveListException;
+use App\Application\Repository\Subscription\AddSubscriptionRepository;
+use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Application\Services\Subscription\CreateSubscription\Command\CreateSubscriptionCommand;
 use App\Application\Shared\Subscription\Exception\UseCase\FetchSchemes\NoValidSchemesFoundException;
-use App\Application\Shared\Subscription\Shared\File\WriteSubscriptions;
-use App\Application\Shared\Subscription\Shared\UseCase\ReadSubscriptionsList\ReadSubscriptionsListUseCase;
 use App\Application\Shared\Subscription\UseCase\FetchSchemes\FetchSchemesUseCase;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Subscription\Entity\Subscription;
@@ -20,9 +22,9 @@ use App\Domain\Subscription\VO\SubscriptionURLVO;
 final readonly class CreateSubscriptionHandler
 {
     public function __construct(
-        private ReadSubscriptionsListUseCase $readSubscriptionsListUseCase,
-        private WriteSubscriptions           $writeSubscriptions,
-        private FetchSchemesUseCase          $fetchSchemesUseCase,
+        private GetSubscriptionListRepository $getSubscriptionListRepository,
+        private FetchSchemesUseCase           $fetchSchemesUseCase,
+        private AddSubscriptionRepository     $addSubscriptionRepository,
     )
     {
     }
@@ -32,6 +34,9 @@ final readonly class CreateSubscriptionHandler
      */
     public function handle(CreateSubscriptionCommand $command): void
     {
+        /**
+         * Try to create subscription name and subscription URL
+         */
         try {
             /**
              * Create subscription name
@@ -50,10 +55,15 @@ final readonly class CreateSubscriptionHandler
             );
         }
 
+
         /**
-         * Read subscription list
+         * Try to read subscription list
          */
-        $subscriptions = $this->readSubscriptionsListUseCase->handle();
+        try {
+            $subscriptions = $this->getSubscriptionListRepository->getSubscriptionsList();
+        } catch (UnableToGetListException $e) {
+            throw new CriticalException ("Unable to add subscription: " . $e->getMessage(), $e->getDebugMessage());
+        }
 
 
         /**
@@ -74,21 +84,18 @@ final readonly class CreateSubscriptionHandler
 
 
         /**
-         * Try to add new subscription
+         * Try to add new subscription and save subscriptions list
          */
         try {
-            $subscriptions->add(new Subscription(
+            $this->addSubscriptionRepository->add(new Subscription(
                 $subscriptionName,
                 $subscriptionUrl,
                 $schemes
-            ));
+            ))->save();
         } catch (SubscriptionAlreadyExistsException) {
             throw new CriticalException ("Subscription with provided name or url already exists");
+        } catch (UnableToSaveListException|UnableToGetListException $e) {
+            throw new CriticalException ("Unable to add subscription: " . $e->getMessage(), $e->getDebugMessage());
         }
-
-        /**
-         * Write subscriptions
-         */
-        $this->writeSubscriptions->write($subscriptions);
     }
 }

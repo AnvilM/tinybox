@@ -2,43 +2,55 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\SchemeGroup\UseCase\ReadSchemeGroupsList;
+namespace App\Application\Repository\SchemeGroup\Shared;
 
+use App\Application\Exception\Repository\Scheme\UnableToGetSchemesListException;
+use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Exception\Repository\Shared\UnableToSaveListException;
+use App\Application\Repository\Scheme\GetSchemesList;
 use App\Application\Repository\SchemeGroup\Shared\File\ReadSchemeGroups;
+use App\Application\Repository\SchemeGroup\Shared\File\WriteSchemeGroups;
 use App\Application\Repository\SchemeGroup\Shared\Validator\SchemeGroupsListFormatValidator;
 use App\Application\Shared\SchemeGroup\Exception\Shared\Validator\InvalidSchemeGroupListFormatException;
-use App\Application\Shared\Shared\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
 use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\SchemeNotFoundException;
 use App\Domain\SchemeGroup\Collection\SchemeGroupMap;
 use App\Domain\SchemeGroup\Entity\SchemeGroup;
 use App\Domain\SchemeGroup\Exception\SchemeGroupAlreadyExistsException;
-use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
+use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
+use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use InvalidArgumentException;
 
-final readonly class ReadSchemeGroupsListUseCase
+class SchemeGroupRepository
 {
+    private static ?SchemeGroupMap $schemeGroupMap = null;
+
+
     public function __construct(
-        private ReadSchemeGroups                $readSchemeGroups,
-        private SchemeGroupsListFormatValidator $schemeGroupsListFormatValidator,
-        private ReadSchemesListUseCase          $readSchemesListUseCase,
+        private readonly ReadSchemeGroups                $readSchemeGroups,
+        private readonly SchemeGroupsListFormatValidator $schemeGroupsListFormatValidator,
+        private readonly GetSchemesList                  $getSchemesList,
+        protected readonly WriteSchemeGroups             $writeSchemeGroups,
     )
     {
     }
 
+
     /**
-     * Read schemeGroups list from file
+     * Get map of all scheme groups
      *
-     * @return SchemeGroupMap Map of schemeGroup entity
+     * @return SchemeGroupMap Scheme group map
      *
-     * @throws CriticalException
+     * @throws UnableToGetListException If unable to read file or schemes file is invalid format
      */
-    public function handle(): SchemeGroupMap
+    protected function getSchemeGroupsList(): SchemeGroupMap
     {
+        if (self::$schemeGroupMap !== null) return self::$schemeGroupMap;
+
         try {
             /**
              * Read schemeGroups
@@ -55,7 +67,7 @@ final readonly class ReadSchemeGroupsListUseCase
             /** @var array<array{name: string, schemes: string[]}> $rawSchemeGroupsList */
 
         } catch (UnableToReadFileException|UnableToDecodeJsonException|InvalidSchemeGroupListFormatException $e) {
-            throw new CriticalException($e instanceof UnableToReadFileException
+            throw new UnableToGetListException($e instanceof UnableToReadFileException
                 ? "Unable to read scheme groups list"
                 : "Invalid scheme groups list format",
                 $e->getMessage()
@@ -64,9 +76,13 @@ final readonly class ReadSchemeGroupsListUseCase
 
 
         /**
-         * Read schemes
+         * Try to get schemes list
          */
-        $schemes = $this->readSchemesListUseCase->handle();
+        try {
+            $schemes = $this->getSchemesList->getSchemesList();
+        } catch (UnableToGetSchemesListException $e) {
+            throw new UnableToGetListException($e->getMessage(), $e->getDebugMessage());
+        }
 
 
         /**
@@ -120,6 +136,33 @@ final readonly class ReadSchemeGroupsListUseCase
 
         }
 
+
+        /**
+         * Update scheme groups map
+         */
+        self::$schemeGroupMap = $schemeGroups;
+
         return $schemeGroups;
+    }
+
+
+    /**
+     * Save current scheme group list to file
+     *
+     * @throws UnableToSaveListException If unable to write file, or no scheme group loaded
+     */
+    protected function save(): SchemeGroupMap
+    {
+        if (self::$schemeGroupMap === null) throw new UnableToSaveListException(
+            "No scheme groups list available"
+        );
+
+        try {
+            $this->writeSchemeGroups->write(self::$schemeGroupMap);
+        } catch (UnableToSaveFileException|UnableToEncodeJsonException $e) {
+            throw new UnableToSaveListException($e->getMessage(), $e->getDebugMessage());
+        }
+
+        return self::$schemeGroupMap;
     }
 }

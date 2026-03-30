@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Services\Subscription\TestSubscription\Handler;
 
+use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Repository\Subscription\GetSubscriptionWithNameRepository;
 use App\Application\Services\Subscription\TestSubscription\Command\TestSubscriptionCommand;
 use App\Application\Shared\Shared\Utils\OutboundTest\GetOutboundsLatency\GetOutboundsLatencyUseCase;
-use App\Application\Shared\Subscription\UseCase\GetSubscription\GetSubscriptionUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
@@ -15,15 +16,17 @@ use App\Domain\Scheme\Exception\SchemeNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\LatencyTestMethod;
+use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
+use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
 use InvalidArgumentException;
 use Psl\Collection\MutableMap;
 
 final readonly class TestSubscriptionHandler
 {
     public function __construct(
-        private GetOutboundsLatencyUseCase $getOutboundsLatencyUseCase,
-        private ConfigInstancePort         $configInstancePort,
-        private GetSubscriptionUseCase     $getSubscriptionUseCase,
+        private GetOutboundsLatencyUseCase        $getOutboundsLatencyUseCase,
+        private ConfigInstancePort                $configInstancePort,
+        private GetSubscriptionWithNameRepository $getSubscriptionWithNameRepository,
     )
     {
     }
@@ -34,9 +37,19 @@ final readonly class TestSubscriptionHandler
     public function handle(TestSubscriptionCommand $command): MutableMap
     {
         /**
-         * Getting subscription with provided name
+         * Try to get subscription with provided name
          */
-        $subscription = $this->getSubscriptionUseCase->handle($command->subscriptionName);
+        try {
+            $subscription = $this->getSubscriptionWithNameRepository->get(
+                new NonEmptyStringVO($command->subscriptionName)
+            );
+        } catch (InvalidArgumentException|UnableToGetListException|SubscriptionNotFoundException $e) {
+            throw new CriticalException(match (true) {
+                $e instanceof InvalidArgumentException => "Invalid subscription name: " . $command->subscriptionName,
+                $e instanceof UnableToGetListException => "Unable to get subscriptions list",
+                $e instanceof SubscriptionNotFoundException => "Subscription not found: " . $command->subscriptionName
+            }, $e->getDebugMessage());
+        }
 
         /**
          * Check if subscription has schemes
@@ -63,6 +76,9 @@ final readonly class TestSubscriptionHandler
             }
         }
 
+        /**
+         * Create empty mutable map of schemeId => MutableMap<schemeTag: string, latency: int|null>
+         */
         $map = new MutableMap([]);
 
         $res = $this->getOutboundsLatencyUseCase->handle(
@@ -87,6 +103,7 @@ final readonly class TestSubscriptionHandler
                 );
             } catch (SchemeNotFoundException) {
                 continue;
+                // TODO: Add reporter event
             }
         }
 

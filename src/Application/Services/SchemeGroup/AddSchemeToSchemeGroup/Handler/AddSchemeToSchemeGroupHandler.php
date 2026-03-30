@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Application\Services\SchemeGroup\AddSchemeToSchemeGroup\Handler;
 
+use App\Application\Exception\Repository\Scheme\UnableToGetSchemesListException;
+use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Exception\Repository\Shared\UnableToSaveListException;
+use App\Application\Repository\Scheme\GetSchemesList;
+use App\Application\Repository\SchemeGroup\AddSchemeToSchemeGroupOrCreateNewRepository;
+use App\Application\Repository\SchemeGroup\SaveSchemeGroupListRepository;
 use App\Application\Services\SchemeGroup\AddSchemeToSchemeGroup\Command\AddSchemeToSchemeGroupCommand;
-use App\Application\Shared\SchemeGroup\Shared\File\WriteSchemeGroups;
-use App\Application\Shared\SchemeGroup\UseCase\ReadSchemeGroupsList\ReadSchemeGroupsListUseCase;
-use App\Application\Shared\Shared\Shared\Scheme\UseCase\ReadSchemesList\ReadSchemesListUseCase;
-use App\Domain\Scheme\Collection\UniqueSchemesMap;
 use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
 use App\Domain\Scheme\Exception\SchemeNotFoundException;
-use App\Domain\SchemeGroup\Entity\SchemeGroup;
-use App\Domain\SchemeGroup\Exception\SchemeGroupAlreadyExistsException;
-use App\Domain\SchemeGroup\Exception\SchemeGroupNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use InvalidArgumentException;
@@ -21,15 +20,15 @@ use InvalidArgumentException;
 final readonly class AddSchemeToSchemeGroupHandler
 {
     public function __construct(
-        private ReadSchemesListUseCase      $readSchemesListUseCase,
-        private ReadSchemeGroupsListUseCase $readSchemeGroupsListUseCase,
-        private WriteSchemeGroups           $writeSchemeGroups,
+        private GetSchemesList                              $getSchemesList,
+        private AddSchemeToSchemeGroupOrCreateNewRepository $addSchemeToSchemeGroupOrCreateNewRepository,
+        private SaveSchemeGroupListRepository               $saveSchemeGroupListRepository,
     )
     {
     }
 
     /**
-     * Add scheme to schemeGroup
+     * Add scheme to schemeGroup or create new scheme group with provided scheme
      *
      * @param AddSchemeToSchemeGroupCommand $command Command with schemeGroup name and scheme id
      *
@@ -37,26 +36,25 @@ final readonly class AddSchemeToSchemeGroupHandler
      */
     public function handle(AddSchemeToSchemeGroupCommand $command): void
     {
-        /**
-         * Read schemes list
-         */
-        $schemes = $this->readSchemesListUseCase->handle();
-
 
         /**
-         * Try to find scheme with provided id in schemes list
+         * Try to read schemes list
          */
         try {
-            $scheme = $schemes->getById($command->schemeId);
-        } catch (SchemeNotFoundException) {
-            throw new CriticalException("Scheme with id $command->schemeId does not exist");
+            $schemes = $this->getSchemesList->get();
+        } catch (UnableToGetSchemesListException $e) {
+            throw new CriticalException($e->getMessage(), $e->getDebugMessage());
         }
 
 
         /**
-         * Read schemeGroups list
+         * Try to get scheme with provided id
          */
-        $schemeGroups = $this->readSchemeGroupsListUseCase->handle();
+        try {
+            $scheme = $schemes->getById($command->schemeId);
+        } catch (SchemeNotFoundException $e) {
+            throw new CriticalException("Scheme with id $command->schemeId does not exist", $e->getDebugMessage());
+        }
 
 
         /**
@@ -70,40 +68,18 @@ final readonly class AddSchemeToSchemeGroupHandler
 
 
         /**
-         * Try to find scheme group with provided name in schemeGroups list
+         * Try to add scheme to scheme group or create new
+         * scheme group list with provided scheme and save scheme groups list
          */
         try {
-            $schemeGroups->getByName($schemeGroupName)->getSchemes()->add($scheme);
-        } catch (SchemeGroupNotFoundException) {
-            $schemes = new UniqueSchemesMap();
-
-            /**
-             * Try to create new schemeGroup with scheme found by provided scheme id
-             */
-            try {
-                $schemes->add($scheme);
-
-                $schemeGroups->add(new SchemeGroup(
-                    $schemeGroupName,
-                    $schemes
-                ));
-            } catch (SchemeAlreadyExistsException) {
-                throw new CriticalException("Scheme with id {$scheme->getHash()} already exists in schemeGroup {$schemeGroupName->getValue()} ", $command->schemeId);
-            } catch (SchemeGroupAlreadyExistsException) {
-                throw new CriticalException("Unknown error");
-            }
-        } catch (SchemeAlreadyExistsException) {
-            throw new CriticalException("Scheme with id {$scheme->getHash()} already exists in schemeGroup {$schemeGroupName->getValue()} ", $command->schemeId);
-
+            $this->addSchemeToSchemeGroupOrCreateNewRepository->add($schemeGroupName, $scheme);
+            $this->saveSchemeGroupListRepository->save();
+        } catch (UnableToGetListException|SchemeAlreadyExistsException|UnableToSaveListException $e) {
+            throw new CriticalException(match (true) {
+                $e instanceof SchemeAlreadyExistsException => "Scheme with id $command->schemeId already exists in scheme group with name $command->name",
+                $e instanceof UnableToGetListException => "Unable to get subscriptions list",
+                $e instanceof UnableToSaveListException => "Unable to add scheme"
+            }, $e->getDebugMessage());
         }
-
-
-        /**
-         * Write schemeGroups list to file
-         */
-        $this->writeSchemeGroups->write(
-            $schemeGroups
-        );
-
     }
 }

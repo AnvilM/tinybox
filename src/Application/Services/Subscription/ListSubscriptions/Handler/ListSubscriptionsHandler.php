@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Application\Services\Subscription\ListSubscriptions\Handler;
 
-use App\Application\Shared\Subscription\Shared\UseCase\ReadSubscriptionsList\ReadSubscriptionsListUseCase;
+use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Domain\Shared\Exception\CriticalException;
 use Psl\Collection\MutableMap;
 
 final readonly class ListSubscriptionsHandler
 {
     public function __construct(
-        private ReadSubscriptionsListUseCase $readSubscriptionsListUseCase,
+        private GetSubscriptionListRepository $getSubscriptionListRepository,
     )
     {
     }
@@ -25,6 +26,10 @@ final readonly class ListSubscriptionsHandler
      */
     public function handle(): MutableMap
     {
-        return $this->readSubscriptionsListUseCase->handle()->toNameUrlMap();
+        try {
+            return $this->getSubscriptionListRepository->getSubscriptionsList()->toNameUrlMap();
+        } catch (UnableToGetListException $e) {
+            throw new CriticalException ("Unable to get subscriptions list: " . $e->getMessage(), $e->getDebugMessage());
+        }
     }
 }
