@@ -177,10 +177,11 @@ The parameters below are **paths to template files** used during test configurat
 
 **Latency Testing (latency):**
 
-| Parameter | Type   | Description                                                                                                                                                                                 |
-|-----------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| url       | string | Target URL for the test (used with the proxy_get method).                                                                                                                                   |
-| method    | string | Testing method. Supported values: • proxy_get — performs a GET request through the outbound to the specified URL. • tcp_ping — direct TCP ping to the IP address specified in the outbound. |
+| Parameter        | Type   | Description                                                                                                                                                                                 |
+|------------------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| url              | string | Target URL for the test (used with the proxy_get method).                                                                                                                                   |
+| method           | string | Testing method. Supported values: • proxy_get — performs a GET request through the outbound to the specified URL. • tcp_ping — direct TCP ping to the IP address specified in the outbound. |
+| tcp_ping_timeout | int    | Timeout for TCP ping                                                                                                                                                                        |
 
 ### Recommendations
 
