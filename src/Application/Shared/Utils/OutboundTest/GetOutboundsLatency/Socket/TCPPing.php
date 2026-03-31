@@ -37,7 +37,7 @@ final readonly class TCPPing
         foreach ($outboundsMap->getOutbounds() as $outbound) {
             $sockets[] = function () use ($outbound) {
 
-                $result = new OutboundFetchResultDTO((int)(microtime(true) * 1000), $outbound->getTag());
+                $result = new OutboundFetchResultDTO((int)(microtime(true) * 1000), $outbound->getTagString());
                 run(function () use ($outbound) {
                     $server = $outbound->getServer();
                     $port = $outbound->getServerPort();

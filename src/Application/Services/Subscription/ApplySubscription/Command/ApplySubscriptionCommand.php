@@ -10,6 +10,10 @@ final readonly class ApplySubscriptionCommand
         public string  $subscriptionName,
         public bool    $asSystemdService,
         public ?string $denyCountry,
+        public bool    $urltest,
+        public ?string $defaultDetour,
+        public ?string $exclude,
+        public ?string $urltestExclude,
     )
     {
     }

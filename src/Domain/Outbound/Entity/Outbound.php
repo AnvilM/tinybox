@@ -26,11 +26,11 @@ abstract readonly class Outbound
     public abstract function toArray(): array;
 
     /**
-     * Get outbound tag
+     * Get outbound tag as string
      *
-     * @return string Outbound tag
+     * @return string Outbound tag as sting
      */
-    public function getTag(): string
+    public function getTagString(): string
     {
         return $this->tag->getValue();
     }
@@ -57,4 +57,15 @@ abstract readonly class Outbound
      * @return int|null Outbound server port or null if outbound has no server port field, e.g. direct outbound
      */
     public abstract function getServerPort(): ?int;
+
+
+    /**
+     * Get outbound tag as NonEmptyString object
+     *
+     * @return NonEmptyStringVO Tag as NonEmptyString object
+     */
+    public function getTag(): NonEmptyStringVO
+    {
+        return $this->tag;
+    }
 }

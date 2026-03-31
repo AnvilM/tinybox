@@ -11,10 +11,12 @@ use App\Application\Services\Subscription\ApplySubscription\CreateSingBoxConfig\
 use App\Application\Services\Subscription\ApplySubscription\Exception\UnableToRestartSingBoxServiceException;
 use App\Application\Services\Subscription\ApplySubscription\RestartSingBoxService\RestartSingBoxServiceUseCase;
 use App\Application\Shared\Utils\OutboundTest\GetIpCountyCode\GetIpCountryCodesMapUseCase;
+use App\Domain\Interface\Subscription\DetourProvider;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
 use App\Domain\Outbound\Factory\OutboundFactory;
+use App\Domain\Scheme\Exception\SchemeNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -70,17 +72,77 @@ final readonly class ApplySubscriptionHandler
 
 
         /**
+         * Try to create outbound to urltest exclude
+         */
+        if ($command->urltestExclude) try {
+            $outboundToUrltestExclude = OutboundFactory::fromScheme(
+                $subscription->getSchemes()->getById($command->urltestExclude)
+            );
+        } catch (SchemeNotFoundException $e) {
+            throw new CriticalException("Scheme with id $command->urltestExclude not found", $e->getDebugMessage());
+        } catch (UnsupportedOutboundTypeException|InvalidArgumentException $e) {
+            throw new CriticalException("Cant create urltest exclude outbound from provided scheme id", $e->getDebugMessage());
+        }
+
+
+        /**
+         * Try to create outbound to exclude
+         */
+        if ($command->exclude) try {
+            $outboundToExclude = OutboundFactory::fromScheme(
+                $subscription->getSchemes()->getById($command->exclude)
+            );
+        } catch (SchemeNotFoundException $e) {
+            throw new CriticalException("Scheme with id $command->exclude not found", $e->getDebugMessage());
+        } catch (UnsupportedOutboundTypeException|InvalidArgumentException $e) {
+            throw new CriticalException("Cant create exclude outbound from provided scheme id", $e->getDebugMessage());
+        }
+
+
+        /**
+         * Try to create outbound from provided detour scheme id
+         */
+        if ($command->defaultDetour) try {
+            $detourOutbound = OutboundFactory::fromScheme(
+                $subscription->getSchemes()->getById($command->defaultDetour)
+            );
+        } catch (SchemeNotFoundException $e) {
+            throw new CriticalException("Scheme with id $command->defaultDetour not found", $e->getDebugMessage());
+        } catch (UnsupportedOutboundTypeException|InvalidArgumentException $e) {
+            throw new CriticalException("Cant create detour outbound from provided scheme id", $e->getDebugMessage());
+        }
+
+        /**
          * Create empty outbounds map
          */
         $outboundsMap = new OutboundMap();
 
 
         foreach ($subscription->getSchemes()->getMap() as $scheme) {
+            if (isset($outboundToExclude) && $scheme->getHash() === $outboundToExclude) continue;
+
             /**
              * Try to create outbound from scheme and add it to outbounds map
              */
             try {
-                $outboundsMap->add(OutboundFactory::fromScheme($scheme));
+                /**
+                 * Create an outbound
+                 */
+                $outbound = OutboundFactory::fromScheme($scheme);
+
+
+                /**
+                 * Set for created outbound default detour outbound
+                 */
+                if (isset($detourOutbound) && $command->defaultDetour !== null && $outbound instanceof DetourProvider
+                    && $outbound->getTagString() !== $detourOutbound->getTagString())
+                    $outbound->setDetour($detourOutbound);
+
+
+                /**
+                 * Add created outbound to outbounds map
+                 */
+                $outboundsMap->add($outbound);
             } catch (OutboundAlreadyExistsException|InvalidArgumentException|UnsupportedOutboundTypeException $e) {
                 echo $e->getMessage() . "\n";
                 continue;
@@ -106,7 +168,9 @@ final readonly class ApplySubscriptionHandler
         /**
          * Create sing-box config from outbounds map
          */
-        $singBoxConfig = $this->createSingBoxConfigUseCase->handle($outboundsMap);
+        $singBoxConfig = $this->createSingBoxConfigUseCase->handle(
+            $outboundsMap, $command->urltest, $outboundToUrltestExclude ?? null
+        );
 
 
         /**

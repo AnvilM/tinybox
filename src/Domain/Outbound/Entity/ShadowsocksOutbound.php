@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\Entity;
 
+use App\Domain\Interface\Subscription\DetourProvider;
 use App\Domain\Outbound\VO\OutboundTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use Override;
 
-final readonly class ShadowsocksOutbound extends Outbound
+final readonly class ShadowsocksOutbound extends Outbound implements DetourProvider
 {
     private NonEmptyStringVO $server;
     private PortVO $serverPort;
@@ -17,6 +18,7 @@ final readonly class ShadowsocksOutbound extends Outbound
     private NonEmptyStringVO $password;
     private ?NonEmptyStringVO $plugin;
     private ?NonEmptyStringVO $pluginOptions;
+    private ?NonEmptyStringVO $detourTag;
 
 
     public function __construct(NonEmptyStringVO $tag, NonEmptyStringVO $server, PortVO $serverPort, NonEmptyStringVO $method, NonEmptyStringVO $password, ?NonEmptyStringVO $plugin, ?NonEmptyStringVO $pluginOptions)
@@ -38,13 +40,14 @@ final readonly class ShadowsocksOutbound extends Outbound
     {
         return array_filter([
             'type' => $this->getType()->value,
-            'tag' => $this->getTag(),
+            'tag' => $this->getTagString(),
             'server' => $this->server->getValue(),
             'server_port' => $this->serverPort->getPort(),
             'method' => $this->method->getValue(),
             'password' => $this->password->getValue(),
             'plugin' => $this->plugin?->getValue(),
             'plugin_opts' => $this->pluginOptions?->getValue(),
+            'detour' => isset($this->detourTag) ? $this->detourTag->getValue() : null,
         ], static fn($value) => $value !== null);
     }
 
@@ -66,5 +69,13 @@ final readonly class ShadowsocksOutbound extends Outbound
     public function getServerPort(): ?int
     {
         return $this->serverPort->getPort();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setDetour(Outbound $detour): void
+    {
+        $this->detourTag = $detour->getTag();
     }
 }
