@@ -42,13 +42,13 @@ final readonly class SingBoxFetchIp
          */
         foreach ($outboundsMap->getOutbounds() as $outbound) {
             $functions[] = reflect(fn() => new OutboundIpDTO(
-                $outbound->getTag(), execute(
+                $outbound->getTagString(), execute(
                     $this->configInstancePort->get()->singBoxConfig->binary,
                     [
                         'tools', 'fetch',
                         $this->configInstancePort->get()->singBoxConfig->outboundTest->fetchIp->url,
                         '-c', $this->configInstancePort->get()->singBoxConfig->outboundTest->singBoxConfig,
-                        '-o', $outbound->getTag()
+                        '-o', $outbound->getTagString()
                     ]
                 )
             ));

@@ -43,7 +43,7 @@ final readonly class SingBoxFetch
         foreach ($outboundsMap->getOutbounds() as $outbound) {
             $functions[] = function () use ($outbound) {
 
-                $result = new OutboundFetchResultDTO((int)(microtime(true) * 1000), $outbound->getTag());
+                $result = new OutboundFetchResultDTO((int)(microtime(true) * 1000), $outbound->getTagString());
 
 
                 run(fn() => execute(
@@ -52,7 +52,7 @@ final readonly class SingBoxFetch
                         'tools', 'fetch',
                         $this->configInstancePort->get()->singBoxConfig->outboundTest->latency->url,
                         '-c', $this->configInstancePort->get()->singBoxConfig->outboundTest->singBoxConfig,
-                        '-o', $outbound->getTag()
+                        '-o', $outbound->getTagString()
                     ]
                 ))->catch(function () use (&$result) {
                     $result->setFailed();

@@ -111,7 +111,7 @@ final readonly class OutboundMap
         /**
          * Add outbound to map
          */
-        $this->map->add($outbound->getTag(), $outbound);
+        $this->map->add($outbound->getTagString(), $outbound);
     }
 
     /**
@@ -123,6 +123,6 @@ final readonly class OutboundMap
      */
     public function containsOutbound(Outbound $outbound): bool
     {
-        return $this->map->containsKey($outbound->getTag());
+        return $this->map->containsKey($outbound->getTagString());
     }
 }

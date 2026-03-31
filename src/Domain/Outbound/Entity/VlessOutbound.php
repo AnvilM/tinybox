@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\Entity;
 
+use App\Domain\Interface\Subscription\DetourProvider;
 use App\Domain\Outbound\Entity\TLS\TLS;
 use App\Domain\Outbound\VO\OutboundTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use Override;
 
-final readonly class VlessOutbound extends Outbound
+final readonly class VlessOutbound extends Outbound implements DetourProvider
 {
     private NonEmptyStringVO $server;
     private PortVO $serverPort;
     private NonEmptyStringVO $uuid;
     private ?NonEmptyStringVO $flow;
     private ?TLS $tls;
+    private ?NonEmptyStringVO $detourTag;
 
 
     public function __construct(
@@ -43,12 +45,13 @@ final readonly class VlessOutbound extends Outbound
     {
         return array_filter([
             'type' => $this->getType()->value,
-            'tag' => $this->getTag(),
+            'tag' => $this->getTagString(),
             'server' => $this->server->getValue(),
             'server_port' => $this->serverPort->getPort(),
             'uuid' => $this->uuid->getValue(),
             'flow' => $this->flow?->getValue(),
             'tls' => $this->tls?->toArray(),
+            'detour' => isset($this->detourTag) ? $this->detourTag->getValue() : null,
         ], static fn($value) => $value !== null);
     }
 
@@ -71,5 +74,14 @@ final readonly class VlessOutbound extends Outbound
     public function getServerPort(): ?int
     {
         return $this->serverPort->getPort();
+    }
+
+
+    /**
+     * @inheritdoc
+     */
+    public function setDetour(Outbound $detour): void
+    {
+        $this->detourTag = $detour->getTag();
     }
 }

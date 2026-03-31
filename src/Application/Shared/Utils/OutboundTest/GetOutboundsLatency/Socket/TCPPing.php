@@ -9,6 +9,7 @@ use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Shared\Exception\CriticalException;
 use Exception;
 use Psl\Async\Exception\CompositeException;
+use Psl\Async\TimeoutCancellationToken;
 use Psl\DateTime\Duration;
 use function Psl\Async\concurrently;
 use function Psl\Async\run;
@@ -37,13 +38,13 @@ final readonly class TCPPing
         foreach ($outboundsMap->getOutbounds() as $outbound) {
             $sockets[] = function () use ($outbound) {
 
-                $result = new OutboundFetchResultDTO((int)(microtime(true) * 1000), $outbound->getTag());
+                $result = new OutboundFetchResultDTO((int)(microtime(true) * 1000), $outbound->getTagString());
                 run(function () use ($outbound) {
                     $server = $outbound->getServer();
                     $port = $outbound->getServerPort();
                     if ($port === null || $server === null) throw new Exception();
 
-                    $socket = connect($server, $port, false, Duration::seconds(10));
+                    $socket = connect($server, $port, cancellation: new TimeoutCancellationToken(Duration::seconds(10)));
                     $socket->close();
 
                 })->catch(fn() => $result->setFailed())->await();

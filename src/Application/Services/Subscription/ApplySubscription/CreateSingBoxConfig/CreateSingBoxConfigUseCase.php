@@ -8,6 +8,7 @@ use App\Application\Services\Subscription\ApplySubscription\CreateSingBoxConfig\
 use App\Application\Services\Subscription\ApplySubscription\CreateSingBoxConfig\FIle\ReadSingBoxConfigTemplate;
 use App\Application\Services\Subscription\ApplySubscription\CreateSingBoxConfig\FIle\ReadUrltestTemplate;
 use App\Domain\Outbound\Collection\OutboundMap;
+use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
@@ -28,12 +29,13 @@ final readonly class CreateSingBoxConfigUseCase
      * Create sing box config
      *
      * @param OutboundMap $outboundsMap Outbounds map
+     * @param bool $urltest Add urltest outbound for provided outbounds
      *
      * @return string Sing-box config as JSON
      *
      * @throws CriticalException
      */
-    public function handle(OutboundMap $outboundsMap): string
+    public function handle(OutboundMap $outboundsMap, bool $urltest = false, ?Outbound $urltestExclude = null): string
     {
         /**
          * Try to read sing-box config template
@@ -62,7 +64,7 @@ final readonly class CreateSingBoxConfigUseCase
         /**
          * Try to read urltest outbound template
          */
-        try {
+        if ($urltest) try {
             $urltestOutboundTemplate = $this->readUrltestTemplate->read();
         } catch (UnableToReadFileException|UnableToDecodeJsonException) {
             $urltestOutboundTemplate = [];
@@ -83,14 +85,15 @@ final readonly class CreateSingBoxConfigUseCase
             /**
              * Add outbounds to urltest outbound
              */
-            $urltestOutboundTemplate['outbounds'][] = $outbound->getTag();
+            if ($urltest && $outbound->getTagString() !== $urltestExclude?->getTagString())
+                $urltestOutboundTemplate['outbounds'][] = $outbound->getTagString();
         }
 
 
         /**
          * Add urltest outbound to sing-box config outbounds array
          */
-        $singBoxConfigTemplate['outbounds'][] = $urltestOutboundTemplate;
+        if ($urltest && isset($urltestOutboundTemplate)) $singBoxConfigTemplate['outbounds'][] = $urltestOutboundTemplate;
 
 
         /**

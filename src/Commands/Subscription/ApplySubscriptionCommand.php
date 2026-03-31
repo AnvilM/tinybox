@@ -29,8 +29,12 @@ final class ApplySubscriptionCommand extends AbstractCommand
         $this->applySubscriptionHandler->handle(
             new \App\Application\Services\Subscription\ApplySubscription\Command\ApplySubscriptionCommand(
                 $input->getArgument('name'),
-                !($input->getOption('systemd') === null),
+                $input->getOption('systemd'),
                 $input->getOption('denyCountry') != null ? trim($input->getOption('denyCountry')) != "" ? $input->getOption('denyCountry') : null : null,
+                $input->getOption('urltest'),
+                $input->getOption('detour') != null ? trim($input->getOption('detour')) != "" ? $input->getOption('detour') : null : null,
+                $input->getOption('exclude') != null ? trim($input->getOption('exclude')) != "" ? $input->getOption('exclude') : null : null,
+                $input->getOption('urltestExclude') != null ? trim($input->getOption('urltestExclude')) != "" ? $input->getOption('urltestExclude') : null : null,
             )
         );
 
@@ -41,7 +45,11 @@ final class ApplySubscriptionCommand extends AbstractCommand
     {
         $this->addArgument('name', InputArgument::REQUIRED, 'Subscription name')
             ->addOption('systemd', 's', InputOption::VALUE_NONE, 'If true config will be saved as systemd sing-box config and sing-box systemd service will be restarted')
-            ->addOption('denyCountry', null, InputOption::VALUE_OPTIONAL, 'Dont apply outbounds with ip in specified country (NOTE: If outbound is unavailable it will be not denied)')
+            ->addOption('denyCountry', null, InputOption::VALUE_OPTIONAL, 'Dont apply outbounds with ip in specified country Example: --denyCountry=US (NOTE: If outbound is unavailable it will be not denied).')
+            ->addOption('urltest', 'u', InputOption::VALUE_NONE, 'Add to config urltest outbound')
+            ->addOption('detour', null, InputOption::VALUE_OPTIONAL, "Scheme id, to use as detour for all outbounds")
+            ->addOption('urltestExclude', null, InputOption::VALUE_OPTIONAL, 'Scheme id, to exclude from urltest outbound')
+            ->addOption('exclude', 'e', InputOption::VALUE_OPTIONAL, "Scheme id, to exclude")
             ->addOption('debug', 'd', InputOption::VALUE_NONE, 'Show debug messages');
     }
 }
