@@ -8,8 +8,7 @@ final readonly class OutboundLatencyTestSingBoxConfigVO
 {
     public function __construct(
         public string            $url,
-        public LatencyTestMethod $method,
-        public int               $timeout,
+        public LatencyTestMethod $method
     )
     {
     }

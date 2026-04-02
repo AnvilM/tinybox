@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Shared\Utils\OutboundTest\GetIpCountyCode;
 
 use App\Application\Shared\Utils\OutboundTest\GetIpCountyCode\SingBox\GetOutboundIp;
+use App\Application\Shared\Utils\OutboundTest\GetIpCountyCode\SingBox\Process\DTO\OutboundIpDTO;
 use App\Application\Shared\Utils\OutboundTest\Shared\File\WriteOutboundTestSingBoxConfig;
 use App\Application\Shared\Utils\OutboundTest\Shared\UseCase\CreateOutboundTestSingBoxConfig\CreateOutboundTestSingBoxConfigUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
@@ -31,13 +32,14 @@ final readonly class GetIpCountryCodesMapUseCase
 
     /**
      * @param OutboundMap $outboundsMap Map of outbounds to fetch ip
+     * @param bool $outboundIpFallback Use default outbound ip if unable to get real ip
      *
      * @return MutableMap<Outbound, string> Mutable map of outboundTag => IsoCode e.g. [Outbound1 => US, Outbound2 => UK, ...]
      *
      * @throws CriticalException
      *
      */
-    public function getCountryCodesMap(OutboundMap $outboundsMap): MutableMap
+    public function getCountryCodesMap(OutboundMap $outboundsMap, bool $outboundIpFallback): MutableMap
     {
         /**
          * Check if provided outbounds map is not empty
@@ -69,6 +71,8 @@ final readonly class GetIpCountryCodesMapUseCase
 
         /**
          * Create empty outbounds ips DTO vector
+         *
+         * @var MutableVector<OutboundIpDTO> $outboundsIps
          */
         $outboundsIps = new MutableVector([]);
 
@@ -92,12 +96,14 @@ final readonly class GetIpCountryCodesMapUseCase
 
 
         foreach ($outboundsIps as $outboundIp) {
-
             /**
              * Try to get iso code for ip
              */
             try {
-                $isoMap->add($outboundIp->outboundTag, $this->getIpCountryCodePort->getCountryCode($outboundIp->ip));
+
+                $isoMap->add($outboundIp->outboundTag, $this->getIpCountryCodePort->getCountryCode(
+                        $outboundIp->getIp() ?? $outboundIpFallback ? $outboundIp->outboundIp : ""
+                ));
             } catch (UnexpectedValueException) {
                 continue;
                 // TODO: Add reporter event

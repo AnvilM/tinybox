@@ -52,7 +52,7 @@ final readonly class TCPPing
                     if ($port === null || $server === null) throw new Exception();
 
                     $socket = connect($server, $port, cancellation: new TimeoutCancellationToken(Duration::seconds(
-                        $this->configInstancePort->get()->singBoxConfig->outboundTest->latency->timeout
+                        $this->configInstancePort->get()->singBoxConfig->outboundTest->timeout
                     )));
                     $socket->close();
 

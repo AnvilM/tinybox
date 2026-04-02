@@ -99,9 +99,9 @@ If the configuration file is missing or some parameters are not specified, defau
       },
       "latency": {
         "url": "https://google.com",
-        "method": "proxy_get",
-        "timeout": 10
-      }
+        "method": "proxy_get"
+      },
+      "timeout": 10
     }
   }
 }
@@ -161,6 +161,7 @@ This block is responsible for automatic testing of proxy server performance and 
 
 - sing_box_config — path to the temporary configuration file created specifically for running tests.
 - max_parallel_requests — maximum number of parallel requests/tests.
+- timeout - Timeout for fetch ip and latency test
 
 **Test templates:**
 
@@ -182,7 +183,6 @@ The parameters below are **paths to template files** used during test configurat
 |-----------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | url       | string | Target URL for the test (used with the proxy_get method).                                                                                                                                   |
 | method    | string | Testing method. Supported values: • proxy_get — performs a GET request through the outbound to the specified URL. • tcp_ping — direct TCP ping to the IP address specified in the outbound. |
-| timeout   | int    | Timeout for latency test                                                                                                                                                                    |
 
 ### Recommendations
 

@@ -8,7 +8,7 @@ use App\Application\Shared\Utils\OutboundTest\GetIpCountyCode\SingBox\Process\DT
 use App\Application\Shared\Utils\OutboundTest\GetIpCountyCode\SingBox\Process\SingBoxFetchIp;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Shared\Exception\CriticalException;
-use Psl\Collection\MutableVector;
+use Psl\Collection\Vector;
 
 final readonly class GetOutboundIp
 {
@@ -22,11 +22,11 @@ final readonly class GetOutboundIp
     /**
      * @param OutboundMap $outboundsMap Map of outbounds to fetch ip
      *
-     * @return MutableVector<OutboundIpDTO> Mutable map of OutboundIpDTO
+     * @return Vector<OutboundIpDTO> Vector of OutboundIpDTO
      *
      * @throws CriticalException
      */
-    public function getOutboundIp(OutboundMap $outboundsMap): MutableVector
+    public function getOutboundIp(OutboundMap $outboundsMap): Vector
     {
         return $this->singBoxFetchIp->fetchIp($outboundsMap);
     }

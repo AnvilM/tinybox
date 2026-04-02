@@ -35,6 +35,8 @@ final class ApplySubscriptionCommand extends AbstractCommand
                 $input->getOption('detour') != null ? trim($input->getOption('detour')) != "" ? $input->getOption('detour') : null : null,
                 $input->getOption('exclude') != null ? trim($input->getOption('exclude')) != "" ? $input->getOption('exclude') : null : null,
                 $input->getOption('urltestExclude') != null ? trim($input->getOption('urltestExclude')) != "" ? $input->getOption('urltestExclude') : null : null,
+                $input->getOption('excludeCountryExcept') != null ? trim($input->getOption('excludeCountryExcept')) != "" ? $input->getOption('excludeCountryExcept') : null : null,
+                $input->getOption('excludeCountryForce'),
             )
         );
 
@@ -50,6 +52,8 @@ final class ApplySubscriptionCommand extends AbstractCommand
             ->addOption('detour', null, InputOption::VALUE_OPTIONAL, "Scheme id, to use as detour for all outbounds")
             ->addOption('urltestExclude', null, InputOption::VALUE_OPTIONAL, 'Scheme id, to exclude from urltest outbound')
             ->addOption('exclude', 'e', InputOption::VALUE_OPTIONAL, "Scheme id, to exclude")
+            ->addOption('excludeCountryExcept', null, InputOption::VALUE_OPTIONAL, "Scheme id, to except in country exclude")
+            ->addOption('excludeCountryForce', null, InputOption::VALUE_NONE)
             ->addOption('debug', 'd', InputOption::VALUE_NONE, 'Show debug messages');
     }
 }

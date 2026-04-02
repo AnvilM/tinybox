@@ -14,6 +14,8 @@ final readonly class ApplySubscriptionCommand
         public ?string $defaultDetour,
         public ?string $exclude,
         public ?string $urltestExclude,
+        public ?string $excludeCountryExcept,
+        public bool    $excludeCountryForce
     )
     {
     }

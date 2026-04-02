@@ -152,12 +152,27 @@ final readonly class ApplySubscriptionHandler
 
 
         /**
+         * Try to create outbound to exclude country except
+         */
+        if ($command->denyCountry) try {
+            $outboundToExcludeCountryExcept = OutboundFactory::fromScheme(
+                $subscription->getSchemes()->getById($command->excludeCountryExcept)
+            );
+        } catch (SchemeNotFoundException $e) {
+            throw new CriticalException("Scheme with id $command->excludeCountryExcept not found", $e->getDebugMessage());
+        } catch (UnsupportedOutboundTypeException|InvalidArgumentException $e) {
+            throw new CriticalException("Cant create exclude country except outbound from provided scheme id", $e->getDebugMessage());
+        }
+
+
+        /**
          *  Filter outbounds if needed
          */
         if ($command->denyCountry != null) {
-            $outboundsCountyCodes = $this->getIpCountryCodesMapUseCase->getCountryCodesMap($outboundsMap);
+            $outboundsCountyCodes = $this->getIpCountryCodesMapUseCase->getCountryCodesMap($outboundsMap, $command->excludeCountryForce);
 
             foreach ($outboundsCountyCodes as $outboundTag => $countyCode) {
+                if (isset($outboundToExcludeCountryExcept) && $outboundToExcludeCountryExcept->getTagString() == $outboundTag) continue;
                 if ($countyCode == $command->denyCountry) $outboundsMap->removeWithTag($outboundTag);
             }
 
@@ -172,7 +187,6 @@ final readonly class ApplySubscriptionHandler
             $outboundsMap, $command->urltest, $outboundToUrltestExclude ?? null
         );
 
-
         /**
          * Try to save config file
          */
@@ -184,7 +198,7 @@ final readonly class ApplySubscriptionHandler
         } catch (UnableToSaveFileException) {
             throw new CriticalException("Unable to save the configuration file");
         }
-
+        
         /**
          * Try to restart sing box service
          */

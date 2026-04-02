@@ -54,8 +54,8 @@ final readonly class DefaultConfigFactory
                     new OutboundLatencyTestSingBoxConfigVO(
                         "https://google.com",
                         LatencyTestMethod::PROXY_GET,
-                        10
-                    )
+                    ),
+                    10
                 )
             ),
         );

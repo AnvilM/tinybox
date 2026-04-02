@@ -57,14 +57,14 @@ final readonly class SingBoxFetch
                         '-o', $outbound->getTagString()
                     ],
                     cancellation: new TimeoutCancellationToken(Duration::seconds(
-                        $this->configInstancePort->get()->singBoxConfig->outboundTest->latency->timeout
+                        $this->configInstancePort->get()->singBoxConfig->outboundTest->timeout
                     ))
                 ))->catch(function () use (&$result) {
                     $result->setFailed();
                 })->await();
 
                 $result->setEndTime((int)(microtime(true) * 1000));
-                echo ($result->getDelay() ?? 'N/A') . "\n";
+
                 return $result;
             };
         }
