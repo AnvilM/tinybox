@@ -9,6 +9,8 @@ use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use Psl\Async\Exception\CompositeException;
+use Psl\Async\TimeoutCancellationToken;
+use Psl\DateTime\Duration;
 use function Psl\Async\concurrently;
 use function Psl\Async\run;
 use function Psl\Shell\execute;
@@ -53,13 +55,16 @@ final readonly class SingBoxFetch
                         $this->configInstancePort->get()->singBoxConfig->outboundTest->latency->url,
                         '-c', $this->configInstancePort->get()->singBoxConfig->outboundTest->singBoxConfig,
                         '-o', $outbound->getTagString()
-                    ]
+                    ],
+                    cancellation: new TimeoutCancellationToken(Duration::seconds(
+                        $this->configInstancePort->get()->singBoxConfig->outboundTest->latency->timeout
+                    ))
                 ))->catch(function () use (&$result) {
                     $result->setFailed();
                 })->await();
 
                 $result->setEndTime((int)(microtime(true) * 1000));
-
+                echo ($result->getDelay() ?? 'N/A') . "\n";
                 return $result;
             };
         }

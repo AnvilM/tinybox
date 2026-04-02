@@ -7,6 +7,7 @@ namespace App\Application\Shared\Utils\OutboundTest\GetOutboundsLatency\Socket;
 use App\Application\Shared\Utils\OutboundTest\GetOutboundsLatency\Process\DTO\OutboundFetchResultDTO;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Shared\Exception\CriticalException;
+use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use Exception;
 use Psl\Async\Exception\CompositeException;
 use Psl\Async\TimeoutCancellationToken;
@@ -17,6 +18,12 @@ use function Psl\TCP\connect;
 
 final readonly class TCPPing
 {
+    public function __construct(
+        private ConfigInstancePort $configInstancePort,
+    )
+    {
+    }
+
     /**
      * @param OutboundMap $outboundsMap Map of outbounds to fetch ip
      *
@@ -44,7 +51,9 @@ final readonly class TCPPing
                     $port = $outbound->getServerPort();
                     if ($port === null || $server === null) throw new Exception();
 
-                    $socket = connect($server, $port, cancellation: new TimeoutCancellationToken(Duration::seconds(10)));
+                    $socket = connect($server, $port, cancellation: new TimeoutCancellationToken(Duration::seconds(
+                        $this->configInstancePort->get()->singBoxConfig->outboundTest->latency->timeout
+                    )));
                     $socket->close();
 
                 })->catch(fn() => $result->setFailed())->await();
