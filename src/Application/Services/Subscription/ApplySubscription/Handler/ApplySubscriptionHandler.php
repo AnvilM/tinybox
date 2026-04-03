@@ -7,24 +7,28 @@ namespace App\Application\Services\Subscription\ApplySubscription\Handler;
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Application\Services\Subscription\ApplySubscription\Command\ApplySubscriptionCommand;
-use App\Application\Services\Subscription\ApplySubscription\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
 use App\Application\Services\Subscription\ApplySubscription\Exception\UnableToRestartSingBoxServiceException;
-use App\Application\Services\Subscription\ApplySubscription\RestartSingBoxService\RestartSingBoxServiceUseCase;
-use App\Application\Shared\Utils\OutboundTest\GetIpCountyCode\GetIpCountryCodesMapUseCase;
+use App\Application\Shared\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
+use App\Application\Shared\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
 use App\Domain\Interface\Subscription\DetourProvider;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
 use App\Domain\Outbound\Factory\OutboundFactory;
+use App\Domain\Outbound\Specification\OutboundCountryCodeSpecification;
+use App\Domain\Outbound\Specification\OutboundTagSpecification;
 use App\Domain\Scheme\Exception\SchemeNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\SaveFilePort;
+use App\Domain\Shared\Ports\OutboundTest\OutboundCountyCode\OutboundCountyCodePort;
 use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
 use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
 use App\Domain\Subscription\VO\SubscriptionNameVO;
 use InvalidArgumentException;
+use Psl\Async\Exception\CompositeException;
+use Psl\Collection\Vector;
 
 final readonly class ApplySubscriptionHandler
 {
@@ -34,7 +38,7 @@ final readonly class ApplySubscriptionHandler
         private SaveFilePort                  $saveFilePort,
         private ConfigInstancePort            $configInstancePort,
         private RestartSingBoxServiceUseCase  $restartSingBoxServiceUseCase,
-        private GetIpCountryCodesMapUseCase   $getIpCountryCodesMapUseCase,
+        private OutboundCountyCodePort        $outboundCountyCodePort,
 
     )
     {
@@ -86,20 +90,6 @@ final readonly class ApplySubscriptionHandler
 
 
         /**
-         * Try to create outbound to exclude
-         */
-        if ($command->exclude) try {
-            $outboundToExclude = OutboundFactory::fromScheme(
-                $subscription->getSchemes()->getById($command->exclude)
-            );
-        } catch (SchemeNotFoundException $e) {
-            throw new CriticalException("Scheme with id $command->exclude not found", $e->getDebugMessage());
-        } catch (UnsupportedOutboundTypeException|InvalidArgumentException $e) {
-            throw new CriticalException("Cant create exclude outbound from provided scheme id", $e->getDebugMessage());
-        }
-
-
-        /**
          * Try to create outbound from provided detour scheme id
          */
         if ($command->defaultDetour) try {
@@ -119,8 +109,6 @@ final readonly class ApplySubscriptionHandler
 
 
         foreach ($subscription->getSchemes()->getMap() as $scheme) {
-            if (isset($outboundToExclude) && $scheme->getHash() === $outboundToExclude) continue;
-
             /**
              * Try to create outbound from scheme and add it to outbounds map
              */
@@ -155,36 +143,61 @@ final readonly class ApplySubscriptionHandler
          * Try to create outbound to exclude country except
          */
         if ($command->denyCountry) try {
-            $outboundToExcludeCountryExcept = OutboundFactory::fromScheme(
-                $subscription->getSchemes()->getById($command->excludeCountryExcept)
+            $outboundsCountryCodes = $this->outboundCountyCodePort->getCountryCodes($outboundsMap, $command->excludeCountryForce);
+
+
+            if ($command->excludeCountryExcept) {
+                $outboundToExcludeCountryExcept = new Vector([OutboundFactory::fromScheme(
+                    $subscription->getSchemes()->getById($command->excludeCountryExcept)
+                )]);
+            }
+
+            $excludeCountrySpecification = new OutboundCountryCodeSpecification(
+                $outboundsCountryCodes,
+                new Vector([$command->denyCountry]),
+                $outboundToExcludeCountryExcept ?? null,
             );
         } catch (SchemeNotFoundException $e) {
             throw new CriticalException("Scheme with id $command->excludeCountryExcept not found", $e->getDebugMessage());
         } catch (UnsupportedOutboundTypeException|InvalidArgumentException $e) {
             throw new CriticalException("Cant create exclude country except outbound from provided scheme id", $e->getDebugMessage());
+        } catch (CompositeException $e) {
+            throw new CriticalException("Cant get outbounds ip's", $e->getMessage());
         }
 
 
         /**
-         *  Filter outbounds if needed
+         * Try to create outbound to exclude
          */
-        if ($command->denyCountry != null) {
-            $outboundsCountyCodes = $this->getIpCountryCodesMapUseCase->getCountryCodesMap($outboundsMap, $command->excludeCountryForce);
+        if ($command->exclude) try {
+            $outboundToExclude = OutboundFactory::fromScheme(
+                $subscription->getSchemes()->getById($command->exclude)
+            );
 
-            foreach ($outboundsCountyCodes as $outboundTag => $countyCode) {
-                if (isset($outboundToExcludeCountryExcept) && $outboundToExcludeCountryExcept->getTagString() == $outboundTag) continue;
-                if ($countyCode == $command->denyCountry) $outboundsMap->removeWithTag($outboundTag);
-            }
-
-            if ($outboundsMap->isEmpty()) throw new CriticalException("No valid outbounds found");
+            $excludeOutboundSpecification = new OutboundTagSpecification(
+                new Vector([$outboundToExclude->getTagString()])
+            );
+        } catch (SchemeNotFoundException $e) {
+            throw new CriticalException("Scheme with id $command->exclude not found", $e->getDebugMessage());
+        } catch (UnsupportedOutboundTypeException|InvalidArgumentException $e) {
+            throw new CriticalException("Cant create exclude outbound from provided scheme id", $e->getDebugMessage());
         }
+
+
+        /**
+         * Filter outbounds
+         */
+        $outboundsMap = $outboundsMap->filter(new Vector([
+            $excludeCountrySpecification ?? null,
+            $excludeOutboundSpecification ?? null,
+        ])->filter(fn(mixed $spec) => $spec !== null));
 
 
         /**
          * Create sing-box config from outbounds map
          */
         $singBoxConfig = $this->createSingBoxConfigUseCase->handle(
-            $outboundsMap, $command->urltest, $outboundToUrltestExclude ?? null
+            $outboundsMap
         );
 
         /**
@@ -198,7 +211,7 @@ final readonly class ApplySubscriptionHandler
         } catch (UnableToSaveFileException) {
             throw new CriticalException("Unable to save the configuration file");
         }
-        
+
         /**
          * Try to restart sing box service
          */

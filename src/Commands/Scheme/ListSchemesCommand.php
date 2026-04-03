@@ -39,7 +39,7 @@ final class ListSchemesCommand extends AbstractCommand
 
         foreach ($schemeMap as $scheme) {
             if (length($scheme->getHash()) > $longestIdLength) $longestIdLength = length($scheme->getHash());
-            if (length($scheme->getTag()) > $longestTagLength) $longestTagLength = length($scheme->getTag());
+            if (length($scheme->getTagString()) > $longestTagLength) $longestTagLength = length($scheme->getTagString());
         }
 
         new CLImate()->inline('     ');
@@ -60,7 +60,7 @@ final class ListSchemesCommand extends AbstractCommand
             for ($i = 0; $i < $longestIdLength - $idLength + 2; ++$i) {
                 new CLImate()->inline(' ');
             }
-            new CLImate()->green()->inline($scheme->getTag());
+            new CLImate()->green()->inline($scheme->getTagString());
 
 
             if (ApplicationConfig::isDebug()) {
