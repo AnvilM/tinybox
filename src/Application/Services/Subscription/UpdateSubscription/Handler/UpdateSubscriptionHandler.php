@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Application\Services\Subscription\UpdateSubscription\Handler;
 
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Exception\Repository\Shared\UnableToSaveListException;
 use App\Application\Exception\Services\Shared\FetchSchemes\NoValidSchemesFoundException;
 use App\Application\Repository\Subscription\GetSubscriptionListRepository;
+use App\Application\Repository\Subscription\SaveSubscriptionRepository;
 use App\Application\Repository\Subscription\UpdateSubscriptionSchemesRepository;
 use App\Application\Services\Subscription\Shared\FetchSchemes\FetchSchemesUseCase;
 use App\Application\Services\Subscription\UpdateSubscription\Command\UpdateSubscriptionCommand;
@@ -22,6 +24,7 @@ final readonly class UpdateSubscriptionHandler
         private GetSubscriptionListRepository       $getSubscriptionListRepository,
         private FetchSchemesUseCase                 $fetchSchemesUseCase,
         private UpdateSubscriptionSchemesRepository $updateSubscriptionSchemesRepository,
+        private SaveSubscriptionRepository          $saveSubscriptionRepository,
     )
     {
     }
@@ -72,7 +75,7 @@ final readonly class UpdateSubscriptionHandler
 
 
         /**
-         * Try to update subscription schemes and save subscriptions list
+         * Try to update subscription
          */
         try {
             $this->updateSubscriptionSchemesRepository->update($subscriptionName, $schemes);
@@ -81,6 +84,16 @@ final readonly class UpdateSubscriptionHandler
                 ? "Unable to get subscriptions list"
                 : "Subscription with name {$subscriptionName->getName()} does not exist", $e->getDebugMessage()
             );
+        }
+
+
+        /**
+         * Try to save subscriptions
+         */
+        try {
+            $this->saveSubscriptionRepository->save();
+        } catch (UnableToSaveListException $e) {
+            throw new CriticalException("Unable to update subscriptions list", $e->getDebugMessage());
         }
     }
 

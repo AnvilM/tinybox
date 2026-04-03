@@ -5,26 +5,29 @@ declare(strict_types=1);
 namespace App\Application\Services\Subscription\TestSubscription\Handler;
 
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Outbound\DTO\OutboundLatencyDTO;
 use App\Application\Repository\Subscription\GetSubscriptionWithNameRepository;
 use App\Application\Services\Subscription\TestSubscription\Command\TestSubscriptionCommand;
-use App\Application\Shared\Utils\OutboundTest\GetOutboundsLatency\GetOutboundsLatencyUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
 use App\Domain\Outbound\Factory\OutboundFactory;
-use App\Domain\Scheme\Exception\SchemeNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
+use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\LatencyTestMethod;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
+use App\Infrastructure\OutboundTest\OutboundLatency\Exception\UnableToGetLatencyException;
+use App\Infrastructure\OutboundTest\OutboundLatency\OutboundLatency;
+use App\Infrastructure\OutboundTest\Shared\CreateOutboundTestSingBoxConfig\Exception\CreateOutboundTestSingBoxConfigException;
 use InvalidArgumentException;
 use Psl\Collection\MutableMap;
 
 final readonly class TestSubscriptionHandler
 {
     public function __construct(
-        private GetOutboundsLatencyUseCase        $getOutboundsLatencyUseCase,
+        private OutboundLatency                   $outboundLatency,
         private ConfigInstancePort                $configInstancePort,
         private GetSubscriptionWithNameRepository $getSubscriptionWithNameRepository,
     )
@@ -32,7 +35,10 @@ final readonly class TestSubscriptionHandler
     }
 
     /**
+     * @return MutableMap<OutboundLatencyDTO>
+     *
      * @throws CriticalException
+     *
      */
     public function handle(TestSubscriptionCommand $command): MutableMap
     {
@@ -76,35 +82,24 @@ final readonly class TestSubscriptionHandler
             }
         }
 
-        /**
-         * Create empty mutable map of schemeId => MutableMap<schemeTag: string, latency: int|null>
-         */
         $map = new MutableMap([]);
 
-        $res = $this->getOutboundsLatencyUseCase->handle(
-            $outboundsMap,
-            LatencyTestMethod::tryFrom($command->testMethod ?? '')
-            ?? $this->configInstancePort->get()->singBoxConfig->outboundTest->latency->method
-        );
+        try {
+            $result = $this->outboundLatency->getOutboundsLatency(
+                $outboundsMap,
+                LatencyTestMethod::tryFrom($command->testMethod ?? '')
+                ?? $this->configInstancePort->get()->singBoxConfig->outboundTest->latency->method
+            );
+        } catch (UnableToSaveFileException|CreateOutboundTestSingBoxConfigException|UnableToGetLatencyException $e) {
+            throw new CriticalException("Unable to test subscription outbounds");
+        }
 
-        $resArray = $res->toArray();
-
-        uasort($resArray, function ($a, $b) {
-            if ($a === null) return 1;
-            if ($b === null) return -1;
-            return $a <=> $b;
-        });
-
-        foreach ($resArray as $tag => $latency) {
-            try {
-                $map->add(
-                    $subscription->getSchemes()->getByTag($tag)->getHash(),
-                    new MutableMap([])->add($tag, $latency)
-                );
-            } catch (SchemeNotFoundException) {
-                continue;
-                // TODO: Add reporter event
-            }
+        foreach ($result as $res) {
+            $m = new MutableMap([]);
+            $m->add($res->outbound->getTagString(), $res->latency);
+            $map->add($subscription->getSchemes()->getByTag(
+                $res->outbound->getTagString()
+            )->getHash(), $m);
         }
 
         return $map;

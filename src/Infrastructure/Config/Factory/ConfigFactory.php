@@ -59,8 +59,9 @@ final readonly class ConfigFactory
                     new OutboundLatencyTestSingBoxConfigVO(
                         $rawConfig['sing_box']['outbound_test']['latency']['url'] ?? $defaultConfig->singBoxConfig->outboundTest->latency->url,
                         LatencyTestMethod::tryFrom($rawConfig['sing_box']['outbound_test']['latency']['method'] ?? '') ?? $defaultConfig->singBoxConfig->outboundTest->latency->method,
-                        $rawConfig['sing_box']['outbound_test']['latency']['tcp_ping_timeout'] ?? $defaultConfig->singBoxConfig->outboundTest->latency->tcpPingTimeout
-                    )
+                    ),
+                    $rawConfig['sing_box']['outbound_test']['timeout'] ?? $defaultConfig->singBoxConfig->outboundTest->timeout
+
                 ),
             ),
         );

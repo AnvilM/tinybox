@@ -30,9 +30,14 @@ abstract readonly class Scheme
 
     public abstract function getType(): SchemeTypeVO;
 
-    public function getTag(): string
+    public function getTagString(): string
     {
         return $this->tag->getValue();
+    }
+
+    public function getTag(): NonEmptyStringVO
+    {
+        return clone $this->tag;
     }
 
     public function getHash(): string

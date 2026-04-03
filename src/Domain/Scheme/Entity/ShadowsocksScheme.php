@@ -89,7 +89,7 @@ final readonly class ShadowsocksScheme extends Scheme
 
         if ($this->plugin !== null) $rawScheme .= "?plugin=" . $this->plugin->getRawPlugin();
 
-        $rawScheme .= "#" . $this->getTag();
+        $rawScheme .= "#" . $this->getTagString();
 
         return $rawScheme;
     }

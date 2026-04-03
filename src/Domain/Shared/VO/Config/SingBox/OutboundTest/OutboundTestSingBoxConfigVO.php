@@ -15,7 +15,8 @@ final readonly class OutboundTestSingBoxConfigVO
         public string                               $singBoxConfig,
         public FetchIpOutboundTestSingBoxConfigVO   $fetchIp,
         public int                                  $maxParallelRequests,
-        public OutboundLatencyTestSingBoxConfigVO   $latency
+        public OutboundLatencyTestSingBoxConfigVO   $latency,
+        public int                                  $timeout,
     )
     {
     }

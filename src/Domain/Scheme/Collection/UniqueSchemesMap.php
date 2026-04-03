@@ -48,7 +48,7 @@ final class UniqueSchemesMap extends SchemeMap
         foreach ($this->map as $schemeItem) {
             return (
                 $schemeItem->equals($scheme)
-                || $schemeItem->getTag() === $scheme->getTag()
+                || $schemeItem->getTagString() === $scheme->getTagString()
             );
         }
 
@@ -67,7 +67,7 @@ final class UniqueSchemesMap extends SchemeMap
     public function getByTag(string $tag): Scheme
     {
         foreach ($this->map as $scheme) {
-            if ($scheme->getTag() === $tag) {
+            if ($scheme->getTagString() === $tag) {
                 return $scheme;
             }
         }

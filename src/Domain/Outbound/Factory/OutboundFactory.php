@@ -55,7 +55,7 @@ final readonly class OutboundFactory
     private static function vlessOutbound(VlessScheme $scheme): VlessOutbound
     {
         return new VlessOutbound(
-            new NonEmptyStringVO($scheme->getTag()),
+            new NonEmptyStringVO($scheme->getTagString()),
             new NonEmptyStringVO($scheme->getServer()),
             new PortVO($scheme->getServerPort()),
             new NonEmptyStringVO($scheme->getUuid()),
@@ -88,7 +88,7 @@ final readonly class OutboundFactory
     private static function shadowsocksOutbound(ShadowsocksScheme $scheme): ShadowsocksOutbound
     {
         return new ShadowsocksOutbound(
-            new NonEmptyStringVO($scheme->getTag()),
+            new NonEmptyStringVO($scheme->getTagString()),
             new NonEmptyStringVO($scheme->getServer()),
             new PortVO($scheme->getServerPort()),
             new NonEmptyStringVO($scheme->getMethod()->value),

@@ -137,7 +137,7 @@ final readonly class VlessScheme extends Scheme
         if ($this->getFp()) $rawScheme .= "&fp=" . $this->fp->getValue();
         if ($this->getTransportType()) $rawScheme .= "&type=" . $this->getTransportType()->value;
 
-        $rawScheme .= "#" . $this->getTag();
+        $rawScheme .= "#" . $this->getTagString();
 
         return $rawScheme;
     }
