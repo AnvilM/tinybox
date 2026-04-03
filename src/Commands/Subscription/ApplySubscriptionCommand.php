@@ -12,6 +12,7 @@ use App\Application\Shared\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
 use App\Application\Shared\UseCase\CreateOutboundsFromSchemesMap\CreateOutboundsFromSchemesMapUseCase;
 use App\Application\Shared\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
 use App\Application\Shared\UseCase\FilterOutbounds\FilterOutboundsUseCase;
+use App\Application\Shared\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
 use App\Application\Shared\UseCase\SaveSingBoxConfig\SaveSingBoxConfigUseCase;
 use App\Application\Shared\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
@@ -37,6 +38,7 @@ final class ApplySubscriptionCommand extends AbstractCommand
         private readonly SetOutboundsDetourUseCase            $setOutboundsDetourUseCase,
         private readonly CreateSingBoxConfigUseCase           $createSingBoxConfigUseCase,
         private readonly SaveSingBoxConfigUseCase             $saveSingBoxConfigUseCase,
+        private readonly RestartSingBoxServiceUseCase         $restartSingBoxServiceUseCase,
     )
     {
         parent::__construct($reporterPort);
@@ -96,19 +98,7 @@ final class ApplySubscriptionCommand extends AbstractCommand
 
         $this->saveSingBoxConfigUseCase->handle(new SaveSingBoxConfigDTO($singBoxConfigJSON));
 
-//        $this->applySubscriptionHandler->handle(
-//            new \App\Application\Services\Subscription\ApplySubscription\Command\ApplySubscriptionCommand(
-//                $input->getArgument('name'),
-//                $input->getOption('systemd'),
-//                $input->getOption('denyCountry') != null ? trim($input->getOption('denyCountry')) != "" ? $input->getOption('denyCountry') : null : null,
-//                $input->getOption('urltest'),
-//                $input->getOption('detour') != null ? trim($input->getOption('detour')) != "" ? $input->getOption('detour') : null : null,
-//                $input->getOption('exclude') != null ? trim($input->getOption('exclude')) != "" ? $input->getOption('exclude') : null : null,
-//                $input->getOption('urltestExclude') != null ? trim($input->getOption('urltestExclude')) != "" ? $input->getOption('urltestExclude') : null : null,
-//                $input->getOption('excludeCountryCodeExcept') != null ? trim($input->getOption('excludeCountryExcept')) != "" ? $input->getOption('excludeCountryExcept') : null : null,
-//                $input->getOption('excludeCountryForce'),
-//            )
-//        );
+        $this->restartSingBoxServiceUseCase->handle();
 
         return self::SUCCESS;
     }
