@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Services\Subscription\TestSubscription\Handler;
 
-use App\Application\DTO\Outbound\OutboundLatencyDTO;
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Outbound\DTO\OutboundLatencyDTO;
 use App\Application\Repository\Subscription\GetSubscriptionWithNameRepository;
 use App\Application\Services\Subscription\TestSubscription\Command\TestSubscriptionCommand;
 use App\Domain\Outbound\Collection\OutboundMap;

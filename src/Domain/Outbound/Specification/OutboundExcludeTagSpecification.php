@@ -6,24 +6,23 @@ namespace App\Domain\Outbound\Specification;
 
 use App\Domain\Interface\Outbound\OutboundSpecificationInterface;
 use App\Domain\Outbound\Entity\Outbound;
-use App\Domain\Outbound\VO\OutboundTypeVO;
 use Psl\Collection\VectorInterface;
 
-final readonly class OutboundTypeSpecification implements OutboundSpecificationInterface
+final readonly class OutboundExcludeTagSpecification implements OutboundSpecificationInterface
 {
     /**
-     * @param VectorInterface<OutboundTypeVO> $outboundTypes
+     * @param VectorInterface<string> $tags
      */
     public function __construct(
-        private VectorInterface $outboundTypes,
+        private VectorInterface $tags,
     )
     {
     }
 
     public function isSatisfiedBy(Outbound $outbound): bool
     {
-        foreach ($this->outboundTypes as $outboundType) {
-            if ($outboundType === $outbound->getType()) return false;
+        foreach ($this->tags as $tag) {
+            if ($outbound->getTagString() === $tag) return false;
         }
 
         return true;

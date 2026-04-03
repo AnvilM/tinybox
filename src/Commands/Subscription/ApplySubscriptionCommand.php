@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Commands\Subscription;
 
 use App\Application\Shared\DTO\UseCase\CreateOutboundsFromSchemesMap\CreateOutboundsFromSchemesMapDTO;
-use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterCountryCodesDTO;
+use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterExcludeCountryCodesDTO;
 use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Application\Shared\DTO\UseCase\SaveSingBoxConfig\SaveSingBoxConfigDTO;
 use App\Application\Shared\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
@@ -60,13 +60,14 @@ final class ApplySubscriptionCommand extends AbstractCommand
         }
 
         if ($input->getOption('excludeCountryCode')) {
-            $filterCountryCodesDTO = new FilterCountryCodesDTO(
+            $filterCountryCodesDTO = new FilterExcludeCountryCodesDTO(
                 new Vector($input->getOption('excludeCountryCode')),
-                $input->getOption('excludeCountryCodeExcept') ? new Vector($input->getOption('excludeCountryCodeExcept')) : null
+                $input->getOption('excludeCountryCodeExcept') ? new Vector($input->getOption('excludeCountryCodeExcept')) : null,
+                $input->getOption('excludeCountryForce')
             );
 
             if (!isset($filterOutboundsDTO)) $filterOutboundsDTO = new FilterOutboundsDTO($subscriptionOutbounds, null, $filterCountryCodesDTO);
-            else $filterOutboundsDTO->setFilterCountryCodesDTO($filterCountryCodesDTO);
+            else $filterOutboundsDTO->setFilterExcludeCountryCodesDTO($filterCountryCodesDTO);
         }
 
         if (isset($filterOutboundsDTO)) $subscriptionOutbounds = $this->filterOutboundsUseCase->handle($filterOutboundsDTO);

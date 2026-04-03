@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\DTO\Outbound;
+namespace App\Application\Outbound\DTO;
 
 use App\Domain\Outbound\Entity\Outbound;
 

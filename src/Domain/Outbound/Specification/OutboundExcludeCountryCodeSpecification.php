@@ -9,7 +9,7 @@ use App\Domain\Outbound\Entity\Outbound;
 use Psl\Collection\MutableMap;
 use Psl\Collection\VectorInterface;
 
-final readonly class OutboundCountryCodeSpecification implements OutboundSpecificationInterface
+final readonly class OutboundExcludeCountryCodeSpecification implements OutboundSpecificationInterface
 {
     /**
      * @param MutableMap<string, string> $outboundsCountryCode
@@ -30,16 +30,20 @@ final readonly class OutboundCountryCodeSpecification implements OutboundSpecifi
         foreach ($this->outboundsCountryCode as $outboundTag => $outboundCountryCode) {
             if ($outboundTag === $outbound->getTagString()) {
                 foreach ($this->countryCodes as $countryCode) {
-                    if ($countryCode === $outboundCountryCode) return true;
-                }
+                    if ($countryCode === $outboundCountryCode) {
+                        if (!$this->exceptOutbounds) return false;
 
-                if (!$this->exceptOutbounds) return false;
+                        foreach ($this->exceptOutbounds as $excludeOutbound) {
+                            if ($excludeOutbound === $outbound->getTagString()) {
+                                return true;
+                            }
+                        }
 
-                foreach ($this->exceptOutbounds as $excludeOutbound) {
-                    if ($excludeOutbound === $outbound->getTagString()) {
-                        return true;
+                        return false;
                     }
                 }
+
+                return true;
             }
         }
 

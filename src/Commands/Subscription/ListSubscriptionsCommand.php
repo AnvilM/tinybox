@@ -12,7 +12,6 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use function Psl\Str\length;
 
 #[AsCommand(name: 'subscription:list', description: 'List subscriptions', aliases: ['sub:list'])]
 final class ListSubscriptionsCommand extends AbstractCommand
@@ -30,38 +29,16 @@ final class ListSubscriptionsCommand extends AbstractCommand
     {
         $subscriptionsMap = $this->listSubscriptionsHandler->handle();
 
-        $longestNameLength = 0;
-        $longestUrlLength = 0;
+        $table = [];
 
-        foreach ($subscriptionsMap as $subscriptionName => $subscriptionUrl) {
-            if (length($subscriptionName) > $longestNameLength) $longestNameLength = length($subscriptionName);
-            if (length($subscriptionUrl) > $longestUrlLength) $longestUrlLength = length($subscriptionUrl);
+        foreach ($subscriptionsMap as $name => $url) {
+            $table[] = [
+                'name' => $name,
+                'url' => $url,
+            ];
         }
 
-        new CLImate()->inline('     ');
-        new CLImate()->inline('Name');
-        for ($i = 0; $i < $longestNameLength; ++$i) {
-            new CLImate()->inline(' ');
-        }
-        new CLImate()->inline('Url');
-        new CLImate()->br();
-
-
-        foreach ($subscriptionsMap as $subscriptionName => $subscriptionUrl) {
-
-            new CLImate()->green()->inline('[+]');
-            new CLImate()->inline('  ');
-            $nameLength = length($subscriptionName);
-            new CLImate()->green()->inline($subscriptionName);
-            for ($i = 0; $i < $longestNameLength - $nameLength + 4; ++$i) {
-                new CLImate()->inline(' ');
-            }
-            new CLImate()->green()->inline($subscriptionUrl);
-
-
-            new CLImate()->br();
-
-        }
+        new CLImate()->table($table);
 
         return self::SUCCESS;
     }

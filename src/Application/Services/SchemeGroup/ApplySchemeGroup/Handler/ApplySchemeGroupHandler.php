@@ -7,7 +7,7 @@ namespace App\Application\Services\SchemeGroup\ApplySchemeGroup\Handler;
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Repository\SchemeGroup\GetSchemeGroupListRepository;
 use App\Application\Services\SchemeGroup\ApplySchemeGroup\Command\ApplySchemeGroupCommand;
-use App\Application\Services\Subscription\ApplySubscription\Exception\UnableToRestartSingBoxServiceException;
+use App\Application\Shared\Exception\UseCase\RestartSingBox\UnableToRestartSingBoxServiceException;
 use App\Application\Shared\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
 use App\Application\Shared\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;

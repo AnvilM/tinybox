@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Ports\OutboundTest\OutboundLatency;
 
-use App\Application\DTO\Outbound\OutboundLatencyDTO;
+use App\Application\Outbound\DTO\OutboundLatencyDTO;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\LatencyTestMethod;

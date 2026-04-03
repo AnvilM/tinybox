@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\UseCase\RestartSingBoxService\Process;
 
-use App\Application\Services\Subscription\ApplySubscription\Exception\UnableToRestartSingBoxServiceException;
+use App\Application\Shared\Exception\UseCase\RestartSingBox\UnableToRestartSingBoxServiceException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 
 final readonly class RestartSingBoxService
