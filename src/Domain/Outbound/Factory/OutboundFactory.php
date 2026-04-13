@@ -64,7 +64,7 @@ final readonly class OutboundFactory
                 new NonEmptyStringVO($scheme->getSni()),
                 new Reality(
                     new NonEmptyStringVO($scheme->getPbk()),
-                    new NonEmptyStringVO($scheme->getSid()),
+                    $scheme->getSid() ? new NonEmptyStringVO($scheme->getSid()) : null,
                     true
                 ),
                 $scheme->getFp() ? new UTLS(

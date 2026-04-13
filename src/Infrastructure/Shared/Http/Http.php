@@ -58,7 +58,8 @@ final readonly class Http implements HttpPort
     public function get(float $timeout, string $url): ResponseInterface
     {
         $headers = [
-            'User-Agent' => $this->configInstancePort->get()->subscriptionsConfig->useragent
+            'User-Agent' => $this->configInstancePort->get()->subscriptionsConfig->useragent,
+            'Accept' => " */*"
         ];
 
         if ($this->configInstancePort->get()->subscriptionsConfig->hwid != null) {

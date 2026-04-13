@@ -18,7 +18,7 @@ final readonly class VlessScheme extends Scheme
     private PortVO $server_port;
     private NonEmptyStringVO $sni;
     private NonEmptyStringVO $pbk;
-    private NonEmptyStringVO $sid;
+    private ?NonEmptyStringVO $sid;
     private ?NonEmptyStringVO $flow;
     private ?NonEmptyStringVO $fp;
     private ?TransportTypeVO $transportType;
@@ -30,7 +30,7 @@ final readonly class VlessScheme extends Scheme
         PortVO            $server_port,
         NonEmptyStringVO  $sni,
         NonEmptyStringVO  $pbk,
-        NonEmptyStringVO  $sid,
+        ?NonEmptyStringVO $sid,
         ?NonEmptyStringVO $tag,
         ?NonEmptyStringVO $flow,
         ?NonEmptyStringVO $fp,
@@ -102,9 +102,9 @@ final readonly class VlessScheme extends Scheme
         return $this->pbk->getValue();
     }
 
-    public function getSid(): string
+    public function getSid(): ?string
     {
-        return $this->sid->getValue();
+        return $this->sid?->getValue();
     }
 
     public function getFlow(): ?string
@@ -131,8 +131,8 @@ final readonly class VlessScheme extends Scheme
         $rawScheme .= $this->server_port->getPort() . "?";
         $rawScheme .= "sni=" . $this->sni->getValue();
         $rawScheme .= "&pbk=" . $this->pbk->getValue();
-        $rawScheme .= "&sid=" . $this->sid->getValue();
 
+        if ($this->getSid()) $rawScheme .= "&sid=" . $this->getSid();
         if ($this->getFlow()) $rawScheme .= "&flow=" . $this->flow->getValue();
         if ($this->getFp()) $rawScheme .= "&fp=" . $this->fp->getValue();
         if ($this->getTransportType()) $rawScheme .= "&type=" . $this->getTransportType()->value;
@@ -152,7 +152,7 @@ final readonly class VlessScheme extends Scheme
         $rawTag .= $this->server_port->getPort();
         $rawTag .= $this->sni->getValue();
         $rawTag .= $this->pbk->getValue();
-        $rawTag .= $this->sid->getValue();
+        $rawTag .= $this->getSid();
         $rawTag .= $this->flow?->getValue();
         $rawTag .= $this->fp?->getValue();
 

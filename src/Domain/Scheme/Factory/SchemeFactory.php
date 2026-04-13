@@ -58,7 +58,7 @@ final readonly class SchemeFactory
                 new PortVO($rawSchemeVO->server_port),
                 new NonEmptyStringVO($rawSchemeVO->sni),
                 new NonEmptyStringVO($rawSchemeVO->pbk),
-                new NonEmptyStringVO($rawSchemeVO->sid),
+                $rawSchemeVO->sid === null ? null : new NonEmptyStringVO($rawSchemeVO->sid),
                 $rawSchemeVO->tag === null ? null : new NonEmptyStringVO($rawSchemeVO->tag),
                 $rawSchemeVO->flow === null ? null : new NonEmptyStringVO($rawSchemeVO->flow),
                 $rawSchemeVO->fp === null ? null : new NonEmptyStringVO($rawSchemeVO->fp),
