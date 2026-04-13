@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Shared\Http;
 
 use App\Domain\Shared\Exception\HTTP\HttpException;
+use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\Http\HttpPort;
 use Closure;
 use Exception;
@@ -17,13 +18,18 @@ use Psr\Http\Message\ResponseInterface;
 
 final readonly class Http implements HttpPort
 {
+    public function __construct(
+        private ConfigInstancePort $configInstancePort,
+    )
+    {
+    }
 
     public function getMultipleAsync(float $timeout, array $urls, ?Closure $fulfilled = null, ?Closure $rejected = null): void
     {
         /**
          * Create HTTP client
          */
-        $client = new Client(['timeout' => 100.0]);
+        $client = new Client(['timeout' => $timeout]);
 
 
         /**
@@ -51,8 +57,16 @@ final readonly class Http implements HttpPort
 
     public function get(float $timeout, string $url): ResponseInterface
     {
+        $headers = [
+            'User-Agent' => $this->configInstancePort->get()->subscriptionsConfig->useragent
+        ];
+
+        if ($this->configInstancePort->get()->subscriptionsConfig->hwid != null) {
+            $headers['X-HWID'] = $this->configInstancePort->get()->subscriptionsConfig->hwid;
+        }
+
         try {
-            return new Client(['timeout' => $timeout])->get($url);
+            return new Client(['timeout' => $timeout, 'headers' => $headers])->get($url);
         } catch (GuzzleException $e) {
             throw new HttpException("Unable to send request", $e->getMessage());
         }

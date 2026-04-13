@@ -77,6 +77,11 @@ If the configuration file is missing or some parameters are not specified, defau
   "subscriptions_list": "~/.local/share/tinybox/subscriptions.json",
   "scheme_groups_list": "~/.local/share/tinybox/scheme_groups.json",
   "schemes_list": "~/.local/share/tinybox/schemes.json",
+  "subscriptions": {
+    "timeout": 10,
+    "useragent": "tinybox/0.1",
+    "hwid": null
+  },
   "sing_box": {
     "binary": "sing-box",
     "default_config_path": "/etc/sing-box/config.json",
@@ -131,6 +136,14 @@ The configuration is divided into two main levels:
 | schemes_list       | string | Path to the JSON file containing all available schemes (outbound schemes). |
 
 These files serve as the primary state storage for the application and are automatically created or updated by tinybox.
+
+### subscriptions Section
+
+| Parameter | Type         | Description                                                                                                                                                     |
+|-----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| timeout   | int          | Timeout in seconds for fetch schemes from subscription url                                                                                                      |
+| useragent | string       | The user agent to be passed when requesting schemes.                                                                                                            |
+| hwid      | string\|null | If specified, tinybox will pass the specified value in the X-HWID header when importing a subscription. If not specified, the X-HWID header will not be passed. |
 
 ### sing_box Section
 

@@ -13,6 +13,7 @@ use App\Domain\Shared\VO\Config\SingBox\OutboundTest\OutboundTestSingBoxConfigVO
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Templates\OutboundTestTemplatesSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
+use App\Domain\Shared\VO\Config\Subscriptions\SubscriptionsConfigVO;
 
 final readonly class ConfigFactory
 {
@@ -36,6 +37,11 @@ final readonly class ConfigFactory
             $this->normalizePath($rawConfig['subscriptions_list'] ?? $defaultConfig->subscriptionsListPath),
             $this->normalizePath($rawConfig['scheme_groups_list'] ?? $defaultConfig->schemeGroupsListPath),
             $this->normalizePath($rawConfig['schemes_list'] ?? $defaultConfig->schemesListPath),
+            new SubscriptionsConfigVO(
+                $rawConfig['subscriptions']['timeout'] ?? $defaultConfig->subscriptionsConfig->timeout,
+                $rawConfig['subscriptions']['useragent'] ?? $defaultConfig->subscriptionsConfig->useragent,
+                $rawConfig['subscriptions']['hwid'] ?? $defaultConfig->subscriptionsConfig->hwid,
+            ),
             new SingBoxConfigVO(
                 $rawConfig['sing_box']['binary'] ?? $defaultConfig->singBoxConfig->binary,
                 new TemplatesSingBoxConfigVO(
