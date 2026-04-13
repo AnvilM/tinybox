@@ -59,7 +59,6 @@ final readonly class Http implements HttpPort
     {
         $headers = [
             'User-Agent' => $this->configInstancePort->get()->subscriptionsConfig->useragent,
-            'Accept' => " */*"
         ];
 
         if ($this->configInstancePort->get()->subscriptionsConfig->hwid != null) {
