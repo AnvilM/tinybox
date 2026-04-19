@@ -13,6 +13,7 @@ final readonly  class ConfigVO
         public string                $subscriptionsListPath,
         public string                $schemeGroupsListPath,
         public string                $schemesListPath,
+        public string                $outboundsListPath,
         public SubscriptionsConfigVO $subscriptionsConfig,
         public SingBoxConfigVO       $singBoxConfig,
     )

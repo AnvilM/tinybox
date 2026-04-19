@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\VO\Shared;
 
+use App\Domain\Interface\Shared\Equable;
 use InvalidArgumentException;
 use Psl\Type\Exception\CoercionException;
 use function Psl\Type\non_empty_string;
 
-readonly class NonEmptyStringVO
+readonly class NonEmptyStringVO implements Equable
 {
     private string $value;
 
@@ -24,6 +25,19 @@ readonly class NonEmptyStringVO
         } catch (CoercionException) {
             throw new InvalidArgumentException("Invalid string: " . "'" . ($value ?? 'null') . "'");
         }
+    }
+
+    /**
+     * Check if other object is equals with current
+     *
+     * @param mixed $other Other object
+     *
+     * @return bool True if equals
+     */
+    public function equals(mixed $other): bool
+    {
+        return $other instanceof static &&
+            $this->getValue() === $other->getValue();
     }
 
     public function getValue(): string

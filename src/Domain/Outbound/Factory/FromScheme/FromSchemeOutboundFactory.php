@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Outbound\Factory;
+namespace App\Domain\Outbound\Factory\FromScheme;
 
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Entity\ShadowsocksOutbound;
@@ -18,26 +18,27 @@ use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use InvalidArgumentException;
 
-final readonly class OutboundFactory
+final readonly class FromSchemeOutboundFactory
 {
     /**
      * Creates an Outbound entity from Scheme entity
      *
      * @param Scheme $scheme Scheme entity
+     * @param int $id Outbound id
      *
      * @return Outbound The created Outbound entity
      *
      * @throws InvalidArgumentException If required fields are missing or empty
      * @throws UnsupportedOutboundTypeException If outbound type is unsupported
      */
-    public static function fromScheme(Scheme $scheme): Outbound
+    public static function fromScheme(Scheme $scheme, int $id): Outbound
     {
         if ($scheme instanceof VlessScheme) {
-            return self::vlessOutbound($scheme);
+            return self::vlessOutbound($scheme, $id);
         }
 
         if ($scheme instanceof ShadowsocksScheme) {
-            return self::shadowsocksOutbound($scheme);
+            return self::shadowsocksOutbound($scheme, $id);
         }
 
         throw new UnsupportedOutboundTypeException($scheme->getType()->value);
@@ -47,15 +48,17 @@ final readonly class OutboundFactory
      * Creates a Vless outbound entity from Vless scheme entity
      *
      * @param VlessScheme $scheme Vless scheme entity
+     * @param int $id Outbound id
      *
      * @return VlessOutbound The created Vless outbound entity
      *
      * @throws InvalidArgumentException If required fields are missing or empty
      */
-    private static function vlessOutbound(VlessScheme $scheme): VlessOutbound
+    private static function vlessOutbound(VlessScheme $scheme, int $id): VlessOutbound
     {
         return new VlessOutbound(
             new NonEmptyStringVO($scheme->getTagString()),
+            $id,
             new NonEmptyStringVO($scheme->getServer()),
             new PortVO($scheme->getServerPort()),
             new NonEmptyStringVO($scheme->getUuid()),
@@ -80,15 +83,17 @@ final readonly class OutboundFactory
      * Creates a shadowsocks outbound entity from Vless scheme entity
      *
      * @param ShadowsocksScheme $scheme shadowsocks scheme entity
+     * @param int $id Outbound id
      *
      * @return ShadowsocksOutbound The created shadowsocks outbound entity
      *
      * @throws InvalidArgumentException If required fields are missing or empty
      */
-    private static function shadowsocksOutbound(ShadowsocksScheme $scheme): ShadowsocksOutbound
+    private static function shadowsocksOutbound(ShadowsocksScheme $scheme, int $id): ShadowsocksOutbound
     {
         return new ShadowsocksOutbound(
             new NonEmptyStringVO($scheme->getTagString()),
+            $id,
             new NonEmptyStringVO($scheme->getServer()),
             new PortVO($scheme->getServerPort()),
             new NonEmptyStringVO($scheme->getMethod()->value),

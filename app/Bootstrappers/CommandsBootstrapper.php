@@ -6,6 +6,7 @@ namespace Application\Bootstrappers;
 
 use App\Commands\Scheme\AddSchemeCommand;
 use App\Commands\Scheme\ListSchemesCommand;
+use App\Commands\Scheme\ToOutboundsCommand;
 use App\Commands\SchemeGroup\AddSchemeToSchemeGroupCommand;
 use App\Commands\SchemeGroup\ApplySchemeGroupCommand;
 use App\Commands\SchemeGroup\ListSchemeGroupsCommand;
@@ -32,7 +33,8 @@ final class CommandsBootstrapper
         ApplySubscriptionCommand::class,
         ApplySchemeGroupCommand::class,
         UpdateSubscriptionCommand::class,
-        TestSubscriptionCommand::class
+        TestSubscriptionCommand::class,
+        ToOutboundsCommand::class
     ];
 
 

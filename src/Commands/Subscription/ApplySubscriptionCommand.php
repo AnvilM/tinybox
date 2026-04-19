@@ -85,7 +85,7 @@ final class ApplySubscriptionCommand extends AbstractCommand
 
         if ($input->getOption('detour')) try {
             $subscriptionOutbounds = $this->setOutboundsDetourUseCase->handle(
-                new SetOutboundsDetourDTO($subscriptionOutbounds, $subscriptionOutbounds->getWithTag($input->getOption('detour')))
+                new SetOutboundsDetourDTO($subscriptionOutbounds, $subscriptionOutbounds->getWithId($input->getOption('detour')))
             );
         } catch (OutboundNotFoundException) {
             throw new CriticalException("Outbound with tag '{$input->getOption('detour')}' not found");

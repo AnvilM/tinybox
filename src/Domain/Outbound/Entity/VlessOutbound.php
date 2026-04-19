@@ -23,6 +23,7 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
 
     public function __construct(
         NonEmptyStringVO  $tag,
+        int               $id,
         NonEmptyStringVO  $server,
         PortVO            $serverPort,
         NonEmptyStringVO  $uuid,
@@ -36,9 +37,30 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
         $this->flow = $flow;
         $this->tls = $tls;
 
-        parent::__construct($tag);
+        parent::__construct($tag, $id);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function setDetour(Outbound $detour): void
+    {
+        $this->detourTag = $detour->getTag();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function equals(mixed $other): bool
+    {
+        return $other instanceof self &&
+            $this->server->equals($other->server) &&
+            $this->serverPort->equals($other->serverPort) &&
+            $this->uuid->equals($other->uuid) &&
+            $this->equalsNullable($this->flow, $other->flow) &&
+            $this->equalsNullable($this->tls, $other->tls) &&
+            $this->equalsNullable($this->detourTag ?? null, $other->detourTag ?? null);
+    }
 
     #[Override]
     public function toArray(): array
@@ -55,20 +77,17 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
         ], static fn($value) => $value !== null);
     }
 
-
     #[Override]
     public function getType(): OutboundTypeVO
     {
         return OutboundTypeVO::Vless;
     }
 
-
     #[Override]
     public function getServer(): ?string
     {
         return $this->server->getValue();
     }
-
 
     #[Override]
     public function getServerPort(): ?int
@@ -77,11 +96,4 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
     }
 
 
-    /**
-     * @inheritdoc
-     */
-    public function setDetour(Outbound $detour): void
-    {
-        $this->detourTag = $detour->getTag();
-    }
 }

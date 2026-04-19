@@ -8,7 +8,7 @@ use App\Application\Shared\DTO\UseCase\CreateOutboundsFromSchemesMap\CreateOutbo
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
-use App\Domain\Outbound\Factory\OutboundFactory;
+use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
 use InvalidArgumentException;
 
 final readonly class CreateOutboundsFromSchemesMapUseCase
@@ -29,7 +29,7 @@ final readonly class CreateOutboundsFromSchemesMapUseCase
                 /**
                  * Create an outbound
                  */
-                $outbound = OutboundFactory::fromScheme($scheme);
+                $outbound = FromSchemeOutboundFactory::fromScheme($scheme, $outboundsMap->count());
 
 
                 /**

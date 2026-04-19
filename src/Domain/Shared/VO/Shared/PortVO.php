@@ -25,9 +25,15 @@ final readonly class PortVO
         $this->port = $port;
     }
 
-    
+
     public function getPort(): int
     {
         return $this->port;
+    }
+
+
+    public function equals(?PortVO $other): bool
+    {
+        return $this->port === $other?->port;
     }
 }

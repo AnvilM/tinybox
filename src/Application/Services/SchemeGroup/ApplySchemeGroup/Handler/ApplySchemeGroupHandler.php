@@ -13,7 +13,7 @@ use App\Application\Shared\UseCase\RestartSingBoxService\RestartSingBoxServiceUs
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
-use App\Domain\Outbound\Factory\OutboundFactory;
+use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
 use App\Domain\SchemeGroup\Exception\SchemeGroupNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
@@ -80,7 +80,7 @@ final readonly class ApplySchemeGroupHandler
              * Try to create outbound from scheme and add it to outbounds map
              */
             try {
-                $outboundsMap->add(OutboundFactory::fromScheme($scheme));
+                $outboundsMap->add(FromSchemeOutboundFactory::fromScheme($scheme, $outboundsMap->count()));
             } catch (OutboundAlreadyExistsException|InvalidArgumentException|UnsupportedOutboundTypeException) {
                 continue;
                 // TODO: Add reporter event

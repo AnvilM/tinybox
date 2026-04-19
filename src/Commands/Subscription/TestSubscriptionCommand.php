@@ -76,7 +76,7 @@ final class TestSubscriptionCommand extends AbstractCommand
 
         if ($input->getOption('detour')) try {
             $subscriptionOutbounds = $this->setOutboundsDetourUseCase->handle(new SetOutboundsDetourDTO(
-                $subscriptionOutbounds, $subscriptionOutbounds->getWithTag($input->getOption('detour'))
+                $subscriptionOutbounds, $subscriptionOutbounds->getWithId($input->getOption('detour'))
             ));
         } catch (OutboundNotFoundException) {
             throw new CriticalException("Outbound with tag '{$input->getOption('detour')}' not found. Try to remove filters");
@@ -97,7 +97,7 @@ final class TestSubscriptionCommand extends AbstractCommand
         }
 
         new CLImate()->table($table);
-        
+
 
         return self::SUCCESS;
     }

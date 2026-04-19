@@ -37,6 +37,8 @@ final readonly class ConfigFactory
             $this->normalizePath($rawConfig['subscriptions_list'] ?? $defaultConfig->subscriptionsListPath),
             $this->normalizePath($rawConfig['scheme_groups_list'] ?? $defaultConfig->schemeGroupsListPath),
             $this->normalizePath($rawConfig['schemes_list'] ?? $defaultConfig->schemesListPath),
+            $this->normalizePath($rawConfig['outbounds_list'] ?? $defaultConfig->outboundsListPath),
+
             new SubscriptionsConfigVO(
                 $rawConfig['subscriptions']['timeout'] ?? $defaultConfig->subscriptionsConfig->timeout,
                 $rawConfig['subscriptions']['useragent'] ?? $defaultConfig->subscriptionsConfig->useragent,

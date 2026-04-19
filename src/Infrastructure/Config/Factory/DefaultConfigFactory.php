@@ -32,6 +32,7 @@ final readonly class DefaultConfigFactory
             $this->getDataHomeDirectory->execute() . '/subscriptions.json',
             $this->getDataHomeDirectory->execute() . '/scheme_groups.json',
             $this->getDataHomeDirectory->execute() . '/schemes.json',
+            $this->getDataHomeDirectory->execute() . '/outbounds.json',
             new SubscriptionsConfigVO(
                 10,
                 "tinybox/0.1",

@@ -11,7 +11,7 @@ use App\Application\Services\Subscription\TestSubscription\Command\TestSubscript
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
-use App\Domain\Outbound\Factory\OutboundFactory;
+use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -74,7 +74,7 @@ final readonly class TestSubscriptionHandler
              * Try to create outbound from scheme and add it to outbounds map
              */
             try {
-                $outboundsMap->add(OutboundFactory::fromScheme($scheme));
+                $outboundsMap->add(FromSchemeOutboundFactory::fromScheme($scheme, $outboundsMap->count()));
             } catch (OutboundAlreadyExistsException|InvalidArgumentException|UnsupportedOutboundTypeException $e) {
                 echo $e->getMessage() . "\n";
                 continue;
