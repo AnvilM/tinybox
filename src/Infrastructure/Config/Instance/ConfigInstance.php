@@ -9,11 +9,11 @@ use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
+use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
 use App\Domain\Shared\ReporterEvent\Events\Shared\Config\ConfigFileReadFailedReporterEvent;
 use App\Domain\Shared\VO\Config\ConfigVO;
 use App\Infrastructure\Config\Factory\ConfigFactory;
 use App\Infrastructure\Config\Factory\DefaultConfigFactory;
-use Application\Config\ApplicationConfig\ApplicationConfig;
 
 final readonly class ConfigInstance implements ConfigInstancePort
 {
@@ -24,14 +24,26 @@ final readonly class ConfigInstance implements ConfigInstancePort
         private ConfigFactory          $configFactory,
         private DefaultConfigFactory   $defaultConfigFactory,
         private ReporterPort           $reporterPort,
+        private NormalizePathPort      $normalizePathPort,
     )
     {
+    }
+
+    public function get(): ConfigVO
+    {
+        return $this->config;
+    }
+
+    public function set(?string $configPath): void
+    {
         try {
+            if ($configPath === null) throw new UnableToReadFileException();
+
             $rawConfig = $this->readJsonFileNotifyPort
                 ->notifyStartAndSuccess(
                     "Reading configuration file...",
                     "Configuration file successfully read"
-                )->read(ApplicationConfig::baseConfigFilePath());
+                )->read($this->normalizePathPort->execute($configPath));
         } catch (UnableToReadFileException|UnableToDecodeJsonException) {
             $rawConfig = [];
 
@@ -42,10 +54,5 @@ final readonly class ConfigInstance implements ConfigInstancePort
             $rawConfig,
             $this->defaultConfigFactory->create()
         );
-    }
-
-    public function get(): ConfigVO
-    {
-        return $this->config;
     }
 }

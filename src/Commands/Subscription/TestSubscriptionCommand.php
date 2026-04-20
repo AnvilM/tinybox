@@ -16,6 +16,7 @@ use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscription
 use App\Commands\AbstractCommand;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
+use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use League\CLImate\CLImate;
 use Psl\Collection\Vector;
@@ -34,9 +35,10 @@ final class TestSubscriptionCommand extends AbstractCommand
         private readonly OutboundsLatencyUseCase        $outboundsLatencyUseCase,
         private readonly FilterOutboundsUseCase         $filterOutboundsUseCase,
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
+        ConfigInstancePort                              $configInstancePort,
     )
     {
-        parent::__construct($reporterPort);
+        parent::__construct($reporterPort, $configInstancePort);
     }
 
     protected function handle(InputInterface $input, OutputInterface $output): int
@@ -109,7 +111,6 @@ final class TestSubscriptionCommand extends AbstractCommand
             ->addOption('excludeCountryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY)
             ->addOption('exceptExcludeCountryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY)
             ->addOption('excludeCountryCodeForce', null, InputOption::VALUE_NONE)
-            ->addOption('detour', null, InputOption::VALUE_OPTIONAL)
-            ->addOption('debug', 'd', InputOption::VALUE_NONE, 'Show debug messages');
+            ->addOption('detour', null, InputOption::VALUE_OPTIONAL);
     }
 }

@@ -5,26 +5,37 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use App\Domain\Shared\Exception\CriticalException;
+use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Domain\Shared\ReporterEvent\Events\Shared\FatalErrorReporterEvent;
 use App\Domain\Shared\VO\ReporterEvent\ReporterEventDebugMessagesVO;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 abstract class AbstractCommand extends Command
 {
     public function __construct(
-        private readonly ReporterPort $reporterPort,
+        private readonly ReporterPort       $reporterPort,
+        private readonly ConfigInstancePort $configInstancePort,
     )
     {
         parent::__construct();
+
+        $this->addOption('debug', 'd', InputOption::VALUE_NONE, 'Show debug messages');
+        $this->addOption('config', 'c', InputOption::VALUE_OPTIONAL, 'Config path');
     }
 
     public function __invoke(InputInterface $input, OutputInterface $output): int
     {
         try {
+            /**
+             * Create config
+             */
+            $this->configInstancePort->set($input->getOption('config'));
+
             return $this->handle($input, $output);
         } catch (CriticalException $e) {
             $this->reporterPort->notify(new FatalErrorReporterEvent(

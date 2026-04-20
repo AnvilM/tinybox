@@ -14,4 +14,12 @@ interface ConfigInstancePort
      * @return ConfigVO Group value object
      */
     public function get(): ConfigVO;
+
+
+    /**
+     * Create and bind config
+     *
+     * @param string $configPath Path to config file
+     */
+    public function set(?string $configPath): void;
 }

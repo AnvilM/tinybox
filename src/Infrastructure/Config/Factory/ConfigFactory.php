@@ -35,7 +35,7 @@ final readonly class ConfigFactory
     {
         return new ConfigVO(
             $this->normalizePath($rawConfig['subscriptions_list'] ?? $defaultConfig->subscriptionsListPath),
-            $this->normalizePath($rawConfig['scheme_groups_list'] ?? $defaultConfig->groupsListPath),
+            $this->normalizePath($rawConfig['groups_list'] ?? $defaultConfig->groupsListPath),
             $this->normalizePath($rawConfig['outbounds_list'] ?? $defaultConfig->outboundsListPath),
 
             new SubscriptionsConfigVO(

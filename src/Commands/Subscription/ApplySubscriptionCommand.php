@@ -17,6 +17,7 @@ use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscription
 use App\Commands\AbstractCommand;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
+use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use Psl\Collection\Vector;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -36,9 +37,10 @@ final class ApplySubscriptionCommand extends AbstractCommand
         private readonly CreateSingBoxConfigUseCase     $createSingBoxConfigUseCase,
         private readonly SaveSingBoxConfigUseCase       $saveSingBoxConfigUseCase,
         private readonly RestartSingBoxServiceUseCase   $restartSingBoxServiceUseCase,
+        ConfigInstancePort                              $configInstancePort,
     )
     {
-        parent::__construct($reporterPort);
+        parent::__construct($reporterPort, $configInstancePort);
     }
 
     protected function handle(InputInterface $input, OutputInterface $output): int
@@ -107,7 +109,6 @@ final class ApplySubscriptionCommand extends AbstractCommand
             ->addOption('urltestExclude', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, 'Scheme id, to exclude from urltest outbound')
             ->addOption('exclude', 'e', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, "Scheme id, to exclude")
             ->addOption('excludeCountryCodeExcept', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, "Scheme id, to except in country exclude")
-            ->addOption('excludeCountryForce', null, InputOption::VALUE_NONE)
-            ->addOption('debug', 'd', InputOption::VALUE_NONE, 'Show debug messages');
+            ->addOption('excludeCountryForce', null, InputOption::VALUE_NONE);
     }
 }
