@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Subscription\Shared;
 
-use App\Application\Exception\Repository\Scheme\UnableToGetSchemesListException;
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Exception\Repository\Shared\UnableToSaveListException;
 use App\Application\Exception\Repository\Subscription\Validator\InvalidSubscriptionsListFormatException;
-use App\Application\Repository\Scheme\GetSchemesListRepository;
+use App\Application\Repository\Outbound\GetOutboundsListRepository;
 use App\Application\Repository\Subscription\Shared\File\ReadSubscriptions;
 use App\Application\Repository\Subscription\Shared\File\WriteSubscriptions;
 use App\Application\Repository\Subscription\Shared\Validator\SubscriptionsListFormatValidator;
-use App\Domain\Scheme\Collection\UniqueSchemesMap;
-use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
-use App\Domain\Scheme\Exception\SchemeNotFoundException;
+use App\Domain\Outbound\Collection\UniqueOutboundsMap;
+use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
+use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
@@ -35,7 +34,7 @@ class SubscriptionRepository
     public function __construct(
         private readonly ReadSubscriptions                $readSubscriptions,
         private readonly SubscriptionsListFormatValidator $subscriptionsListFormatValidator,
-        private readonly GetSchemesListRepository         $getSchemesList,
+        private readonly GetOutboundsListRepository       $getOutboundsList,
         private readonly WriteSubscriptions               $writeSubscriptions,
     )
     {
@@ -46,7 +45,7 @@ class SubscriptionRepository
      *
      * @return SubscriptionsMap list
      *
-     * @throws UnableToGetListException If unable to read subscriptions file or schemes file
+     * @throws UnableToGetListException If unable to read subscriptions file or outbounds file
      */
     protected function getSubscriptionsList(): SubscriptionsMap
     {
@@ -65,7 +64,7 @@ class SubscriptionRepository
             $this->subscriptionsListFormatValidator->validate($rawSubscriptionsList);
 
 
-            /** @var array<array{name: string, url: string, schemes: string[]}> $rawSubscriptionsList */
+            /** @var array<array{name: string, url: string, outbounds: string[]}> $rawSubscriptionsList */
 
         } catch (UnableToReadFileException|UnableToDecodeJsonException|InvalidSubscriptionsListFormatException $e) {
             throw new UnableToGetListException($e instanceof UnableToReadFileException
@@ -77,13 +76,9 @@ class SubscriptionRepository
 
 
         /**
-         * Try to read schemes
+         * Try to read outbounds
          */
-        try {
-            $schemes = $this->getSchemesList->getSchemesList();
-        } catch (UnableToGetSchemesListException $e) {
-            throw new UnableToGetListException($e->getMessage(), $e->getDebugMessage());
-        }
+        $outbounds = $this->getOutboundsList->getOutboundsList();
 
 
         /**
@@ -93,29 +88,29 @@ class SubscriptionRepository
 
         foreach ($rawSubscriptionsList as $rawSubscription) {
             /**
-             * Create empty subscription schemes map
+             * Create empty subscription outbounds map
              */
-            $subscriptionSchemes = new UniqueSchemesMap();
+            $subscriptionOutbounds = new UniqueOutboundsMap();
 
 
-            foreach ($rawSubscription['schemes'] as $rawSubscriptionScheme) {
+            foreach ($rawSubscription['outbounds'] as $rawSubscriptionOutbound) {
                 /**
-                 * Try to find scheme with specific id
+                 * Try to find outbound with specific id
                  */
                 try {
-                    $scheme = $schemes->getById($rawSubscriptionScheme);
-                } catch (SchemeNotFoundException) {
+                    $outbound = $outbounds->getWithId($rawSubscriptionOutbound);
+                } catch (OutboundNotFoundException) {
                     continue;
                     //TODO: Add reporter event
                 }
 
 
                 /**
-                 * Try to add found scheme to subscription schemes map
+                 * Try to add found outbound to subscription outbounds map
                  */
                 try {
-                    $subscriptionSchemes->add($scheme);
-                } catch (SchemeAlreadyExistsException) {
+                    $subscriptionOutbounds->add($outbound);
+                } catch (OutboundAlreadyExistsException) {
                     continue;
                     //TODO: Add reporter event
                 }
@@ -131,7 +126,7 @@ class SubscriptionRepository
                     new Subscription(
                         new SubscriptionNameVO($rawSubscription['name']),
                         new SubscriptionURLVO($rawSubscription['url']),
-                        $subscriptionSchemes
+                        $subscriptionOutbounds
                     )
                 );
             } catch (SubscriptionAlreadyExistsException|InvalidSubscriptionNameException|InvalidSubscriptionURLException) {

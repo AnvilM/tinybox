@@ -24,21 +24,20 @@ final readonly class FromRawOutboundFactory
      * Create outbound entity from raw outbound value object
      *
      * @param RawOutboundVO $rawOutboundVO Raw outbound value object
-     * @param int $id Outbound id
      *
      * @return Outbound Outbound entity
      *
      * @throws InvalidArgumentException
      * @throws UnsupportedOutboundTypeException
      */
-    public function fromRawOutboundVO(RawOutboundVO $rawOutboundVO, int $id): Outbound
+    public function fromRawOutboundVO(RawOutboundVO $rawOutboundVO): Outbound
     {
         if ($rawOutboundVO instanceof RawVlessOutboundVO) {
-            return $this->fromVlessRawOutbound($rawOutboundVO, $id);
+            return $this->fromVlessRawOutbound($rawOutboundVO);
         }
 
         if ($rawOutboundVO instanceof RawShadowsocksOutboundVO) {
-            return $this->fromShadowsocksRawOutbound($rawOutboundVO, $id);
+            return $this->fromShadowsocksRawOutbound($rawOutboundVO);
         }
 
         throw new UnsupportedOutboundTypeException($rawOutboundVO->type);
@@ -47,11 +46,10 @@ final readonly class FromRawOutboundFactory
     /**
      * @throws InvalidArgumentException
      */
-    private function fromVlessRawOutbound(RawVlessOutboundVO $rawVlessOutboundVO, int $id): VlessOutbound
+    private function fromVlessRawOutbound(RawVlessOutboundVO $rawVlessOutboundVO): VlessOutbound
     {
         return new VlessOutbound(
             new NonEmptyStringVO($rawVlessOutboundVO->tag),
-            $id,
             new NonEmptyStringVO($rawVlessOutboundVO->server),
             new PortVO($rawVlessOutboundVO->serverPort),
             new NonEmptyStringVO($rawVlessOutboundVO->uuid),
@@ -60,7 +58,7 @@ final readonly class FromRawOutboundFactory
                 new NonEmptyStringVO($rawVlessOutboundVO->tls?->serverName),
                 new Reality(
                     new NonEmptyStringVO($rawVlessOutboundVO->tls?->reality?->publicKey),
-                    new NonEmptyStringVO($rawVlessOutboundVO->tls?->reality?->shortId),
+                    $rawVlessOutboundVO->tls?->reality?->shortId == null ? null : new NonEmptyStringVO($rawVlessOutboundVO->tls?->reality?->shortId),
                     $rawVlessOutboundVO->tls?->reality?->enabled,
                 ),
                 new UTLS(
@@ -76,11 +74,10 @@ final readonly class FromRawOutboundFactory
     /**
      * @throws InvalidArgumentException
      */
-    private function fromShadowsocksRawOutbound(RawShadowsocksOutboundVO $rawShadowsocksOutboundVO, int $id): ShadowsocksOutbound
+    private function fromShadowsocksRawOutbound(RawShadowsocksOutboundVO $rawShadowsocksOutboundVO): ShadowsocksOutbound
     {
         return new ShadowsocksOutbound(
             new NonEmptyStringVO($rawShadowsocksOutboundVO->tag),
-            $id,
             new NonEmptyStringVO($rawShadowsocksOutboundVO->server),
             new PortVO($rawShadowsocksOutboundVO->serverPort),
             new NonEmptyStringVO($rawShadowsocksOutboundVO->method),

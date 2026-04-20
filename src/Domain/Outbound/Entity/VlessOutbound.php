@@ -23,7 +23,6 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
 
     public function __construct(
         NonEmptyStringVO  $tag,
-        int               $id,
         NonEmptyStringVO  $server,
         PortVO            $serverPort,
         NonEmptyStringVO  $uuid,
@@ -37,7 +36,7 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
         $this->flow = $flow;
         $this->tls = $tls;
 
-        parent::__construct($tag, $id);
+        parent::__construct($tag);
     }
 
     /**

@@ -30,8 +30,7 @@ final readonly class DefaultConfigFactory
     {
         return new ConfigVO(
             $this->getDataHomeDirectory->execute() . '/subscriptions.json',
-            $this->getDataHomeDirectory->execute() . '/scheme_groups.json',
-            $this->getDataHomeDirectory->execute() . '/schemes.json',
+            $this->getDataHomeDirectory->execute() . '/groups.json',
             $this->getDataHomeDirectory->execute() . '/outbounds.json',
             new SubscriptionsConfigVO(
                 10,

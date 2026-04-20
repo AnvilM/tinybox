@@ -80,13 +80,13 @@ class OutboundRepository
         $outbounds = new OutboundMap();
 
 
-        foreach ($rawOutboundsList as $id => $rawOutbound) {
+        foreach ($rawOutboundsList as $rawOutbound) {
             /**
              * Try to create and add outbound to outbounds map
              */
             try {
                 $outbounds->add($this->fromRawOutboundFactory->fromRawOutboundVO(
-                    $this->rawOutboundParserPort->parse($rawOutbound), $id
+                    $this->rawOutboundParserPort->parse($rawOutbound)
                 ));
             } catch (UnsupportedOutboundTypeException|OutboundAlreadyExistsException|InvalidArgumentException) {
                 continue;

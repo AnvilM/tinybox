@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
-use App\Application\Shared\DTO\UseCase\CreateOutboundsFromSchemesMap\CreateOutboundsFromSchemesMapDTO;
 use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterCountryCodesDTO;
 use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterExcludeCountryCodesDTO;
 use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Application\Shared\DTO\UseCase\OutboundsLatency\OutboundsLatencyDTO;
 use App\Application\Shared\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
-use App\Application\Shared\UseCase\CreateOutboundsFromSchemesMap\CreateOutboundsFromSchemesMapUseCase;
 use App\Application\Shared\UseCase\FilterOutbounds\FilterOutboundsUseCase;
 use App\Application\Shared\UseCase\OutboundsLatency\OutboundsLatencyUseCase;
 use App\Application\Shared\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
@@ -31,12 +29,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class TestSubscriptionCommand extends AbstractCommand
 {
     public function __construct(
-        ReporterPort                                          $reporterPort,
-        private readonly GetSubscriptionWithNameUseCase       $getSubscriptionWithNameUseCase,
-        private readonly OutboundsLatencyUseCase              $outboundsLatencyUseCase,
-        private readonly FilterOutboundsUseCase               $filterOutboundsUseCase,
-        private readonly CreateOutboundsFromSchemesMapUseCase $createOutboundsFromSchemesMapUseCase,
-        private readonly SetOutboundsDetourUseCase            $setOutboundsDetourUseCase,
+        ReporterPort                                    $reporterPort,
+        private readonly GetSubscriptionWithNameUseCase $getSubscriptionWithNameUseCase,
+        private readonly OutboundsLatencyUseCase        $outboundsLatencyUseCase,
+        private readonly FilterOutboundsUseCase         $filterOutboundsUseCase,
+        private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
     )
     {
         parent::__construct($reporterPort);
@@ -48,11 +45,10 @@ final class TestSubscriptionCommand extends AbstractCommand
             $input->getArgument('name')
         );
 
-        if ($subscription->getSchemes()->isEmpty()) throw new CriticalException("Not found schemes for subscription");
+        if ($subscription->getOutbounds()->isEmpty()) throw new CriticalException("Not found schemes for subscription");
 
-        $subscriptionOutbounds = $this->createOutboundsFromSchemesMapUseCase->handle(
-            new CreateOutboundsFromSchemesMapDTO($subscription->getSchemes())
-        );
+
+        $subscriptionOutbounds = $subscription->getOutbounds();
 
         if ($input->getOption('countryCode'))
             $filterCountryCodesDTO = new FilterCountryCodesDTO(
@@ -86,6 +82,7 @@ final class TestSubscriptionCommand extends AbstractCommand
         $outboundsLatency = $this->outboundsLatencyUseCase->handle(new OutboundsLatencyDTO(
             $subscriptionOutbounds, $input->getArgument('method')
         ));
+
 
         $table = [];
         foreach ($outboundsLatency as $ol) {

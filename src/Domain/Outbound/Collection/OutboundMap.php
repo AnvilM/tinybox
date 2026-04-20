@@ -18,9 +18,9 @@ use Psl\Collection\VectorInterface;
 readonly class OutboundMap
 {
     /**
-     * Outbounds map <id: int, outbound: Outbound>
+     * Outbounds map <id: string, outbound: Outbound>
      *
-     * @var MutableMap<int, Outbound>
+     * @var MutableMap<string, Outbound>
      */
     protected MutableMap $outbounds;
 
@@ -60,7 +60,7 @@ readonly class OutboundMap
      *
      * @throws OutboundAlreadyExistsException If outbound already exists in map
      */
-    public function add(Outbound $outbound): void
+    public function add(Outbound $outbound): static
     {
         /**
          * Check if outbound name already exists
@@ -72,6 +72,8 @@ readonly class OutboundMap
          * Add outbound to map
          */
         $this->outbounds->add($outbound->getId(), $outbound);
+
+        return $this;
     }
 
     /**
@@ -108,15 +110,25 @@ readonly class OutboundMap
     /**
      * Get outbound with id
      *
-     * @param int $id Outbound id to search
+     * @param string $id Outbound id to search
      *
      * @return Outbound Found outbound
      *
      * @throws OutboundNotFoundException If outbound with provided id not found
      */
-    public function getWithId(int $id): Outbound
+    public function getWithId(string $id): Outbound
     {
         return $this->outbounds->get($id) ?? throw new OutboundNotFoundException();
+    }
+
+    /**
+     * Get outbounds ids
+     *
+     * @return Vector<string> Outbounds id's
+     */
+    public function getIds(): Vector
+    {
+        return new Vector($this->outbounds->keys()->toArray());
     }
 
     /**
@@ -224,7 +236,6 @@ readonly class OutboundMap
         return $this->outbounds->isEmpty();
     }
 
-
     /**
      * Get the number of elements in the current map
      *
@@ -233,5 +244,15 @@ readonly class OutboundMap
     public function count(): int
     {
         return $this->outbounds->count();
+    }
+
+    /**
+     * Get current outbounds map
+     *
+     * @return MutableMap Outbounds map
+     */
+    public function getMap(): MutableMap
+    {
+        return $this->outbounds;
     }
 }

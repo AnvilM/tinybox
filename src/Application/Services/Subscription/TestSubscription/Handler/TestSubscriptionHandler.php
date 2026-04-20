@@ -60,7 +60,7 @@ final readonly class TestSubscriptionHandler
         /**
          * Check if subscription has schemes
          */
-        if ($subscription->getSchemes()->isEmpty()) throw new CriticalException("Subscription  {$subscription->getName()} has no schemes");
+        if ($subscription->getOutbounds()->isEmpty()) throw new CriticalException("Subscription  {$subscription->getNameString()} has no schemes");
 
 
         /**
@@ -69,7 +69,7 @@ final readonly class TestSubscriptionHandler
         $outboundsMap = new OutboundMap();
 
 
-        foreach ($subscription->getSchemes()->getMap() as $scheme) {
+        foreach ($subscription->getOutbounds()->getMap() as $scheme) {
             /**
              * Try to create outbound from scheme and add it to outbounds map
              */
@@ -97,7 +97,7 @@ final readonly class TestSubscriptionHandler
         foreach ($result as $res) {
             $m = new MutableMap([]);
             $m->add($res->outbound->getTagString(), $res->latency);
-            $map->add($subscription->getSchemes()->getByTag(
+            $map->add($subscription->getOutbounds()->getByTag(
                 $res->outbound->getTagString()
             )->getHash(), $m);
         }

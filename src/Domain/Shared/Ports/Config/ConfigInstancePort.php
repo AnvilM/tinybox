@@ -11,7 +11,7 @@ interface ConfigInstancePort
     /**
      * Get config value object
      *
-     * @return ConfigVO SchemeGroup value object
+     * @return ConfigVO Group value object
      */
     public function get(): ConfigVO;
 }

@@ -23,7 +23,6 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
 
     public function __construct(
         NonEmptyStringVO  $tag,
-        int               $id,
         NonEmptyStringVO  $server,
         PortVO            $serverPort,
         NonEmptyStringVO  $method,
@@ -40,7 +39,7 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
         $this->pluginOptions = $pluginOptions;
 
 
-        parent::__construct($tag, $id);
+        parent::__construct($tag);
     }
 
     /**

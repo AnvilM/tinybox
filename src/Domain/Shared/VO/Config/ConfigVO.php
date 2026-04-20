@@ -11,8 +11,7 @@ final readonly  class ConfigVO
 {
     public function __construct(
         public string                $subscriptionsListPath,
-        public string                $schemeGroupsListPath,
-        public string                $schemesListPath,
+        public string                $groupsListPath,
         public string                $outboundsListPath,
         public SubscriptionsConfigVO $subscriptionsConfig,
         public SingBoxConfigVO       $singBoxConfig,

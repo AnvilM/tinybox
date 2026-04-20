@@ -12,7 +12,7 @@ final readonly class ConfigFileReadFailedReporterEvent extends ReporterEvent
     public function __construct()
     {
         parent::__construct(
-            "SchemeGroup file read failed, using default config",
+            "Group file read failed, using default config",
             ReporterEventTypeVO::Warning
         );
     }

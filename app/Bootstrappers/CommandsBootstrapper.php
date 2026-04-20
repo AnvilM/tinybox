@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Application\Bootstrappers;
 
+use App\Commands\Group\AddOutboundToGroupCommand;
+use App\Commands\Group\ApplySchemeGroupCommand;
+use App\Commands\Group\ListSchemeGroupsCommand;
 use App\Commands\Scheme\AddSchemeCommand;
 use App\Commands\Scheme\ListSchemesCommand;
 use App\Commands\Scheme\ToOutboundsCommand;
-use App\Commands\SchemeGroup\AddSchemeToSchemeGroupCommand;
-use App\Commands\SchemeGroup\ApplySchemeGroupCommand;
-use App\Commands\SchemeGroup\ListSchemeGroupsCommand;
 use App\Commands\Subscription\ApplySubscriptionCommand;
 use App\Commands\Subscription\CreateSubscriptionCommand;
 use App\Commands\Subscription\ListSubscriptionsCommand;
@@ -24,9 +24,7 @@ final class CommandsBootstrapper
 {
     /** @var array<class-string<Command>> */
     private static array $commands = [
-        AddSchemeCommand::class,
-        ListSchemesCommand::class,
-        AddSchemeToSchemeGroupCommand::class,
+        AddOutboundToGroupCommand::class,
         ListSchemeGroupsCommand::class,
         CreateSubscriptionCommand::class,
         ListSubscriptionsCommand::class,
@@ -34,7 +32,6 @@ final class CommandsBootstrapper
         ApplySchemeGroupCommand::class,
         UpdateSubscriptionCommand::class,
         TestSubscriptionCommand::class,
-        ToOutboundsCommand::class
     ];
 
 

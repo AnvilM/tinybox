@@ -32,7 +32,7 @@ final readonly class ReadSingBoxConfigTemplate
     {
         return $this->readJsonFileNotifyPort->notifyStartAndSuccess(
             "Reading sing-box config template file...",
-            "Sing-Box SchemeGroup template file successfully read"
+            "Sing-Box Group template file successfully read"
         )->read($this->configInstancePort->get()->singBoxConfig->templates->config);
     }
 }

@@ -8,28 +8,18 @@ use App\Domain\Interface\Shared\Equable;
 use App\Domain\Outbound\VO\OutboundTypeVO;
 use App\Domain\Shared\Trait\ComparesNullable;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
+use Psl\Hash\Algorithm;
 
 abstract readonly class Outbound implements Equable
 {
     use ComparesNullable;
-    
 
-    protected int $id;
     private NonEmptyStringVO $tag;
 
-    public function __construct(NonEmptyStringVO $tag, int $id)
+    public function __construct(NonEmptyStringVO $tag)
     {
         $this->tag = $tag;
-
-        $this->id = $id;
     }
-
-    /**
-     * Convert outbound entity to array
-     *
-     * @return array Outbound entity as array
-     */
-    public abstract function toArray(): array;
 
     /**
      * Get outbound tag as string
@@ -72,7 +62,7 @@ abstract readonly class Outbound implements Equable
         return $this->tag;
     }
 
-
+    
     /**
      * Check if other object is equals to current
      *
@@ -82,15 +72,24 @@ abstract readonly class Outbound implements Equable
      */
     public abstract function equals(mixed $other): bool;
 
-
     /**
      * Get outbound id
      *
-     * @return int Outbound id
+     * @return string Outbound id
      */
-    public function getId(): int
+    public function getId(): string
     {
-        return $this->id;
+        return \Psl\Hash\hash(
+            json_encode($this->toArray()),
+            Algorithm::Murmur3F
+        );
     }
+
+    /**
+     * Convert outbound entity to array
+     *
+     * @return array Outbound entity as array
+     */
+    public abstract function toArray(): array;
 
 }
