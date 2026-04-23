@@ -75,7 +75,7 @@ If the configuration file is missing or some parameters are not specified, defau
 ```json
 {
   "subscriptions_list": "~/.local/share/tinybox/subscriptions.json",
-  "scheme_groups_list": "~/.local/share/tinybox/scheme_groups.json",
+  "groups_list": "~/.local/share/tinybox/groups.json",
   "schemes_list": "~/.local/share/tinybox/schemes.json",
   "subscriptions": {
     "timeout": 10,
@@ -118,7 +118,7 @@ If the configuration file is missing or some parameters are not specified, defau
 ## Configuration Description
 
 The tinybox configuration file is a JSON object that fully defines the application's behavior when working with
-subscriptions, scheme groups, schemes, and integration with **sing-box**. All paths are specified in a POSIX-compatible
+subscriptions, groups, schemes, and integration with **sing-box**. All paths are specified in a POSIX-compatible
 format (the \~ symbol is supported for the user's home directory).
 
 The configuration is divided into two main levels:
@@ -132,7 +132,7 @@ The configuration is divided into two main levels:
 | Parameter          | Type   | Description                                                                |
 |--------------------|--------|----------------------------------------------------------------------------|
 | subscriptions_list | string | Path to the JSON file that stores the list of all subscriptions (sources). |
-| scheme_groups_list | string | Path to the JSON file containing the list of scheme groups.                |
+| groups_list        | string | Path to the JSON file containing the list of groups.                       |
 | schemes_list       | string | Path to the JSON file containing all available schemes (outbound schemes). |
 
 These files serve as the primary state storage for the application and are automatically created or updated by tinybox.

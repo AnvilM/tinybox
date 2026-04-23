@@ -14,6 +14,7 @@ use App\Domain\Shared\ReporterEvent\Events\Shared\Config\ConfigFileReadFailedRep
 use App\Domain\Shared\VO\Config\ConfigVO;
 use App\Infrastructure\Config\Factory\ConfigFactory;
 use App\Infrastructure\Config\Factory\DefaultConfigFactory;
+use Application\Config\ApplicationConfig\ApplicationConfig;
 
 final readonly class ConfigInstance implements ConfigInstancePort
 {
@@ -37,7 +38,7 @@ final readonly class ConfigInstance implements ConfigInstancePort
     public function set(?string $configPath): void
     {
         try {
-            if ($configPath === null) throw new UnableToReadFileException();
+            if ($configPath === null) $configPath = ApplicationConfig::baseConfigFilePath();
 
             $rawConfig = $this->readJsonFileNotifyPort
                 ->notifyStartAndSuccess(
