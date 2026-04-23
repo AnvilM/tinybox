@@ -181,11 +181,17 @@ readonly class OutboundMap
     /**
      * Get outbounds tags vector
      *
-     * @return Vector Tags vector
+     * @return MutableVector Tags vector
      */
-    public function getTagsString(): Vector
+    public function getTagsString(): MutableVector
     {
-        return new Vector($this->outbounds->keys()->toArray());
+        $tags = MutableVector::default();
+
+        foreach ($this->outbounds->toArray() as $outbound) {
+            $tags->add($outbound->getTagString());
+        }
+
+        return $tags;
     }
 
     /**
