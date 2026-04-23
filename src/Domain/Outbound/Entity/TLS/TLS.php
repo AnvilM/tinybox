@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\Entity\TLS;
 
+use App\Domain\Interface\Shared\Equable;
+use App\Domain\Shared\Trait\ComparesNullable;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 
-final readonly class TLS
+final readonly class TLS implements Equable
 {
+    use ComparesNullable;
+
+
     private bool $enabled;
     private NonEmptyStringVO $serverName;
     private ?Reality $reality;
@@ -36,5 +41,21 @@ final readonly class TLS
             'reality' => $this->reality?->toArray(),
             'utls' => $this->utls?->toArray(),
         ], static fn($value) => $value !== null);
+    }
+
+    /**
+     * Check if other object is equals with current
+     *
+     * @param mixed $other Other object
+     *
+     * @return bool True if equals
+     */
+    public function equals(mixed $other): bool
+    {
+        return $other instanceof self &&
+            $this->enabled === $other->enabled &&
+            $this->serverName->equals($other->serverName) &&
+            $this->equalsNullable($this->reality, $other->reality) &&
+            $this->equalsNullable($this->utls, $other->utls);
     }
 }

@@ -48,7 +48,7 @@ final readonly class SubscriptionsMap
         /**
          * Add subscription to map
          */
-        $this->map->add($subscription->getName(), $subscription);
+        $this->map->add($subscription->getNameString(), $subscription);
     }
 
     /**
@@ -65,7 +65,7 @@ final readonly class SubscriptionsMap
 
             if (
                 $subscription->getUrl() === $subscriptionUrl->getUrl()
-                || $subscription->getName() === $subscriptionName->getName()
+                || $subscription->getNameString() === $subscriptionName->getName()
             ) return true;
         }
 
@@ -100,9 +100,9 @@ final readonly class SubscriptionsMap
          */
         foreach ($this->map as $subscription) {
             $array[] = [
-                'name' => $subscription->getName(),
+                'name' => $subscription->getNameString(),
                 'url' => $subscription->getUrl(),
-                'schemes' => $subscription->getSchemes()->getIds()->toArray(),
+                'outbounds' => $subscription->getOutbounds()->getIds()->toArray(),
             ];
         }
 

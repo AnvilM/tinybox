@@ -11,7 +11,7 @@ use App\Application\Services\Subscription\TestSubscription\Command\TestSubscript
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
-use App\Domain\Outbound\Factory\OutboundFactory;
+use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -60,7 +60,7 @@ final readonly class TestSubscriptionHandler
         /**
          * Check if subscription has schemes
          */
-        if ($subscription->getSchemes()->isEmpty()) throw new CriticalException("Subscription  {$subscription->getName()} has no schemes");
+        if ($subscription->getOutbounds()->isEmpty()) throw new CriticalException("Subscription  {$subscription->getNameString()} has no schemes");
 
 
         /**
@@ -69,12 +69,12 @@ final readonly class TestSubscriptionHandler
         $outboundsMap = new OutboundMap();
 
 
-        foreach ($subscription->getSchemes()->getMap() as $scheme) {
+        foreach ($subscription->getOutbounds()->getMap() as $scheme) {
             /**
              * Try to create outbound from scheme and add it to outbounds map
              */
             try {
-                $outboundsMap->add(OutboundFactory::fromScheme($scheme));
+                $outboundsMap->add(FromSchemeOutboundFactory::fromScheme($scheme, $outboundsMap->count()));
             } catch (OutboundAlreadyExistsException|InvalidArgumentException|UnsupportedOutboundTypeException $e) {
                 echo $e->getMessage() . "\n";
                 continue;
@@ -97,7 +97,7 @@ final readonly class TestSubscriptionHandler
         foreach ($result as $res) {
             $m = new MutableMap([]);
             $m->add($res->outbound->getTagString(), $res->latency);
-            $map->add($subscription->getSchemes()->getByTag(
+            $map->add($subscription->getOutbounds()->getByTag(
                 $res->outbound->getTagString()
             )->getHash(), $m);
         }

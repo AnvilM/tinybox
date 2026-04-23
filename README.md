@@ -75,8 +75,13 @@ If the configuration file is missing or some parameters are not specified, defau
 ```json
 {
   "subscriptions_list": "~/.local/share/tinybox/subscriptions.json",
-  "scheme_groups_list": "~/.local/share/tinybox/scheme_groups.json",
+  "groups_list": "~/.local/share/tinybox/groups.json",
   "schemes_list": "~/.local/share/tinybox/schemes.json",
+  "subscriptions": {
+    "timeout": 10,
+    "useragent": "tinybox/0.1",
+    "hwid": null
+  },
   "sing_box": {
     "binary": "sing-box",
     "default_config_path": "/etc/sing-box/config.json",
@@ -113,7 +118,7 @@ If the configuration file is missing or some parameters are not specified, defau
 ## Configuration Description
 
 The tinybox configuration file is a JSON object that fully defines the application's behavior when working with
-subscriptions, scheme groups, schemes, and integration with **sing-box**. All paths are specified in a POSIX-compatible
+subscriptions, groups, schemes, and integration with **sing-box**. All paths are specified in a POSIX-compatible
 format (the \~ symbol is supported for the user's home directory).
 
 The configuration is divided into two main levels:
@@ -127,10 +132,18 @@ The configuration is divided into two main levels:
 | Parameter          | Type   | Description                                                                |
 |--------------------|--------|----------------------------------------------------------------------------|
 | subscriptions_list | string | Path to the JSON file that stores the list of all subscriptions (sources). |
-| scheme_groups_list | string | Path to the JSON file containing the list of scheme groups.                |
+| groups_list        | string | Path to the JSON file containing the list of groups.                       |
 | schemes_list       | string | Path to the JSON file containing all available schemes (outbound schemes). |
 
 These files serve as the primary state storage for the application and are automatically created or updated by tinybox.
+
+### subscriptions Section
+
+| Parameter | Type         | Description                                                                                                                                                     |
+|-----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| timeout   | int          | Timeout in seconds for fetch schemes from subscription url                                                                                                      |
+| useragent | string       | The user agent to be passed when requesting schemes.                                                                                                            |
+| hwid      | string\|null | If specified, tinybox will pass the specified value in the X-HWID header when importing a subscription. If not specified, the X-HWID header will not be passed. |
 
 ### sing_box Section
 

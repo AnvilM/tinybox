@@ -8,11 +8,11 @@ use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Exception\Repository\Shared\UnableToSaveListException;
 use App\Application\Exception\Services\Shared\FetchSchemes\NoValidSchemesFoundException;
 use App\Application\Exception\Shared\Scheme\CreateSchemeEntityFromString\UnableToParseRawSchemeStringException;
-use App\Application\Repository\Scheme\AddSchemeRepository;
-use App\Application\Repository\Scheme\SaveSchemesListRepository;
+use App\Application\Repository\Outbound\AddOutboundRepository;
 use App\Application\Shared\Scheme\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
-use App\Domain\Scheme\Collection\UniqueSchemesMap;
-use App\Domain\Scheme\Exception\SchemeAlreadyExistsException;
+use App\Domain\Outbound\Collection\UniqueOutboundsMap;
+use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
+use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\HTTP\HttpException;
 use App\Domain\Shared\Ports\Http\HttpPort;
@@ -30,29 +30,28 @@ final readonly class FetchSchemesUseCase
     public function __construct(
         private HttpPort                            $httpPort,
         private CreateSchemeEntityFromStringUseCase $createSchemeEntityFromStringUseCase,
-        private AddSchemeRepository                 $addSchemeRepository,
-        private SaveSchemesListRepository           $saveSchemesListRepository,
+        private AddOutboundRepository               $addOutboundRepository,
     )
     {
     }
 
     /**
-     * Fetch schemes from provided url
+     * Fetch outbounds from provided url
      *
-     * @param SubscriptionURLVO $subscriptionUrl Subscription url to fetch schemes
+     * @param SubscriptionURLVO $subscriptionUrl Subscription url to fetch outbounds
      *
-     * @return UniqueSchemesMap Unique schemes map
+     * @return UniqueOutboundsMap Unique outbounds map
      *
      * @throws CriticalException
-     * @throws NoValidSchemesFoundException If no valid schemes found
+     * @throws NoValidSchemesFoundException If no valid outbounds found
      */
-    public function handle(SubscriptionURLVO $subscriptionUrl): UniqueSchemesMap
+    public function handle(SubscriptionURLVO $subscriptionUrl): UniqueOutboundsMap
     {
         /**
-         * Try to load schemes
+         * Try to load outbounds
          */
         try {
-            $rawEncodedSchemesString = $this->httpPort->get(10.0, $subscriptionUrl->getUrl())
+            $rawEncodedOutboundsString = $this->httpPort->get(10.0, $subscriptionUrl->getUrl())
                 ->getBody()
                 ->getContents();
         } catch (RuntimeException $e) {
@@ -66,32 +65,35 @@ final readonly class FetchSchemesUseCase
          * Try to decode response
          */
         try {
-            $rawSchemesString = Base64\decode($rawEncodedSchemesString);
+            $rawOutboundsString = Base64\decode($rawEncodedOutboundsString);
         } catch (IncorrectPaddingException|RangeException $e) {
             throw new CriticalException("Invalid response", $e->getMessage());
         }
 
 
         /**
-         * Explode raw schemes string by \n
+         * Explode raw outbounds string by \n
          */
-        $rawSchemesStrings = explode("\n", $rawSchemesString);
+        $rawOutboundsStrings = explode("\n", $rawOutboundsString);
 
 
         /**
-         * Create empty unique schemes map
+         * Create empty unique outbounds map
          */
-        $schemes = new UniqueSchemesMap();
+        $outbounds = new UniqueOutboundsMap();
 
-        foreach ($rawSchemesStrings as $rawSchemeString) {
+        foreach ($rawOutboundsStrings as $rawOutboundString) {
             /**
-             * Try to create scheme entity from string and add it to scheme mao
+             * Try to create outbound entity from string and add it to outbound mao
              */
             try {
-                $schemes->add(
-                    $this->createSchemeEntityFromStringUseCase->handle($rawSchemeString)
+                $outbounds->add(
+                    FromSchemeOutboundFactory::fromScheme(
+                        $this->createSchemeEntityFromStringUseCase->handle($rawOutboundString),
+                        $outbounds->count()
+                    )
                 );
-            } catch (UnableToParseRawSchemeStringException|InvalidArgumentException|SchemeAlreadyExistsException) {
+            } catch (UnableToParseRawSchemeStringException|InvalidArgumentException|OutboundAlreadyExistsException) {
                 continue;
                 //TODO: add reporter event
             } catch (Throwable) {
@@ -101,38 +103,38 @@ final readonly class FetchSchemesUseCase
 
 
         /**
-         * Check if schemes map is not empty
+         * Check if outbounds map is not empty
          */
-        if ($schemes->getMap()->isEmpty()) throw new NoValidSchemesFoundException();
+        if ($outbounds->getMap()->isEmpty()) throw new NoValidSchemesFoundException();
 
 
         /**
-         * Add schemes to schemes list
+         * Add outbounds to outbounds list
          */
-        foreach ($schemes->getMap() as $scheme) {
+        foreach ($outbounds->getMap() as $outbound) {
             try {
-                $this->addSchemeRepository->add($scheme);
-            } catch (SchemeAlreadyExistsException) {
+                $this->addOutboundRepository->add($outbound);
+            } catch (OutboundAlreadyExistsException) {
                 continue;
                 // TODO: Add reporter event
             } catch (UnableToGetListException $e) {
-                throw new CriticalException("Unable to get schemes list", $e->getDebugMessage());
+                throw new CriticalException("Unable to get outbounds list", $e->getDebugMessage());
             }
         }
 
 
         /**
-         * Try to save schemes list
+         * Try to save outbounds list
          */
         try {
-            $this->saveSchemesListRepository->save();
+            $this->addOutboundRepository->save();
         } catch (UnableToSaveListException $e) {
-            throw new CriticalException("Unable to save schemes list", $e->getDebugMessage());
+            throw new CriticalException("Unable to save outbounds list", $e->getDebugMessage());
         }
 
         /**
          * Return subscriptions
          */
-        return $schemes;
+        return $outbounds;
     }
 }

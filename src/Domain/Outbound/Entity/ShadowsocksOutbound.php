@@ -21,7 +21,15 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
     private ?NonEmptyStringVO $detourTag;
 
 
-    public function __construct(NonEmptyStringVO $tag, NonEmptyStringVO $server, PortVO $serverPort, NonEmptyStringVO $method, NonEmptyStringVO $password, ?NonEmptyStringVO $plugin, ?NonEmptyStringVO $pluginOptions)
+    public function __construct(
+        NonEmptyStringVO  $tag,
+        NonEmptyStringVO  $server,
+        PortVO            $serverPort,
+        NonEmptyStringVO  $method,
+        NonEmptyStringVO  $password,
+        ?NonEmptyStringVO $plugin,
+        ?NonEmptyStringVO $pluginOptions
+    )
     {
         $this->server = $server;
         $this->serverPort = $serverPort;
@@ -34,6 +42,28 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
         parent::__construct($tag);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function setDetour(Outbound $detour): void
+    {
+        $this->detourTag = $detour->getTag();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function equals(mixed $other): bool
+    {
+        return $other instanceof self &&
+            $this->server->equals($other->server) &&
+            $this->serverPort->equals($other->serverPort) &&
+            $this->method->equals($other->method) &&
+            $this->password->equals($other->password) &&
+            $this->equalsNullable($this->plugin, $other->plugin) &&
+            $this->equalsNullable($this->pluginOptions, $other->pluginOptions) &&
+            $this->equalsNullable($this->detourTag ?? null, $other->detourTag ?? null);
+    }
 
     #[Override]
     public function toArray(): array
@@ -57,25 +87,15 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
         return OutboundTypeVO::Shadowsocks;
     }
 
-
     #[Override]
     public function getServer(): ?string
     {
         return $this->server->getValue();
     }
 
-
     #[Override]
     public function getServerPort(): ?int
     {
         return $this->serverPort->getPort();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function setDetour(Outbound $detour): void
-    {
-        $this->detourTag = $detour->getTag();
     }
 }

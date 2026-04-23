@@ -96,7 +96,7 @@ final readonly class OutboundCountyCode implements OutboundCountyCodePort
             try {
                 $isoMap->add(
                     $outboundIp->outbound->getTagString(), $this->getIpCountryCode->getCountryCode(
-                        $outboundIp->getIp() ?? $outboundIpFallback ? ($outboundIp->outbound->getServer() ?? "") : ""
+                        $outboundIp->getIp() ?? $outboundIpFallback ? (gethostbyname($outboundIp->outbound->getServer()) ?? "") : ""
                 ));
             } catch (UnexpectedValueException) {
                 continue;

@@ -6,11 +6,11 @@ namespace App\Commands\Subscription;
 
 use App\Application\Services\Subscription\UpdateSubscription\Handler\UpdateSubscriptionHandler;
 use App\Commands\AbstractCommand;
+use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'subscription:update', description: 'Update subscription', aliases: ['sub:update'])]
@@ -18,10 +18,11 @@ final class UpdateSubscriptionCommand extends AbstractCommand
 {
     public function __construct(
         ReporterPort                               $reporterPort,
+        ConfigInstancePort                         $configInstancePort,
         private readonly UpdateSubscriptionHandler $updateSubscriptionHandler,
     )
     {
-        parent::__construct($reporterPort);
+        parent::__construct($reporterPort, $configInstancePort);
     }
 
     protected function handle(InputInterface $input, OutputInterface $output): int
@@ -37,7 +38,6 @@ final class UpdateSubscriptionCommand extends AbstractCommand
 
     protected function configure(): void
     {
-        $this->addArgument('subscriptionName', InputArgument::REQUIRED, 'Subscription name')
-            ->addOption('debug', 'd', InputOption::VALUE_NONE, 'Show debug messages');
+        $this->addArgument('subscriptionName', InputArgument::REQUIRED, 'Subscription name');
     }
 }

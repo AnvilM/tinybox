@@ -14,6 +14,7 @@ use App\Domain\Shared\VO\Config\SingBox\OutboundTest\OutboundTestSingBoxConfigVO
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Templates\OutboundTestTemplatesSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
+use App\Domain\Shared\VO\Config\Subscriptions\SubscriptionsConfigVO;
 
 final readonly class DefaultConfigFactory
 {
@@ -29,8 +30,13 @@ final readonly class DefaultConfigFactory
     {
         return new ConfigVO(
             $this->getDataHomeDirectory->execute() . '/subscriptions.json',
-            $this->getDataHomeDirectory->execute() . '/scheme_groups.json',
-            $this->getDataHomeDirectory->execute() . '/schemes.json',
+            $this->getDataHomeDirectory->execute() . '/groups.json',
+            $this->getDataHomeDirectory->execute() . '/outbounds.json',
+            new SubscriptionsConfigVO(
+                10,
+                "tinybox/0.1",
+                null
+            ),
             new SingBoxConfigVO(
                 'sing-box',
                 new TemplatesSingBoxConfigVO(

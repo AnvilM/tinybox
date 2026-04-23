@@ -4,26 +4,22 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\Entity;
 
+use App\Domain\Interface\Shared\Equable;
 use App\Domain\Outbound\VO\OutboundTypeVO;
+use App\Domain\Shared\Trait\ComparesNullable;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
+use Psl\Hash\Algorithm;
 
-abstract readonly class Outbound
+abstract readonly class Outbound implements Equable
 {
-    private NonEmptyStringVO $tag;
+    use ComparesNullable;
 
+    private NonEmptyStringVO $tag;
 
     public function __construct(NonEmptyStringVO $tag)
     {
         $this->tag = $tag;
     }
-
-
-    /**
-     * Convert outbound entity to array
-     *
-     * @return array Outbound entity as array
-     */
-    public abstract function toArray(): array;
 
     /**
      * Get outbound tag as string
@@ -42,7 +38,6 @@ abstract readonly class Outbound
      */
     public abstract function getType(): OutboundTypeVO;
 
-
     /**
      * Get outbound server, if outbound has no server field, e.g. direct outbound, return null
      *
@@ -50,14 +45,12 @@ abstract readonly class Outbound
      */
     public abstract function getServer(): ?string;
 
-
     /**
      * Get outbound server port, if outbound has no server port field, e.g. direct outbound, return null
      *
      * @return int|null Outbound server port or null if outbound has no server port field, e.g. direct outbound
      */
     public abstract function getServerPort(): ?int;
-
 
     /**
      * Get outbound tag as NonEmptyString object
@@ -68,4 +61,35 @@ abstract readonly class Outbound
     {
         return $this->tag;
     }
+
+    
+    /**
+     * Check if other object is equals to current
+     *
+     * @param mixed $other Other object
+     *
+     * @return bool True if equals
+     */
+    public abstract function equals(mixed $other): bool;
+
+    /**
+     * Get outbound id
+     *
+     * @return string Outbound id
+     */
+    public function getId(): string
+    {
+        return \Psl\Hash\hash(
+            json_encode($this->toArray()),
+            Algorithm::Murmur3F
+        );
+    }
+
+    /**
+     * Convert outbound entity to array
+     *
+     * @return array Outbound entity as array
+     */
+    public abstract function toArray(): array;
+
 }

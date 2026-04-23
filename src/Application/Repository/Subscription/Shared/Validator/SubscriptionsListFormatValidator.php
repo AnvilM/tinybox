@@ -30,14 +30,14 @@ final readonly class SubscriptionsListFormatValidator
                             "type": "string",
                             "format": "uri"
                         },
-                        "schemes": {
+                        "outbounds": {
                             "type": "array",
                             "items": {
                                 "type": "string"
                             }
                         }
                     },
-                    "required": ["name", "url", "schemes"],
+                    "required": ["name", "url", "outbounds"],
                     "additionalProperties": false
                 }
             }

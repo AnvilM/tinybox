@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
-use App\Application\Shared\DTO\UseCase\CreateOutboundsFromSchemesMap\CreateOutboundsFromSchemesMapDTO;
 use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterCountryCodesDTO;
 use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterExcludeCountryCodesDTO;
 use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Application\Shared\DTO\UseCase\OutboundsLatency\OutboundsLatencyDTO;
 use App\Application\Shared\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
-use App\Application\Shared\UseCase\CreateOutboundsFromSchemesMap\CreateOutboundsFromSchemesMapUseCase;
 use App\Application\Shared\UseCase\FilterOutbounds\FilterOutboundsUseCase;
 use App\Application\Shared\UseCase\OutboundsLatency\OutboundsLatencyUseCase;
 use App\Application\Shared\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
@@ -18,6 +16,7 @@ use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscription
 use App\Commands\AbstractCommand;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
+use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use League\CLImate\CLImate;
 use Psl\Collection\Vector;
@@ -31,15 +30,15 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class TestSubscriptionCommand extends AbstractCommand
 {
     public function __construct(
-        ReporterPort                                          $reporterPort,
-        private readonly GetSubscriptionWithNameUseCase       $getSubscriptionWithNameUseCase,
-        private readonly OutboundsLatencyUseCase              $outboundsLatencyUseCase,
-        private readonly FilterOutboundsUseCase               $filterOutboundsUseCase,
-        private readonly CreateOutboundsFromSchemesMapUseCase $createOutboundsFromSchemesMapUseCase,
-        private readonly SetOutboundsDetourUseCase            $setOutboundsDetourUseCase,
+        ReporterPort                                    $reporterPort,
+        private readonly GetSubscriptionWithNameUseCase $getSubscriptionWithNameUseCase,
+        private readonly OutboundsLatencyUseCase        $outboundsLatencyUseCase,
+        private readonly FilterOutboundsUseCase         $filterOutboundsUseCase,
+        private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
+        ConfigInstancePort                              $configInstancePort,
     )
     {
-        parent::__construct($reporterPort);
+        parent::__construct($reporterPort, $configInstancePort);
     }
 
     protected function handle(InputInterface $input, OutputInterface $output): int
@@ -48,11 +47,10 @@ final class TestSubscriptionCommand extends AbstractCommand
             $input->getArgument('name')
         );
 
-        if ($subscription->getSchemes()->isEmpty()) throw new CriticalException("Not found schemes for subscription");
+        if ($subscription->getOutbounds()->isEmpty()) throw new CriticalException("Not found schemes for subscription");
 
-        $subscriptionOutbounds = $this->createOutboundsFromSchemesMapUseCase->handle(
-            new CreateOutboundsFromSchemesMapDTO($subscription->getSchemes())
-        );
+
+        $subscriptionOutbounds = $subscription->getOutbounds();
 
         if ($input->getOption('countryCode'))
             $filterCountryCodesDTO = new FilterCountryCodesDTO(
@@ -76,7 +74,7 @@ final class TestSubscriptionCommand extends AbstractCommand
 
         if ($input->getOption('detour')) try {
             $subscriptionOutbounds = $this->setOutboundsDetourUseCase->handle(new SetOutboundsDetourDTO(
-                $subscriptionOutbounds, $subscriptionOutbounds->getWithTag($input->getOption('detour'))
+                $subscriptionOutbounds, $subscriptionOutbounds->getWithId($input->getOption('detour'))
             ));
         } catch (OutboundNotFoundException) {
             throw new CriticalException("Outbound with tag '{$input->getOption('detour')}' not found. Try to remove filters");
@@ -86,6 +84,7 @@ final class TestSubscriptionCommand extends AbstractCommand
         $outboundsLatency = $this->outboundsLatencyUseCase->handle(new OutboundsLatencyDTO(
             $subscriptionOutbounds, $input->getArgument('method')
         ));
+
 
         $table = [];
         foreach ($outboundsLatency as $ol) {
@@ -98,59 +97,6 @@ final class TestSubscriptionCommand extends AbstractCommand
 
         new CLImate()->table($table);
 
-
-//        $result = $this->testSubscriptionHandler->handle(
-//            new \App\Application\Services\Subscription\TestSubscription\Command\TestSubscriptionCommand(
-//                $input->getArgument('name'),
-//                $input->getArgument('method'),
-//            )
-//        );
-//
-//        $maxIdLength = length('Id');
-//        $maxTagLength = length('Tag');
-//        $maxLatencyLength = length('Latency');
-//
-//        foreach ($result as $id => $tags) {
-//            $maxIdLength = max($maxIdLength, length($id));
-//
-//            foreach ($tags as $tag => $latency) {
-//                $maxTagLength = max($maxTagLength, length($tag));
-//                $maxLatencyLength = max($maxLatencyLength, length($latency === null ? "N/A" : (string)$latency));
-//            }
-//        }
-//
-//        $cli = new CLImate();
-//
-//        $pad = static function (CLImate $cli, int $currentLength, int $targetLength): void {
-//            for ($i = 0; $i < $targetLength - $currentLength + 2; $i++) {
-//                $cli->inline(' ');
-//            }
-//        };
-//
-//        $cli->inline('     Id');
-//        $pad($cli, length('Id'), $maxIdLength);
-//
-//        $cli->inline('Tag');
-//        $pad($cli, length('Tag'), $maxTagLength);
-//
-//        $cli->inline(' Latency');
-//        $cli->br();
-//
-//        foreach ($result as $id => $tags) {
-//            foreach ($tags as $tag => $latency) {
-//                $cli->green()->inline('[+]  ');
-//
-//                $cli->green()->inline($id);
-//                $pad($cli, length($id), $maxIdLength);
-//
-//                $cli->green()->inline($tag);
-//                $pad($cli, length($tag), $maxTagLength);
-//
-//                $value = $latency === null ? "N/A" : (string)$latency;
-//                $cli->green()->inline($value);
-//                $cli->br();
-//            }
-//        }
 
         return self::SUCCESS;
     }
@@ -165,7 +111,6 @@ final class TestSubscriptionCommand extends AbstractCommand
             ->addOption('excludeCountryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY)
             ->addOption('exceptExcludeCountryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY)
             ->addOption('excludeCountryCodeForce', null, InputOption::VALUE_NONE)
-            ->addOption('detour', null, InputOption::VALUE_OPTIONAL)
-            ->addOption('debug', 'd', InputOption::VALUE_NONE, 'Show debug messages');
+            ->addOption('detour', null, InputOption::VALUE_OPTIONAL);
     }
 }

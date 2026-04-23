@@ -47,6 +47,6 @@ final readonly class OutboundExcludeCountryCodeSpecification implements Outbound
             }
         }
 
-        return false;
+        return true;
     }
 }

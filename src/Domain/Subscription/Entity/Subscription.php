@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Subscription\Entity;
 
-use App\Domain\Scheme\Collection\UniqueSchemesMap;
-use App\Domain\SchemeGroup\Entity\SchemeGroup;
+use App\Domain\Group\Entity\Group;
+use App\Domain\Outbound\Collection\UniqueOutboundsMap;
 use App\Domain\Subscription\VO\SubscriptionNameVO;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
 
@@ -13,23 +13,23 @@ final class Subscription
 {
     private SubscriptionURLVO $url;
 
-    private SchemeGroup $schemeGroup;
+    private Group $group;
 
-    public function __construct(SubscriptionNameVO $name, SubscriptionURLVO $url, UniqueSchemesMap $schemes)
+    public function __construct(SubscriptionNameVO $name, SubscriptionURLVO $url, UniqueOutboundsMap $outbounds)
     {
         $this->url = $url;
-        $this->schemeGroup = new SchemeGroup($name, $schemes);
+        $this->group = new Group($name, $outbounds);
     }
 
 
     /**
-     * Get subscription name
+     * Get subscription name as string
      *
-     * @return string
+     * @return string Subscription name as string
      */
-    public function getName(): string
+    public function getNameString(): string
     {
-        return $this->schemeGroup->getName();
+        return $this->group->getNameString();
     }
 
 
@@ -45,24 +45,24 @@ final class Subscription
 
 
     /**
-     * Get subscription schemes value object
+     * Get subscription outbounds value object
      *
-     * @return UniqueSchemesMap Subscription schemes
+     * @return UniqueOutboundsMap Subscription outbounds
      */
-    public function getSchemes(): UniqueSchemesMap
+    public function getOutbounds(): UniqueOutboundsMap
     {
-        return $this->schemeGroup->getSchemes();
+        return $this->group->getOutbounds();
     }
 
 
     /**
-     * Set subscription schemes
+     * Set subscription outbounds
      *
-     * @param UniqueSchemesMap $schemes Subscription schemes
+     * @param UniqueOutboundsMap $outbounds Subscription outbounds
      */
-    public function setSchemes(UniqueSchemesMap $schemes): void
+    public function setOutbounds(UniqueOutboundsMap $outbounds): void
     {
-        $this->schemeGroup->setSchemes($schemes);
+        $this->group->setOutbounds($outbounds);
     }
 
 
@@ -84,6 +84,6 @@ final class Subscription
      */
     public function getNameVO(): SubscriptionNameVO
     {
-        return SubscriptionNameVO::fromNonEmptyString($this->schemeGroup->getNameVO());
+        return SubscriptionNameVO::fromNonEmptyString($this->group->getName());
     }
 }

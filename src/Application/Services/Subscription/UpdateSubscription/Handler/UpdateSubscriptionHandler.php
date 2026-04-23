@@ -9,7 +9,7 @@ use App\Application\Exception\Repository\Shared\UnableToSaveListException;
 use App\Application\Exception\Services\Shared\FetchSchemes\NoValidSchemesFoundException;
 use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Application\Repository\Subscription\SaveSubscriptionRepository;
-use App\Application\Repository\Subscription\UpdateSubscriptionSchemesRepository;
+use App\Application\Repository\Subscription\UpdateSubscriptionOutboundsRepository;
 use App\Application\Services\Subscription\Shared\FetchSchemes\FetchSchemesUseCase;
 use App\Application\Services\Subscription\UpdateSubscription\Command\UpdateSubscriptionCommand;
 use App\Domain\Shared\Exception\CriticalException;
@@ -21,10 +21,10 @@ final readonly class UpdateSubscriptionHandler
 {
 
     public function __construct(
-        private GetSubscriptionListRepository       $getSubscriptionListRepository,
-        private FetchSchemesUseCase                 $fetchSchemesUseCase,
-        private UpdateSubscriptionSchemesRepository $updateSubscriptionSchemesRepository,
-        private SaveSubscriptionRepository          $saveSubscriptionRepository,
+        private GetSubscriptionListRepository         $getSubscriptionListRepository,
+        private FetchSchemesUseCase                   $fetchSchemesUseCase,
+        private UpdateSubscriptionOutboundsRepository $updateSubscriptionSchemesRepository,
+        private SaveSubscriptionRepository            $saveSubscriptionRepository,
     )
     {
     }

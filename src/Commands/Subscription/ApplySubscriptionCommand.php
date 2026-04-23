@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
-use App\Application\Shared\DTO\UseCase\CreateOutboundsFromSchemesMap\CreateOutboundsFromSchemesMapDTO;
 use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterExcludeCountryCodesDTO;
 use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Application\Shared\DTO\UseCase\SaveSingBoxConfig\SaveSingBoxConfigDTO;
 use App\Application\Shared\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
-use App\Application\Shared\UseCase\CreateOutboundsFromSchemesMap\CreateOutboundsFromSchemesMapUseCase;
 use App\Application\Shared\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
 use App\Application\Shared\UseCase\FilterOutbounds\FilterOutboundsUseCase;
+use App\Application\Shared\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
 use App\Application\Shared\UseCase\SaveSingBoxConfig\SaveSingBoxConfigUseCase;
 use App\Application\Shared\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
 use App\Commands\AbstractCommand;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
+use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use Psl\Collection\Vector;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -30,16 +30,17 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class ApplySubscriptionCommand extends AbstractCommand
 {
     public function __construct(
-        ReporterPort                                          $reporterPort,
-        private readonly GetSubscriptionWithNameUseCase       $getSubscriptionWithNameUseCase,
-        private readonly CreateOutboundsFromSchemesMapUseCase $createOutboundsFromSchemesMapUseCase,
-        private readonly FilterOutboundsUseCase               $filterOutboundsUseCase,
-        private readonly SetOutboundsDetourUseCase            $setOutboundsDetourUseCase,
-        private readonly CreateSingBoxConfigUseCase           $createSingBoxConfigUseCase,
-        private readonly SaveSingBoxConfigUseCase             $saveSingBoxConfigUseCase,
+        ReporterPort                                    $reporterPort,
+        private readonly GetSubscriptionWithNameUseCase $getSubscriptionWithNameUseCase,
+        private readonly FilterOutboundsUseCase         $filterOutboundsUseCase,
+        private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
+        private readonly CreateSingBoxConfigUseCase     $createSingBoxConfigUseCase,
+        private readonly SaveSingBoxConfigUseCase       $saveSingBoxConfigUseCase,
+        private readonly RestartSingBoxServiceUseCase   $restartSingBoxServiceUseCase,
+        ConfigInstancePort                              $configInstancePort,
     )
     {
-        parent::__construct($reporterPort);
+        parent::__construct($reporterPort, $configInstancePort);
     }
 
     protected function handle(InputInterface $input, OutputInterface $output): int
@@ -49,11 +50,9 @@ final class ApplySubscriptionCommand extends AbstractCommand
             $input->getArgument('name')
         );
 
-        if ($subscription->getSchemes()->isEmpty()) throw new CriticalException("Not found schemes for subscription");
+        if ($subscription->getOutbounds()->isEmpty()) throw new CriticalException("Not found schemes for subscription");
 
-        $subscriptionOutbounds = $this->createOutboundsFromSchemesMapUseCase->handle(
-            new CreateOutboundsFromSchemesMapDTO($subscription->getSchemes())
-        );
+        $subscriptionOutbounds = $subscription->getOutbounds();
 
         if ($input->getOption('exclude')) {
             $filterOutboundsDTO = new FilterOutboundsDTO($subscriptionOutbounds, new Vector($input->getOption('exclude')));
@@ -83,7 +82,7 @@ final class ApplySubscriptionCommand extends AbstractCommand
 
         if ($input->getOption('detour')) try {
             $subscriptionOutbounds = $this->setOutboundsDetourUseCase->handle(
-                new SetOutboundsDetourDTO($subscriptionOutbounds, $subscriptionOutbounds->getWithTag($input->getOption('detour')))
+                new SetOutboundsDetourDTO($subscriptionOutbounds, $subscriptionOutbounds->getWithId($input->getOption('detour')))
             );
         } catch (OutboundNotFoundException) {
             throw new CriticalException("Outbound with tag '{$input->getOption('detour')}' not found");
@@ -96,19 +95,7 @@ final class ApplySubscriptionCommand extends AbstractCommand
 
         $this->saveSingBoxConfigUseCase->handle(new SaveSingBoxConfigDTO($singBoxConfigJSON));
 
-//        $this->applySubscriptionHandler->handle(
-//            new \App\Application\Services\Subscription\ApplySubscription\Command\ApplySubscriptionCommand(
-//                $input->getArgument('name'),
-//                $input->getOption('systemd'),
-//                $input->getOption('denyCountry') != null ? trim($input->getOption('denyCountry')) != "" ? $input->getOption('denyCountry') : null : null,
-//                $input->getOption('urltest'),
-//                $input->getOption('detour') != null ? trim($input->getOption('detour')) != "" ? $input->getOption('detour') : null : null,
-//                $input->getOption('exclude') != null ? trim($input->getOption('exclude')) != "" ? $input->getOption('exclude') : null : null,
-//                $input->getOption('urltestExclude') != null ? trim($input->getOption('urltestExclude')) != "" ? $input->getOption('urltestExclude') : null : null,
-//                $input->getOption('excludeCountryCodeExcept') != null ? trim($input->getOption('excludeCountryExcept')) != "" ? $input->getOption('excludeCountryExcept') : null : null,
-//                $input->getOption('excludeCountryForce'),
-//            )
-//        );
+        $this->restartSingBoxServiceUseCase->handle();
 
         return self::SUCCESS;
     }
@@ -122,7 +109,6 @@ final class ApplySubscriptionCommand extends AbstractCommand
             ->addOption('urltestExclude', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, 'Scheme id, to exclude from urltest outbound')
             ->addOption('exclude', 'e', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, "Scheme id, to exclude")
             ->addOption('excludeCountryCodeExcept', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, "Scheme id, to except in country exclude")
-            ->addOption('excludeCountryForce', null, InputOption::VALUE_NONE)
-            ->addOption('debug', 'd', InputOption::VALUE_NONE, 'Show debug messages');
+            ->addOption('excludeCountryForce', null, InputOption::VALUE_NONE);
     }
 }
