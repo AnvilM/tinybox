@@ -15,6 +15,7 @@ use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\HTTP\HttpException;
+use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\Http\HttpPort;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
 use InvalidArgumentException;
@@ -31,6 +32,7 @@ final readonly class FetchSchemesUseCase
         private HttpPort                            $httpPort,
         private CreateSchemeEntityFromStringUseCase $createSchemeEntityFromStringUseCase,
         private AddOutboundRepository               $addOutboundRepository,
+        private ConfigInstancePort                  $configInstancePort,
     )
     {
     }
@@ -51,7 +53,8 @@ final readonly class FetchSchemesUseCase
          * Try to load outbounds
          */
         try {
-            $rawEncodedOutboundsString = $this->httpPort->get(10.0, $subscriptionUrl->getUrl())
+            $rawEncodedOutboundsString = $this->httpPort
+                ->get($this->configInstancePort->get()->subscriptionsConfig->timeout, $subscriptionUrl->getUrl())
                 ->getBody()
                 ->getContents();
         } catch (RuntimeException $e) {
