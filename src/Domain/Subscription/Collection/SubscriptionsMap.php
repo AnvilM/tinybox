@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Subscription\Collection;
 
 use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
+use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Entity\Subscription;
 use App\Domain\Subscription\Exception\SubscriptionAlreadyExistsException;
 use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
@@ -55,17 +56,17 @@ final readonly class SubscriptionsMap
      * Check map contains subscription with provided url or name
      *
      * @param SubscriptionURLVO $subscriptionUrl Subscription url
-     * @param SubscriptionNameVO $subscriptionName Subscription name
+     * @param NonEmptyStringVO $subscriptionName Subscription name
      *
      * @return bool Returns true if map contains subscription with provided url or name
      */
-    public function containsSubscriptionUrlOrName(SubscriptionURLVO $subscriptionUrl, SubscriptionNameVO $subscriptionName): bool
+    public function containsSubscriptionUrlOrName(SubscriptionURLVO $subscriptionUrl, NonEmptyStringVO $subscriptionName): bool
     {
         foreach ($this->map as $subscription) {
 
             if (
                 $subscription->getUrl() === $subscriptionUrl->getUrl()
-                || $subscription->getNameString() === $subscriptionName->getName()
+                || $subscription->getNameString() === $subscriptionName->getValue()
             ) return true;
         }
 
@@ -99,11 +100,7 @@ final readonly class SubscriptionsMap
          * Mapping map to array
          */
         foreach ($this->map as $subscription) {
-            $array[] = [
-                'name' => $subscription->getNameString(),
-                'url' => $subscription->getUrl(),
-                'outbounds' => $subscription->getOutbounds()->getIds()->toArray(),
-            ];
+            $array[] = $subscription->toArray();
         }
 
 
