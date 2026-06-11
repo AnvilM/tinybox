@@ -18,6 +18,7 @@ use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
+use App\Domain\Subscription\Entity\ConfigSubscription;
 use League\CLImate\CLImate;
 use Psl\Collection\Vector;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -46,6 +47,10 @@ final class TestSubscriptionCommand extends AbstractCommand
         $subscription = $this->getSubscriptionWithNameUseCase->handle(
             $input->getArgument('name')
         );
+
+        if ($subscription instanceof ConfigSubscription) {
+            throw new CriticalException("Subscription test is not available for config subscriptions");
+        }
 
         if ($subscription->getOutbounds()->isEmpty()) throw new CriticalException("Not found schemes for subscription");
 
