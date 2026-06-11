@@ -9,7 +9,6 @@ use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Entity\Subscription;
 use App\Domain\Subscription\Exception\SubscriptionAlreadyExistsException;
 use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
-use App\Domain\Subscription\VO\SubscriptionNameVO;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
 use JsonException;
 use Psl\Collection\MutableMap;
@@ -132,28 +131,28 @@ final readonly class SubscriptionsMap
     /**
      * Check map contains subscription with specific name
      *
-     * @param SubscriptionNameVO $subscriptionName Subscription name
+     * @param NonEmptyStringVO $subscriptionName Subscription name
      *
      * @return bool True if contains
      */
-    public function containsSubscriptionName(SubscriptionNameVO $subscriptionName): bool
+    public function containsSubscriptionName(NonEmptyStringVO $subscriptionName): bool
     {
-        return $this->map->contains($subscriptionName->getName());
+        return $this->map->contains($subscriptionName->getValue());
     }
 
 
     /**
      * Get subscription with specific name
      *
-     * @param SubscriptionNameVO $subscriptionName Subscription name
+     * @param NonEmptyStringVO $subscriptionName Subscription name
      *
      * @return Subscription Subscription with provided name
      *
      * @throws SubscriptionNotFoundException If subscription with provided name not found
      */
-    public function getSubscriptionByName(SubscriptionNameVO $subscriptionName): Subscription
+    public function getSubscriptionByName(NonEmptyStringVO $subscriptionName): Subscription
     {
-        $subscription = $this->map->get($subscriptionName->getName());
+        $subscription = $this->map->get($subscriptionName->getValue());
 
         if ($subscription === null) throw new SubscriptionNotFoundException();
 

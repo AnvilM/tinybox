@@ -13,7 +13,6 @@ use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Entity\Subscription;
 use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
 use App\Domain\Subscription\Factory\FromRawSubscription\FromRawSubscriptionFactory;
-use App\Domain\Subscription\VO\SubscriptionNameVO;
 
 final class GetSubscriptionWithNameRepository extends Shared\SubscriptionRepository
 {
@@ -32,6 +31,6 @@ final class GetSubscriptionWithNameRepository extends Shared\SubscriptionReposit
      */
     public function get(NonEmptyStringVO $subscriptionName): Subscription
     {
-        return $this->getSubscriptionsList()->getSubscriptionByName(SubscriptionNameVO::fromNonEmptyString($subscriptionName));
+        return $this->getSubscriptionsList()->getSubscriptionByName($subscriptionName);
     }
 }

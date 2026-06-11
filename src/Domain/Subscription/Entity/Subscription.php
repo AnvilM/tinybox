@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Domain\Subscription\Entity;
 
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
-use App\Domain\Subscription\VO\SubscriptionNameVO;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
 
 abstract class Subscription
@@ -35,7 +34,7 @@ abstract class Subscription
     /**
      * Get clone of subscription name as value object
      *
-     * @return SubscriptionNameVO Subscription name value object
+     * @return NonEmptyStringVO Subscription name value object
      */
     public function getNameVO(): NonEmptyStringVO
     {

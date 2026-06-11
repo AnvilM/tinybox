@@ -15,9 +15,8 @@ use App\Commands\AbstractCommand;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
-use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
+use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
-use App\Domain\Subscription\VO\SubscriptionNameVO;
 use InvalidArgumentException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
@@ -49,8 +48,8 @@ final class UpdateSubscriptionCommand extends AbstractCommand
             /**
              * Create subscription name
              */
-            $subscriptionName = new SubscriptionNameVO($input->getArgument('name'));
-        } catch (InvalidSubscriptionNameException) {
+            $subscriptionName = new NonEmptyStringVO($input->getArgument('name'));
+        } catch (InvalidArgumentException) {
             throw new CriticalException("Invalid subscription name provided");
         }
 
