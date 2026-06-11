@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Services\Subscription\CreateSubscription\Command;
+namespace App\Domain\Subscription\VO\RawSubscription;
 
-final readonly class CreateSubscriptionCommand
+abstract readonly class RawSubscriptionVO
 {
     public function __construct(
         public string $name,
         public string $url,
+        public string $type
     )
     {
     }

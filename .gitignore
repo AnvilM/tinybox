@@ -9,3 +9,5 @@ composer.lock
 .env
 
 build
+
+build.sh

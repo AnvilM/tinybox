@@ -7,10 +7,10 @@ namespace App\Application\Subscription\UseCase\GetSubscriptionWithName;
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Domain\Shared\Exception\CriticalException;
+use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Entity\Subscription;
-use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
 use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
-use App\Domain\Subscription\VO\SubscriptionNameVO;
+use InvalidArgumentException;
 
 final readonly class GetSubscriptionWithNameUseCase
 {
@@ -30,8 +30,8 @@ final readonly class GetSubscriptionWithNameUseCase
          * Try to create subscription name
          */
         try {
-            $subscriptionName = new SubscriptionNameVO($subscriptionName);
-        } catch (InvalidSubscriptionNameException) {
+            $subscriptionName = new NonEmptyStringVO($subscriptionName);
+        } catch (InvalidArgumentException) {
             throw new CriticalException("Invalid subscription name provided", $subscriptionName);
         }
 

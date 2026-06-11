@@ -1,67 +1,105 @@
-FROM php:8.4-cli-alpine3.23 AS pharbuilder
-
+FROM php:8.5-cli-alpine AS pharbuilder
 
 WORKDIR /app
 
-
-# Installing composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+RUN wget -q -O /usr/local/bin/box \
+        "https://github.com/box-project/box/releases/latest/download/box.phar" \
+    && chmod +x /usr/local/bin/box
 
-# Installing box
-RUN wget -O box.phar "https://github.com/box-project/box/releases/latest/download/box.phar" \
-  && chmod +x box.phar 
+COPY ../composer.json composer.lock ./
+RUN composer install \
+        --no-dev \
+        --classmap-authoritative \
+        --no-scripts \
+        --no-plugins \
+        --no-interaction \
+        --ignore-platform-reqs \
+        --quiet
 
+COPY ../box.json ./
 
-# Copying composer.json
-COPY composer.json ./
+COPY ../app ./app
+COPY ../src ./src
+COPY ../tinybox.php ./tinybox.php
 
-
-# Installing packages
-RUN composer install --optimize-autoloader --no-dev \
-    --ignore-platform-req=ext-bcmath \
-    --ignore-platform-req=ext-intl
-
-
-# Copying src
-COPY app ./app
-COPY src ./src
-COPY tinybox.php ./
-
-
-# Copying box config
-COPY box.json ./
+RUN php -d phar.readonly=0 /usr/local/bin/box compile
 
 
-# Building phar
-RUN ./box.phar compile
+FROM alpine:3.21 AS spcbuilder
 
-FROM php:8.4-cli-alpine3.23 AS pscbuilder
+WORKDIR /spc
 
+RUN apk add --no-cache \
+        bash \
+        curl \
+        wget \
+        git \
+        zip \
+        unzip \
+        tar \
+        xz \
+        make \
+        cmake \
+        ninja \
+        autoconf \
+        automake \
+        libtool \
+        pkgconf \
+        patch \
+        bison \
+        flex \
+        re2c \
+        perl \
+        python3 \
+        g++ \
+        gcc \
+        musl-dev \
+        linux-headers \
+        upx
 
-WORKDIR /app
+RUN curl -fsSL \
+        -o ./spc \
+        "https://dl.static-php.dev/static-php-cli/spc-bin/nightly/spc-linux-x86_64" \
+    && chmod +x ./spc
 
-
-# Installing spc
-RUN wget -qO- https://dl.static-php.dev/static-php-cli/spc-bin/nightly/spc-linux-x86_64.tar.gz | tar -xz
-RUN chmod +x ./spc
-RUN ./spc download php-src --for-extensions "iconv,phar,zlib,bcmath,intl,filter" --with-php=8.4
-RUN ./spc install-pkg upx
 RUN ./spc doctor --auto-fix
-RUN ./spc build --build-micro "iconv,phar,zlib,bcmath,intl,filter" --with-upx-pack
+
+ARG PHP_VERSION=8.5
+ARG EXTENSIONS="bcmath,curl,iconv,intl,mbstring,openssl,sodium,phar,zlib,filter"
+
+RUN ./spc download \
+        --for-extensions="${EXTENSIONS}" \
+        --with-php="${PHP_VERSION}" \
+        --prefer-pre-built
+
+RUN ./spc install-pkg upx
+
+RUN ./spc build "${EXTENSIONS}" \
+        --build-micro \
+        --with-upx-pack
 
 
-# Copying phar
-COPY --from=pharbuilder /build/artifact.phar ./artifact.phar
+
+FROM alpine:3.21 AS combiner
+
+WORKDIR /out
+
+COPY --from=spcbuilder /spc/buildroot/bin/micro.sfx ./micro.sfx
+COPY --from=pharbuilder /build/app.phar ./app.phar
+
+ARG APP_NAME=app
+ARG VERSION=dev
+
+RUN cat micro.sfx app.phar > "${APP_NAME}-${VERSION}-linux-x86_64" \
+    && chmod +x "${APP_NAME}-${VERSION}-linux-x86_64"
 
 
-# Building binary
-RUN ./spc micro:combine artifact.phar --output=artifact
 
 FROM scratch AS export
 
+ARG APP_NAME=app
+ARG VERSION=dev
 
-ARG VERSION
-
-
-COPY --from=pscbuilder /app/artifact /tinybox-${VERSION}-linux64
+COPY --from=combiner /out/${APP_NAME}-${VERSION}-linux-x86_64 /${APP_NAME}-${VERSION}-linux-x86_64

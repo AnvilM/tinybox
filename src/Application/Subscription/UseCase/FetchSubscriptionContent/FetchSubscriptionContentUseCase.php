@@ -8,6 +8,7 @@ use App\Application\Exception\Subscription\FetchSubscriptionContent\UnsupportedS
 use App\Application\Subscription\DTO\FetchSubscriptionContent\SubscriptionContentDTO;
 use App\Application\Subscription\DTO\FetchSubscriptionContent\SubscriptionContentTypeDTO;
 use App\Domain\Shared\Exception\HTTP\HttpException;
+use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\Http\HttpPort;
 use App\Domain\Shared\Ports\String\Encoding\StringEncodingDetectorPort;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
@@ -24,6 +25,7 @@ final readonly class FetchSubscriptionContentUseCase
     public function __construct(
         private HttpPort                   $httpPort,
         private StringEncodingDetectorPort $stringEncodingDetectorPort,
+        private ConfigInstancePort         $configInstancePort
     )
     {
     }
@@ -45,7 +47,8 @@ final readonly class FetchSubscriptionContentUseCase
          * Try to load outbounds
          */
         try {
-            $rawEncodedSubscriptionContent = $this->httpPort->get(10.0, $subscriptionUrl->getUrl())
+            $rawEncodedSubscriptionContent = $this->httpPort
+                ->get((float)$this->configInstancePort->get()->subscriptionsConfig->timeout, $subscriptionUrl->getUrl())
                 ->getBody()
                 ->getContents();
         } catch (RuntimeException) {
@@ -73,11 +76,11 @@ final readonly class FetchSubscriptionContentUseCase
         /**
          * Get subscription content format
          */
-        if ($this->isSchemesFormat($rawSubscriptionContent))
-            $subscriptionContentFormat = SubscriptionContentTypeDTO::SCHEMES;
-
-        else if ($this->isConfigFormat($rawSubscriptionContent))
+        if ($this->isConfigFormat($rawSubscriptionContent))
             $subscriptionContentFormat = SubscriptionContentTypeDTO::CONFIG;
+
+        else if ($this->isSchemesFormat($rawSubscriptionContent))
+            $subscriptionContentFormat = SubscriptionContentTypeDTO::SCHEMES;
 
         else throw new UnsupportedSubscriptionContentFormatException("Unsupported subscription content format");
 
@@ -88,13 +91,13 @@ final readonly class FetchSubscriptionContentUseCase
         );
     }
 
-    private function isSchemesFormat(string $subscriptionContent): bool
-    {
-        return str_contains($subscriptionContent, '://');
-    }
-
     private function isConfigFormat(string $subscriptionContent): bool
     {
         return json_validate($subscriptionContent);
+    }
+
+    private function isSchemesFormat(string $subscriptionContent): bool
+    {
+        return str_contains($subscriptionContent, '://');
     }
 }

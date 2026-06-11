@@ -6,6 +6,7 @@ namespace App\Application\Repository\Subscription;
 
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Repository\Outbound\GetOutboundsListRepository;
+use App\Application\Repository\Subscription\Shared\Builder\RawSubscriptionVOBuilder;
 use App\Application\Repository\Subscription\Shared\File\ReadSubscriptions;
 use App\Application\Repository\Subscription\Shared\File\WriteSubscriptions;
 use App\Application\Repository\Subscription\Shared\SubscriptionRepository;
@@ -13,12 +14,13 @@ use App\Application\Repository\Subscription\Shared\Validator\SubscriptionsListFo
 use App\Domain\Subscription\Collection\SubscriptionsMap;
 use App\Domain\Subscription\Entity\Subscription;
 use App\Domain\Subscription\Exception\SubscriptionAlreadyExistsException;
+use App\Domain\Subscription\Factory\FromRawSubscription\FromRawSubscriptionFactory;
 
 final class AddSubscriptionRepository extends SubscriptionRepository
 {
-    public function __construct(ReadSubscriptions $readSubscriptions, SubscriptionsListFormatValidator $subscriptionsListFormatValidator, GetOutboundsListRepository $getOutboundsList, WriteSubscriptions $writeSubscriptions)
+    public function __construct(ReadSubscriptions $readSubscriptions, SubscriptionsListFormatValidator $subscriptionsListFormatValidator, GetOutboundsListRepository $getOutboundsList, WriteSubscriptions $writeSubscriptions, RawSubscriptionVOBuilder $rawSubscriptionVOBuilder, FromRawSubscriptionFactory $fromRawSubscriptionFactory)
     {
-        parent::__construct($readSubscriptions, $subscriptionsListFormatValidator, $getOutboundsList, $writeSubscriptions);
+        parent::__construct($readSubscriptions, $subscriptionsListFormatValidator, $writeSubscriptions, $rawSubscriptionVOBuilder, $fromRawSubscriptionFactory);
     }
 
     /**

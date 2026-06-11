@@ -4,65 +4,19 @@ declare(strict_types=1);
 
 namespace App\Domain\Subscription\Entity;
 
-use App\Domain\Group\Entity\Group;
-use App\Domain\Outbound\Collection\UniqueOutboundsMap;
-use App\Domain\Subscription\VO\SubscriptionNameVO;
+use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
 
-final class Subscription
+abstract class Subscription
 {
     private SubscriptionURLVO $url;
 
-    private Group $group;
+    private NonEmptyStringVO $name;
 
-    public function __construct(SubscriptionNameVO $name, SubscriptionURLVO $url, UniqueOutboundsMap $outbounds)
+    public function __construct(NonEmptyStringVO $name, SubscriptionURLVO $url)
     {
         $this->url = $url;
-        $this->group = new Group($name, $outbounds);
-    }
-
-
-    /**
-     * Get subscription name as string
-     *
-     * @return string Subscription name as string
-     */
-    public function getNameString(): string
-    {
-        return $this->group->getNameString();
-    }
-
-
-    /**
-     * Get subscription url
-     *
-     * @return string
-     */
-    public function getUrl(): string
-    {
-        return $this->url->getUrl();
-    }
-
-
-    /**
-     * Get subscription outbounds value object
-     *
-     * @return UniqueOutboundsMap Subscription outbounds
-     */
-    public function getOutbounds(): UniqueOutboundsMap
-    {
-        return $this->group->getOutbounds();
-    }
-
-
-    /**
-     * Set subscription outbounds
-     *
-     * @param UniqueOutboundsMap $outbounds Subscription outbounds
-     */
-    public function setOutbounds(UniqueOutboundsMap $outbounds): void
-    {
-        $this->group->setOutbounds($outbounds);
+        $this->name = $name;
     }
 
 
@@ -80,10 +34,40 @@ final class Subscription
     /**
      * Get clone of subscription name as value object
      *
-     * @return SubscriptionNameVO Subscription name value object
+     * @return NonEmptyStringVO Subscription name value object
      */
-    public function getNameVO(): SubscriptionNameVO
+    public function getNameVO(): NonEmptyStringVO
     {
-        return SubscriptionNameVO::fromNonEmptyString($this->group->getName());
+        return $this->name;
+    }
+
+
+    /**
+     * Convert subscription to array
+     *
+     * @return array Subscription as array
+     */
+    public abstract function toArray(): array;
+
+
+    /**
+     * Get subscription name as string
+     *
+     * @return string Subscription name as string
+     */
+    public function getNameString(): string
+    {
+        return $this->name->getValue();
+    }
+
+
+    /**
+     * Get subscription url
+     *
+     * @return string
+     */
+    public function getUrl(): string
+    {
+        return $this->url->getUrl();
     }
 }

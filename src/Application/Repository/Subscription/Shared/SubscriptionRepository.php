@@ -7,24 +7,20 @@ namespace App\Application\Repository\Subscription\Shared;
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Exception\Repository\Shared\UnableToSaveListException;
 use App\Application\Exception\Repository\Subscription\Validator\InvalidSubscriptionsListFormatException;
-use App\Application\Repository\Outbound\GetOutboundsListRepository;
+use App\Application\Repository\Subscription\Shared\Builder\RawSubscriptionVOBuilder;
 use App\Application\Repository\Subscription\Shared\File\ReadSubscriptions;
 use App\Application\Repository\Subscription\Shared\File\WriteSubscriptions;
 use App\Application\Repository\Subscription\Shared\Validator\SubscriptionsListFormatValidator;
-use App\Domain\Outbound\Collection\UniqueOutboundsMap;
-use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
-use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
 use App\Domain\Subscription\Collection\SubscriptionsMap;
-use App\Domain\Subscription\Entity\Subscription;
-use App\Domain\Subscription\Exception\InvalidSubscriptionNameException;
 use App\Domain\Subscription\Exception\InvalidSubscriptionURLException;
 use App\Domain\Subscription\Exception\SubscriptionAlreadyExistsException;
-use App\Domain\Subscription\VO\SubscriptionNameVO;
-use App\Domain\Subscription\VO\SubscriptionURLVO;
+use App\Domain\Subscription\Exception\UnsupportedSubscriptionTypeException;
+use App\Domain\Subscription\Factory\FromRawSubscription\FromRawSubscriptionFactory;
+use InvalidArgumentException;
 
 class SubscriptionRepository
 {
@@ -34,8 +30,9 @@ class SubscriptionRepository
     public function __construct(
         private readonly ReadSubscriptions                $readSubscriptions,
         private readonly SubscriptionsListFormatValidator $subscriptionsListFormatValidator,
-        private readonly GetOutboundsListRepository       $getOutboundsList,
         private readonly WriteSubscriptions               $writeSubscriptions,
+        private readonly RawSubscriptionVOBuilder         $rawSubscriptionVOBuilder,
+        private readonly FromRawSubscriptionFactory       $fromRawSubscriptionFactory,
     )
     {
     }
@@ -76,60 +73,21 @@ class SubscriptionRepository
 
 
         /**
-         * Try to read outbounds
-         */
-        $outbounds = $this->getOutboundsList->getOutboundsList();
-
-
-        /**
          * Create empty subscriptions map
          */
         $subscriptions = new SubscriptionsMap();
 
         foreach ($rawSubscriptionsList as $rawSubscription) {
             /**
-             * Create empty subscription outbounds map
-             */
-            $subscriptionOutbounds = new UniqueOutboundsMap();
-
-
-            foreach ($rawSubscription['outbounds'] as $rawSubscriptionOutbound) {
-                /**
-                 * Try to find outbound with specific id
-                 */
-                try {
-                    $outbound = $outbounds->getWithId($rawSubscriptionOutbound);
-                } catch (OutboundNotFoundException) {
-                    continue;
-                    //TODO: Add reporter event
-                }
-
-
-                /**
-                 * Try to add found outbound to subscription outbounds map
-                 */
-                try {
-                    $subscriptionOutbounds->add($outbound);
-                } catch (OutboundAlreadyExistsException) {
-                    continue;
-                    //TODO: Add reporter event
-                }
-
-            }
-
-
-            /**
              * Try to add subscription to subscriptions map
              */
             try {
                 $subscriptions->add(
-                    new Subscription(
-                        new SubscriptionNameVO($rawSubscription['name']),
-                        new SubscriptionURLVO($rawSubscription['url']),
-                        $subscriptionOutbounds
+                    $this->fromRawSubscriptionFactory->fromRawSubscriptionVO(
+                        $this->rawSubscriptionVOBuilder->build($rawSubscription)
                     )
                 );
-            } catch (SubscriptionAlreadyExistsException|InvalidSubscriptionNameException|InvalidSubscriptionURLException) {
+            } catch (SubscriptionAlreadyExistsException|InvalidSubscriptionURLException|UnsupportedSubscriptionTypeException|InvalidArgumentException) {
                 continue;
                 //TODO: Add reporter event
             }

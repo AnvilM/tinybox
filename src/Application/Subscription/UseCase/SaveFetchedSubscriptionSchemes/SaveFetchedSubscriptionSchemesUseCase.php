@@ -14,9 +14,9 @@ use App\Application\Shared\Scheme\CreateSchemeEntityFromString\CreateSchemeEntit
 use App\Domain\Outbound\Collection\UniqueOutboundsMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
-use App\Domain\Subscription\Entity\Subscription;
+use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
+use App\Domain\Subscription\Entity\OutboundsSubscription;
 use App\Domain\Subscription\Exception\SubscriptionAlreadyExistsException;
-use App\Domain\Subscription\VO\SubscriptionNameVO;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
 use InvalidArgumentException;
 use Throwable;
@@ -35,7 +35,7 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
     /**
      * Parse and save fetched subscription schemes and subscription
      *
-     * @param SubscriptionNameVO $subscriptionName Subscription name
+     * @param NonEmptyStringVO $subscriptionName Subscription name
      * @param SubscriptionURLVO $subscriptionUrl Subscription Url
      * @param string $fetchedSchemesString Fetched schemes as plain text
      *
@@ -44,7 +44,7 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
      * @throws UnableToGetListException If unable to get list of subscriptions or outbounds
      * @throws UnableToSaveListException If unable to save subscriptions list or outbounds list
      */
-    public function handle(SubscriptionNameVO $subscriptionName, SubscriptionURLVO $subscriptionUrl, string $fetchedSchemesString): void
+    public function handle(NonEmptyStringVO $subscriptionName, SubscriptionURLVO $subscriptionUrl, string $fetchedSchemesString): void
     {
 
         /**
@@ -104,7 +104,7 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
         /**
          * Try to add new subscription and save subscriptions list
          */
-        $this->addSubscriptionRepository->add(new Subscription(
+        $this->addSubscriptionRepository->add(new OutboundsSubscription(
             $subscriptionName,
             $subscriptionUrl,
             $outbounds
