@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Subscription\VO;
+namespace App\Domain\Subscription\VO\RawSubscription;
 
 final readonly class RawConfigSubscriptionVO extends RawSubscriptionVO
 {

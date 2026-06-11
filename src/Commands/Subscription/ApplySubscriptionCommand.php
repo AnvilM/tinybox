@@ -19,6 +19,7 @@ use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
+use App\Domain\Subscription\Entity\ConfigSubscription;
 use Psl\Collection\Vector;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
@@ -45,10 +46,17 @@ final class ApplySubscriptionCommand extends AbstractCommand
 
     protected function handle(InputInterface $input, OutputInterface $output): int
     {
-
         $subscription = $this->getSubscriptionWithNameUseCase->handle(
             $input->getArgument('name')
         );
+
+        if ($subscription instanceof ConfigSubscription) {
+            $this->saveSingBoxConfigUseCase->handle(new SaveSingBoxConfigDTO($subscription->getConfigString()));
+
+            $this->restartSingBoxServiceUseCase->handle();
+
+            return self::SUCCESS;
+        }
 
         if ($subscription->getOutbounds()->isEmpty()) throw new CriticalException("Not found schemes for subscription");
 

@@ -18,30 +18,50 @@ final readonly class SubscriptionsListFormatValidator
     )
     {
         $this->schema = <<<'JSON'
-            {
+{
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "type": "string"
+            },
+            "url": {
+                "type": "string",
+                "format": "uri"
+            },
+            "type": {
+                "type": "string"
+            },
+            "outbounds": {
                 "type": "array",
                 "items": {
-                    "type": "object",
-                    "properties": {
-                        "name": {
-                            "type": "string"
-                        },
-                        "url": {
-                            "type": "string",
-                            "format": "uri"
-                        },
-                        "outbounds": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "required": ["name", "url", "outbounds"],
-                    "additionalProperties": false
+                    "type": "string"
+                }
+            },
+            "config": {
+                "type": "string"
+            }
+        },
+        "required": ["name", "url", "type"],
+        "oneOf": [
+            {
+                "required": ["outbounds"],
+                "properties": {
+                    "config": false
+                }
+            },
+            {
+                "required": ["config"],
+                "properties": {
+                    "outbounds": false
                 }
             }
-            JSON;
+        ],
+        "additionalProperties": false
+    }
+}
+JSON;
     }
 
     /**

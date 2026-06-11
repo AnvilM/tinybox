@@ -14,7 +14,7 @@ use App\Application\Shared\Scheme\CreateSchemeEntityFromString\CreateSchemeEntit
 use App\Domain\Outbound\Collection\UniqueOutboundsMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
-use App\Domain\Subscription\Entity\Subscription;
+use App\Domain\Subscription\Entity\OutboundsSubscription;
 use App\Domain\Subscription\Exception\SubscriptionAlreadyExistsException;
 use App\Domain\Subscription\VO\SubscriptionNameVO;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
@@ -104,7 +104,7 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
         /**
          * Try to add new subscription and save subscriptions list
          */
-        $this->addSubscriptionRepository->add(new Subscription(
+        $this->addSubscriptionRepository->add(new OutboundsSubscription(
             $subscriptionName,
             $subscriptionUrl,
             $outbounds

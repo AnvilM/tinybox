@@ -159,4 +159,15 @@ final readonly class SubscriptionsMap
 
         return $subscription;
     }
+
+
+    /**
+     * Remove subscription by name
+     *
+     * @param NonEmptyStringVO $subscriptionName Subscription name to remove
+     */
+    public function removeByName(NonEmptyStringVO $subscriptionName): void
+    {
+        $this->map->remove($subscriptionName->getValue());
+    }
 }

@@ -9,6 +9,7 @@ use App\Application\Exception\Subscription\FetchSubscriptionContent\UnsupportedS
 use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Application\Subscription\DTO\FetchSubscriptionContent\SubscriptionContentTypeDTO;
 use App\Application\Subscription\UseCase\FetchSubscriptionContent\FetchSubscriptionContentUseCase;
+use App\Application\Subscription\UseCase\SaveFetchedSubscriptionConfig\SaveFetchedSubscriptionConfigUseCase;
 use App\Application\Subscription\UseCase\SaveFetchedSubscriptionSchemes\SaveFetchedSubscriptionSchemesUseCase;
 use App\Commands\AbstractCommand;
 use App\Domain\Shared\Exception\CriticalException;
@@ -33,6 +34,7 @@ final class CreateSubscriptionCommand extends AbstractCommand
         private readonly GetSubscriptionListRepository         $getSubscriptionListRepository,
         private readonly FetchSubscriptionContentUseCase       $fetchSubscriptionContentUseCase,
         private readonly SaveFetchedSubscriptionSchemesUseCase $saveFetchedSubscriptionSchemesUseCase,
+        private readonly SaveFetchedSubscriptionConfigUseCase  $saveFetchedSubscriptionConfigUseCase,
     )
     {
         parent::__construct($reporterPort, $configInstancePort);
@@ -95,7 +97,7 @@ final class CreateSubscriptionCommand extends AbstractCommand
         if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::SCHEMES)
             $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscriptionUrl, $subscriptionContent->content);
         else if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::CONFIG) {
-            // TODO: Add config logic
+            $this->saveFetchedSubscriptionConfigUseCase->handle($subscriptionName, $subscriptionUrl, $subscriptionContent->content);
         }
 
 

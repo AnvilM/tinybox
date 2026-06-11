@@ -7,6 +7,7 @@ namespace App\Domain\Subscription\Entity;
 use App\Domain\Group\Entity\Group;
 use App\Domain\Outbound\Collection\UniqueOutboundsMap;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
+use App\Domain\Subscription\VO\SubscriptionTypeVO;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
 
 final class OutboundsSubscription extends Subscription
@@ -41,11 +42,11 @@ final class OutboundsSubscription extends Subscription
         return [
             'name' => $this->getNameString(),
             'url' => $this->getUrl(),
-            'type' => 'outbounds',
+            'type' => SubscriptionTypeVO::Outbounds->value,
             'outbounds' => $this->getOutbounds()->getIds()->toArray(),
         ];
     }
-    
+
 
     /**
      * Get subscription outbounds value object
