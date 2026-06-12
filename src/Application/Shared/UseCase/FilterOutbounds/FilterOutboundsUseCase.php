@@ -35,7 +35,9 @@ final readonly class FilterOutboundsUseCase
         $excludeCountrySpecification = $DTO->filterExcludeCountryCodesDTO
             ? $this->createExcludeCountrySpecification(
                 $DTO->outboundsMap, $DTO->filterExcludeCountryCodesDTO->excludeCountryCodes,
-                $DTO->filterExcludeCountryCodesDTO->force, $DTO->filterExcludeCountryCodesDTO->exceptOutbounds
+                $DTO->filterExcludeCountryCodesDTO->outboundIpFallback,
+                $DTO->filterExcludeCountryCodesDTO->exceptOutbounds,
+                $DTO->filterExcludeCountryCodesDTO->onlyAvailable
             ) : null;
 
 
@@ -53,7 +55,9 @@ final readonly class FilterOutboundsUseCase
         $countryCodeSpecification = $DTO->filterCountryCodesDTO
             ? $this->createCountryCodeSpecification(
                 $DTO->outboundsMap, $DTO->filterCountryCodesDTO->countryCodes,
-                $DTO->filterCountryCodesDTO->force, $DTO->filterCountryCodesDTO->exceptOutbounds
+                $DTO->filterCountryCodesDTO->outboundIpFallback,
+                $DTO->filterCountryCodesDTO->exceptOutbounds,
+                $DTO->filterCountryCodesDTO->onlyAvailable
             ) : null;
 
 
@@ -70,15 +74,16 @@ final readonly class FilterOutboundsUseCase
     /**
      * @throws CriticalException
      */
-    private function createExcludeCountrySpecification(OutboundMap $outboundsMap, VectorInterface $excludeCountry, bool $force, ?VectorInterface $exceptOutbounds): OutboundExcludeCountryCodeSpecification
+    private function createExcludeCountrySpecification(OutboundMap $outboundsMap, VectorInterface $excludeCountry, bool $outboundIpFallback, ?VectorInterface $exceptOutbounds, bool $onlyAvailable): OutboundExcludeCountryCodeSpecification
     {
         try {
-            $outboundsCountryCodes = $this->outboundCountyCodePort->getCountryCodes($outboundsMap, $force);
+            $outboundsCountryCodes = $this->outboundCountyCodePort->getCountryCodes($outboundsMap, $outboundIpFallback);
 
             return new OutboundExcludeCountryCodeSpecification(
                 $outboundsCountryCodes,
                 $excludeCountry,
                 $exceptOutbounds,
+                $onlyAvailable
             );
         } catch (CompositeException $e) {
             throw new CriticalException("Cant get outbounds ip's", $e->getMessage());
@@ -94,17 +99,18 @@ final readonly class FilterOutboundsUseCase
     /**
      * @throws CriticalException
      */
-    public function createCountryCodeSpecification(OutboundMap $outboundsMap, VectorInterface $countryCodes, bool $force, ?VectorInterface $exceptOutbounds): OutboundCountryCodeSpecification
+    public function createCountryCodeSpecification(OutboundMap $outboundsMap, VectorInterface $countryCodes, bool $outboundIpFallback, ?VectorInterface $exceptOutbounds, bool $onlyAvailable): OutboundCountryCodeSpecification
     {
 
         try {
-            $outboundsCountryCodes = $this->outboundCountyCodePort->getCountryCodes($outboundsMap, $force);
+            $outboundsCountryCodes = $this->outboundCountyCodePort->getCountryCodes($outboundsMap, $outboundIpFallback);
 
 
             return new OutboundCountryCodeSpecification(
                 $outboundsCountryCodes,
                 $countryCodes,
                 $exceptOutbounds,
+                $onlyAvailable
             );
         } catch (CompositeException $e) {
             throw new CriticalException("Cant get outbounds ip's", $e->getMessage());

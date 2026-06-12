@@ -12,12 +12,13 @@ final readonly class FilterExcludeCountryCodesDTO
     /**
      * @param VectorInterface<string> $excludeCountryCodes Exclude outbounds with ips in provided countries
      * @param null|VectorInterface<Outbound> $exceptOutbounds Except outbounds to exclude
-     * @param bool $force Check outbound ip if it unavailable instead of check real outbound ip
+     * @param bool $outboundIpFallback Check outbound ip if it unavailable instead of check real outbound ip
      */
     public function __construct(
         public VectorInterface  $excludeCountryCodes,
         public ?VectorInterface $exceptOutbounds = null,
-        public bool             $force = false
+        public bool             $outboundIpFallback = false,
+        public bool             $onlyAvailable = false
     )
     {
     }

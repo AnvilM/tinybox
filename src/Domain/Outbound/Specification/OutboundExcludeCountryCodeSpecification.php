@@ -15,11 +15,13 @@ final readonly class OutboundExcludeCountryCodeSpecification implements Outbound
      * @param MutableMap<string, string> $outboundsCountryCode
      * @param VectorInterface<string> $countryCodes
      * @param VectorInterface<string>|null $exceptOutbounds
+     * @param bool $onlyAvailable
      */
     public function __construct(
         private MutableMap       $outboundsCountryCode,
         private VectorInterface  $countryCodes,
-        private ?VectorInterface $exceptOutbounds
+        private ?VectorInterface $exceptOutbounds,
+        private bool             $onlyAvailable
     )
     {
     }
@@ -47,6 +49,6 @@ final readonly class OutboundExcludeCountryCodeSpecification implements Outbound
             }
         }
 
-        return true;
+        return !$this->onlyAvailable;
     }
 }

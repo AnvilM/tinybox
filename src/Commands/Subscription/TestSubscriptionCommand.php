@@ -61,14 +61,16 @@ final class TestSubscriptionCommand extends AbstractCommand
             $filterCountryCodesDTO = new FilterCountryCodesDTO(
                 new Vector($input->getOption('countryCode')),
                 $input->getOption('exceptCountryCode') ? new Vector($input->getOption('exceptCountryCode')) : null,
-                $input->getOption('countryCodeForce')
+                $input->getOption('countryCodeForce'),
+                $input->getOption('countryOnlyAvailable')
             );
 
         if ($input->getOption('excludeCountryCode'))
             $filterExcludeCountryCodesDTO = new FilterExcludeCountryCodesDTO(
                 new Vector($input->getOption('excludeCountryCode')),
                 $input->getOption('exceptExcludeCountryCode') ? new Vector($input->getOption('exceptExcludeCountryCode')) : null,
-                $input->getOption('excludeCountryCodeForce')
+                $input->getOption('excludeCountryCodeForce'),
+                $input->getOption('excludeCountryOnlyAvailable')
             );
 
         if (isset($filterCountryCodesDTO) || isset($filterExcludeCountryCodesDTO))
@@ -96,7 +98,8 @@ final class TestSubscriptionCommand extends AbstractCommand
             $table[] = [
                 'type' => $ol->outbound->getType()->value,
                 'tag' => $ol->outbound->getTagString(),
-                'latency' => $ol->latency ?? 'N/A'
+                'latency' => $ol->latency ?? 'N/A',
+                'ip' => $ol->outbound->getServer()
             ];
         }
 
@@ -116,6 +119,9 @@ final class TestSubscriptionCommand extends AbstractCommand
             ->addOption('excludeCountryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY)
             ->addOption('exceptExcludeCountryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY)
             ->addOption('excludeCountryCodeForce', null, InputOption::VALUE_NONE)
-            ->addOption('detour', null, InputOption::VALUE_OPTIONAL);
+            ->addOption('detour', null, InputOption::VALUE_OPTIONAL)
+            ->addOption('excludeCountryOnlyAvailable', null, InputOption::VALUE_NONE)
+            ->addOption('countryOnlyAvailable', null, InputOption::VALUE_NONE);
+
     }
 }

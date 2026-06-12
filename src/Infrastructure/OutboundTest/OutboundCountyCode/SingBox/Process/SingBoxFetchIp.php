@@ -61,6 +61,7 @@ final readonly class SingBoxFetchIp
                 ))->catch(function () {
                 })->await();
 
+                echo $outbound->getTagString() . " => " . $ip->getIp() . "\n";
                 return $ip;
             };
         }

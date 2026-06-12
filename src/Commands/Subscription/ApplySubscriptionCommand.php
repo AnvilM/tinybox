@@ -70,7 +70,8 @@ final class ApplySubscriptionCommand extends AbstractCommand
             $filterCountryCodesDTO = new FilterExcludeCountryCodesDTO(
                 new Vector($input->getOption('excludeCountryCode')),
                 $input->getOption('excludeCountryCodeExcept') ? new Vector($input->getOption('excludeCountryCodeExcept')) : null,
-                $input->getOption('excludeCountryForce')
+                $input->getOption('excludeCountryOutboundIpFallback'),
+                $input->getOption('excludeCountryOnlyAvailable')
             );
 
             if (!isset($filterOutboundsDTO)) $filterOutboundsDTO = new FilterOutboundsDTO($subscriptionOutbounds, null, $filterCountryCodesDTO);
@@ -117,6 +118,7 @@ final class ApplySubscriptionCommand extends AbstractCommand
             ->addOption('urltestExclude', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, 'Scheme id, to exclude from urltest outbound')
             ->addOption('exclude', 'e', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, "Scheme id, to exclude")
             ->addOption('excludeCountryCodeExcept', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL, "Scheme id, to except in country exclude")
-            ->addOption('excludeCountryForce', null, InputOption::VALUE_NONE);
+            ->addOption('excludeCountryOutboundIpFallback', null, InputOption::VALUE_NONE)
+            ->addOption('excludeCountryOnlyAvailable', null, InputOption::VALUE_NONE);
     }
 }

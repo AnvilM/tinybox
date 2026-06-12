@@ -97,17 +97,18 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
 
 
         /**
-         * Save outbounds list
-         */
-        $this->addOutboundRepository->save();
-
-        /**
-         * Try to add new subscription and save subscriptions list
+         * Add new subscription and save subscriptions list
          */
         $this->addSubscriptionRepository->add(new OutboundsSubscription(
             $subscriptionName,
             $subscriptionUrl,
             $outbounds
         ))->save();
+
+
+        /**
+         * Save outbounds list
+         */
+        $this->addOutboundRepository->save();
     }
 }
