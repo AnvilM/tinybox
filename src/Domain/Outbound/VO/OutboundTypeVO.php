@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\VO;
 
-use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
-use App\Domain\Scheme\VO\SchemeTypeVO;
+use Psl\Collection\MutableVector;
+use Psl\Collection\VectorInterface;
 
 enum OutboundTypeVO: string
 {
@@ -13,15 +13,28 @@ enum OutboundTypeVO: string
 
     case Shadowsocks = "shadowsocks";
 
+
     /**
-     * @throws UnsupportedOutboundTypeException If outbound type is unsupported
+     * Creates outbound types from their string values.
+     *
+     * NOTE: Invalid values are ignored.
+     *
+     * @param VectorInterface<string> $stringValues String values
+     *
+     * @return MutableVector<self>
      */
-    public static function fromSchemeTypeVO(SchemeTypeVO $schemeTypeVO): self
+    public static function fromStringValues(VectorInterface $stringValues): MutableVector
     {
-        return match ($schemeTypeVO) {
-            SchemeTypeVO::Vless => self::Vless,
-            SchemeTypeVO::SS => self::Shadowsocks,
-            default => throw new UnsupportedOutboundTypeException($schemeTypeVO->value),
-        };
+        $types = new MutableVector([]);
+
+        foreach ($stringValues as $stringValue) {
+            $type = self::tryFrom($stringValue);
+
+            if ($type !== null) {
+                $types->add($type);
+            }
+        }
+        
+        return $types;
     }
 }

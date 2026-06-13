@@ -60,28 +60,32 @@ final class TestSubscriptionCommand extends AbstractCommand
 
         $subscriptionOutbounds = $subscription->getOutbounds();
 
-        if ($input->getOption('countryCode'))
-            $filterCountryCodesDTO = new FilterCountryCodesDTO(
-                new Vector($input->getOption('countryCode')),
-                $input->getOption('exceptOutbound') ? new Vector($input->getOption('exceptOutbound')) : null,
-                $input->getOption('countryOutboundIpFallback'),
-                $input->getOption('countryOnlyAvailable')
-            );
 
-        if ($input->getOption('excludeCountryCode'))
-            $filterExcludeCountryCodesDTO = new FilterExcludeCountryCodesDTO(
+        /**
+         * Filter outbounds
+         */
+        $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
+            $subscriptionOutbounds,
+            ignoreOutbounds: $input->getOption('exceptOutbound') ? new Vector($input->getOption('exceptOutbound')) : null,
+            excludeOutbounds: null,
+            filterExcludeCountryCodesDTO: $input->getOption('excludeCountryCode') ? new FilterExcludeCountryCodesDTO(
                 new Vector($input->getOption('excludeCountryCode')),
-                $input->getOption('exceptOutbound') ? new Vector($input->getOption('exceptOutbound')) : null,
                 $input->getOption('countryOutboundIpFallback'),
                 $input->getOption('countryOnlyAvailable')
-            );
+            ) : null,
+            filterCountryCodesDTO: $input->getOption('countryCode') ? new FilterCountryCodesDTO(
+                new Vector($input->getOption('countryCode')),
+                $input->getOption('countryOutboundIpFallback'),
+                $input->getOption('countryOnlyAvailable')
+            ) : null,
+            filterExcludeOutboundTypes: $input->getOption('excludeOutboundType') ? new Vector($input->getOption('excludeOutboundType')) : null,
+            filterOutboundTypes: $input->getOption('outboundType') ? new Vector($input->getOption('outboundType')) : null
+        ));
 
-        if (isset($filterCountryCodesDTO) || isset($filterExcludeCountryCodesDTO))
-            $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
-                $subscriptionOutbounds, null, $filterExcludeCountryCodesDTO ?? null, $filterCountryCodesDTO ?? null
-            ));
 
-
+        /**
+         * Set detour outbound
+         */
         if ($input->getOption('detourOutbound')) try {
             $subscriptionOutbounds = $this->setOutboundsDetourUseCase->handle(new SetOutboundsDetourDTO(
                 $subscriptionOutbounds, $subscriptionOutbounds->getWithTag($input->getOption('detourOutbound'))
@@ -121,6 +125,10 @@ final class TestSubscriptionCommand extends AbstractCommand
             ->addOption('exceptOutbound', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, "One or more outbounds that will be ignored by all filters")
             ->addOption('countryOutboundIpFallback', null, InputOption::VALUE_NONE, "Use the outbound IP specified in the configuration if its real IP could not be obtained")
             ->addOption('detourOutbound', null, InputOption::VALUE_OPTIONAL, "Use the specified outbound as detour for all other outbounds")
-            ->addOption('countryOnlyAvailable', null, InputOption::VALUE_NONE, "Exclude all outbounds for which the country code could not be obtained");
+            ->addOption('countryOnlyAvailable', null, InputOption::VALUE_NONE, "Exclude all outbounds for which the country code could not be obtained")
+            ->addOption('excludeOutboundType', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL)
+            ->addOption('outboundType', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL);
+
+
     }
 }

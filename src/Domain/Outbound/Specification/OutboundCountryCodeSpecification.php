@@ -14,27 +14,18 @@ final readonly class OutboundCountryCodeSpecification implements OutboundSpecifi
     /**
      * @param MutableMap<string, string> $outboundsCountryCode
      * @param VectorInterface<string> $countryCodes
-     * @param VectorInterface<string>|null $exceptOutbounds
      * @param bool $onlyAvailable
      */
     public function __construct(
-        private MutableMap       $outboundsCountryCode,
-        private VectorInterface  $countryCodes,
-        private ?VectorInterface $exceptOutbounds,
-        private bool             $onlyAvailable
+        private MutableMap      $outboundsCountryCode,
+        private VectorInterface $countryCodes,
+        private bool            $onlyAvailable
     )
     {
     }
 
     public function isSatisfiedBy(Outbound $outbound): bool
     {
-        if ($this->exceptOutbounds) {
-            
-            foreach ($this->exceptOutbounds as $excludeOutbound) {
-                if ($excludeOutbound === $outbound->getTagString()) return true;
-            }
-        }
-
         foreach ($this->outboundsCountryCode as $outboundTag => $outboundCountryCode) {
             if ($outboundTag === $outbound->getTagString()) {
                 foreach ($this->countryCodes as $countryCode) {

@@ -8,6 +8,7 @@ use App\Domain\Interface\Outbound\OutboundSpecificationInterface;
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
+use App\Domain\Outbound\Specification\OutboundTagSpecification;
 use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
 use JsonException;
 use Psl\Collection\MutableMap;
@@ -131,48 +132,6 @@ readonly class OutboundMap
         return new Vector($this->outbounds->keys()->toArray());
     }
 
-    /**
-     * @param VectorInterface<OutboundSpecificationInterface> $specificationVector
-     *
-     * @return OutboundMap Filtered map
-     */
-    public function filter(VectorInterface $specificationVector): OutboundMap
-    {
-        $filteredMap = clone $this;
-
-        foreach ($filteredMap->getOutbounds() as $outbound) {
-            foreach ($specificationVector as $specification) {
-                /** @var OutboundSpecificationInterface $specification */
-                if (!$specification->isSatisfiedBy($outbound)) {
-                    $filteredMap->remove($outbound);
-                    continue 2;
-                }
-            }
-        }
-
-        return $filteredMap;
-    }
-
-    /**
-     * Get outbounds array
-     *
-     * @return Outbound[] Outbounds array
-     */
-    public function getOutbounds(): array
-    {
-        return $this->outbounds->toArray();
-    }
-
-    /**
-     * Remove specified outbound from map
-     *
-     * @param Outbound $outbound Outbound to remove
-     */
-    public function remove(Outbound $outbound): void
-    {
-        $this->outbounds->remove($outbound->getId());
-    }
-
     public function __clone(): void
     {
         $this->outbounds = new MutableMap($this->outbounds->toArray());
@@ -260,5 +219,81 @@ readonly class OutboundMap
     public function getMap(): MutableMap
     {
         return $this->outbounds;
+    }
+
+    /**
+     * Merge current outbounds map with provided outbounds map
+     *
+     * NOTE: All outbounds from provided outbounds map will be added to current outbounds map
+     *
+     * NOTE: If an outbound from the provided outbounds map already exists in the current outbounds map, it will be ignored.
+     *
+     * @param OutboundMap $outboundMap Outbounds map to merge with current
+     */
+    public function merge(OutboundMap $outboundMap): self
+    {
+        foreach ($outboundMap->getOutbounds() as $outbound) {
+            try {
+                $this->add($outbound);
+            } catch (OutboundAlreadyExistsException) {
+                continue;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get outbounds array
+     *
+     * @return Outbound[] Outbounds array
+     */
+    public function getOutbounds(): array
+    {
+        return $this->outbounds->toArray();
+    }
+
+    /**
+     * Returns a new collection containing only items matching the given tags.
+     *
+     * @param VectorInterface $tags Tags used to filter the collection
+     *
+     * @return OutboundMap Filtered collection
+     */
+    public function withTags(VectorInterface $tags): OutboundMap
+    {
+        return $this->filter(new Vector([new OutboundTagSpecification($tags)]));
+    }
+
+    /**
+     * @param VectorInterface<OutboundSpecificationInterface> $specificationVector
+     *
+     * @return OutboundMap Filtered map
+     */
+    public function filter(VectorInterface $specificationVector): OutboundMap
+    {
+        $filteredMap = clone $this;
+
+        foreach ($filteredMap->getOutbounds() as $outbound) {
+            foreach ($specificationVector as $specification) {
+                /** @var OutboundSpecificationInterface $specification */
+                if (!$specification->isSatisfiedBy($outbound)) {
+                    $filteredMap->remove($outbound);
+                    continue 2;
+                }
+            }
+        }
+
+        return $filteredMap;
+    }
+
+    /**
+     * Remove specified outbound from map
+     *
+     * @param Outbound $outbound Outbound to remove
+     */
+    public function remove(Outbound $outbound): void
+    {
+        $this->outbounds->remove($outbound->getId());
     }
 }
