@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Group\Entity;
 
-use App\Domain\Outbound\Collection\UniqueOutboundsMap;
+use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 
 final class Group
@@ -12,15 +12,15 @@ final class Group
 
     private readonly NonEmptyStringVO $name;
 
-    private UniqueOutboundsMap $outbounds;
+    private UniqueTagOutboundsMap $outbounds;
 
     /**
      * Constructor
      *
      * @param NonEmptyStringVO $name Group name
-     * @param UniqueOutboundsMap $outbounds Outbounds
+     * @param UniqueTagOutboundsMap $outbounds Outbounds
      */
-    public function __construct(NonEmptyStringVO $name, UniqueOutboundsMap $outbounds)
+    public function __construct(NonEmptyStringVO $name, UniqueTagOutboundsMap $outbounds)
     {
         /**
          * Set name
@@ -37,9 +37,9 @@ final class Group
     /**
      * Get outbounds
      *
-     * @return UniqueOutboundsMap Outbounds
+     * @return UniqueTagOutboundsMap Outbounds
      */
-    public function getOutbounds(): UniqueOutboundsMap
+    public function getOutbounds(): UniqueTagOutboundsMap
     {
         return $this->outbounds;
     }
@@ -47,9 +47,9 @@ final class Group
     /**
      * Set Outbound group outbounds
      *
-     * @param UniqueOutboundsMap $outbounds Outbound group outbounds
+     * @param UniqueTagOutboundsMap $outbounds Outbound group outbounds
      */
-    public function setOutbounds(UniqueOutboundsMap $outbounds): void
+    public function setOutbounds(UniqueTagOutboundsMap $outbounds): void
     {
         $this->outbounds = $outbounds;
     }

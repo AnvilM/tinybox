@@ -8,7 +8,7 @@ use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use Override;
 
-final readonly class UniqueOutboundsMap extends OutboundMap
+readonly class UniqueTagOutboundsMap extends OutboundMap
 {
     /**
      * Check outbound tag unique in map

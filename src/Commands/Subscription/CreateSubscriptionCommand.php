@@ -22,6 +22,7 @@ use InvalidArgumentException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'subscription:create', description: 'Create subscription', aliases: ['sub:create'])]
@@ -76,7 +77,7 @@ final class CreateSubscriptionCommand extends AbstractCommand
         /**
          * Check subscription with provided name or url already exists
          */
-        if ($subscriptions->containsSubscriptionUrlOrName($subscriptionUrl, $subscriptionName))
+        if ($subscriptions->containsSubscription($subscriptionName))
             throw new CriticalException("Subscription with name {$subscriptionName->getValue()} or url {$subscriptionUrl->getUrl()} already exists");
 
 
@@ -94,7 +95,7 @@ final class CreateSubscriptionCommand extends AbstractCommand
          * If subscription content type is schemes list
          */
         if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::SCHEMES)
-            $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscriptionUrl, $subscriptionContent->content);
+            $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscriptionUrl, $subscriptionContent->content, (bool)$input->getOption('skipDuplicates'));
         else if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::CONFIG) {
             $this->saveFetchedSubscriptionConfigUseCase->handle($subscriptionName, $subscriptionUrl, $subscriptionContent->content);
         }
@@ -107,7 +108,9 @@ final class CreateSubscriptionCommand extends AbstractCommand
     protected function configure(): void
     {
         $this->addArgument('name', InputArgument::REQUIRED, 'Subscription name')
-            ->addArgument('url', InputArgument::REQUIRED, 'Subscription URL');
+            ->addArgument('url', InputArgument::REQUIRED, 'Subscription URL')
+            ->addOption('skipDuplicates', 's', InputOption::VALUE_NONE);
+
     }
 
 

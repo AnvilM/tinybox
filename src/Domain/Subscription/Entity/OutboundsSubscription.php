@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Subscription\Entity;
 
 use App\Domain\Group\Entity\Group;
-use App\Domain\Outbound\Collection\UniqueOutboundsMap;
+use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\VO\SubscriptionTypeVO;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
@@ -14,7 +14,7 @@ final class OutboundsSubscription extends Subscription
 {
     private Group $group;
 
-    public function __construct(NonEmptyStringVO $name, SubscriptionURLVO $url, UniqueOutboundsMap $outbounds)
+    public function __construct(NonEmptyStringVO $name, SubscriptionURLVO $url, UniqueTagOutboundsMap $outbounds)
     {
         parent::__construct($name, $url);
 
@@ -24,9 +24,9 @@ final class OutboundsSubscription extends Subscription
     /**
      * Set subscription outbounds
      *
-     * @param UniqueOutboundsMap $outbounds Subscription outbounds
+     * @param UniqueTagOutboundsMap $outbounds Subscription outbounds
      */
-    public function setOutbounds(UniqueOutboundsMap $outbounds): void
+    public function setOutbounds(UniqueTagOutboundsMap $outbounds): void
     {
         $this->group->setOutbounds($outbounds);
     }
@@ -51,9 +51,9 @@ final class OutboundsSubscription extends Subscription
     /**
      * Get subscription outbounds value object
      *
-     * @return UniqueOutboundsMap Subscription outbounds
+     * @return UniqueTagOutboundsMap Subscription outbounds
      */
-    public function getOutbounds(): UniqueOutboundsMap
+    public function getOutbounds(): UniqueTagOutboundsMap
     {
         return $this->group->getOutbounds();
     }

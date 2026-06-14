@@ -9,9 +9,12 @@ use App\Application\Exception\Repository\Shared\UnableToSaveListException;
 use App\Application\Exception\Services\Shared\FetchSchemes\NoValidSchemesFoundException;
 use App\Application\Exception\Shared\Scheme\CreateSchemeEntityFromString\UnableToParseRawSchemeStringException;
 use App\Application\Repository\Outbound\AddOutboundRepository;
+use App\Application\Repository\Outbound\GetOutboundsListRepository;
 use App\Application\Repository\Subscription\AddSubscriptionRepository;
 use App\Application\Shared\Scheme\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
-use App\Domain\Outbound\Collection\UniqueOutboundsMap;
+use App\Domain\Outbound\Collection\UniqueTagAndContentOutboundsMap;
+use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
+use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
@@ -27,6 +30,7 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
         private CreateSchemeEntityFromStringUseCase $createSchemeEntityFromStringUseCase,
         private AddOutboundRepository               $addOutboundRepository,
         private AddSubscriptionRepository           $addSubscriptionRepository,
+        private GetOutboundsListRepository          $getOutboundsListRepository
     )
     {
     }
@@ -44,7 +48,7 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
      * @throws UnableToGetListException If unable to get list of subscriptions or outbounds
      * @throws UnableToSaveListException If unable to save subscriptions list or outbounds list
      */
-    public function handle(NonEmptyStringVO $subscriptionName, SubscriptionURLVO $subscriptionUrl, string $fetchedSchemesString): void
+    public function handle(NonEmptyStringVO $subscriptionName, SubscriptionURLVO $subscriptionUrl, string $fetchedSchemesString, bool $skipDuplicates): void
     {
 
         /**
@@ -56,7 +60,8 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
         /**
          * Create empty unique outbounds map
          */
-        $outbounds = new UniqueOutboundsMap();
+        $outbounds = $skipDuplicates ? new UniqueTagAndContentOutboundsMap() : new UniqueTagOutboundsMap();
+
 
         foreach ($schemesStrings as $schemeString) {
             /**
@@ -83,16 +88,26 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
         if ($outbounds->getMap()->isEmpty()) throw new NoValidSchemesFoundException();
 
 
-        /**
-         * Add outbounds to outbounds list
-         */
-        foreach ($outbounds->getMap() as $outbound) {
-            try {
-                $this->addOutboundRepository->add($outbound);
-            } catch (OutboundAlreadyExistsException) {
-                continue;
-                // TODO: Add reporter event
-            }
+        foreach ($outbounds->getOutbounds() as $outbound) {
+
+            /**
+             * Find duplicate of each fetched outbounds
+             */
+            $duplicate = $this->getOutboundsListRepository->getOutboundsList()->getDuplicate($outbound);
+
+
+            /**
+             * Remove duplicate from fetched outbounds and add existed outbound
+             */
+            if ($duplicate instanceof Outbound) $outbounds
+                ->remove($outbound)
+                ->add($duplicate);
+
+
+            /**
+             * Add outbound to outbounds list if duplicates not found
+             */
+            else $this->addOutboundRepository->add($outbound);
         }
 
 

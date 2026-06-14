@@ -53,6 +53,30 @@ abstract readonly class Outbound implements Equable
     public abstract function getServerPort(): ?int;
 
     /**
+     * Check if other object is equals to current
+     *
+     * @param mixed $other Other object
+     *
+     * @return bool True if equals
+     */
+    public function equals(mixed $other): bool
+    {
+        return $this->equalsContent($other) &&
+            $this->tag->equals($other->getTag());
+    }
+
+    /**
+     * Check if other object is equals to current
+     *
+     * NOTE: Check if other outbound content is equals with current (Tag not included)
+     *
+     * @param mixed $other Other object
+     *
+     * @return bool True if equals
+     */
+    public abstract function equalsContent(mixed $other): bool;
+
+    /**
      * Get outbound tag as NonEmptyString object
      *
      * @return NonEmptyStringVO Tag as NonEmptyString object
@@ -61,16 +85,6 @@ abstract readonly class Outbound implements Equable
     {
         return $this->tag;
     }
-
-    
-    /**
-     * Check if other object is equals to current
-     *
-     * @param mixed $other Other object
-     *
-     * @return bool True if equals
-     */
-    public abstract function equals(mixed $other): bool;
 
     /**
      * Get outbound id

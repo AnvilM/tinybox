@@ -86,10 +86,24 @@ readonly class OutboundMap
      */
     public function containsOutbound(Outbound $outbound): bool
     {
+        return $this->getDuplicate($outbound) !== null;
+    }
+
+
+    /**
+     * Get duplicate of provided outbound
+     *
+     * @param Outbound $outbound Outbound to find duplicate
+     *
+     * @return Outbound|null Outbound if found, null if not found
+     */
+    public function getDuplicate(Outbound $outbound): ?Outbound
+    {
         foreach ($this->outbounds->toArray() as $outboundItem) {
-            if ($outboundItem->equals($outbound)) return true;
+            if ($outboundItem->equals($outbound)) return $outboundItem;
         }
-        return false;
+
+        return null;
     }
 
     /**
@@ -292,8 +306,10 @@ readonly class OutboundMap
      *
      * @param Outbound $outbound Outbound to remove
      */
-    public function remove(Outbound $outbound): void
+    public function remove(Outbound $outbound): self
     {
         $this->outbounds->remove($outbound->getId());
+
+        return $this;
     }
 }

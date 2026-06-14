@@ -12,7 +12,7 @@ use App\Application\Repository\Group\Shared\Validator\GroupsListFormatValidator;
 use App\Application\Repository\Outbound\GetOutboundsListRepository;
 use App\Domain\Group\Entity\Group;
 use App\Domain\Group\Exception\GroupNotFoundException;
-use App\Domain\Outbound\Collection\UniqueOutboundsMap;
+use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
@@ -55,7 +55,7 @@ final class AddOutboundToGroupOrCreateNewRepository extends GroupRepository
             /**
              * Create new group and add provided outbound
              */
-            $newGroup = new Group($groupName, new UniqueOutboundsMap()->add($outbound));
+            $newGroup = new Group($groupName, new UniqueTagOutboundsMap()->add($outbound));
 
 
             /**

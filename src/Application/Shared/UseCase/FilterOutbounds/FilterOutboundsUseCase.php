@@ -6,7 +6,7 @@ namespace App\Application\Shared\UseCase\FilterOutbounds;
 
 use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Domain\Outbound\Collection\OutboundMap;
-use App\Domain\Outbound\Collection\UniqueOutboundsMap;
+use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Specification\OutboundCountryCodeSpecification;
 use App\Domain\Outbound\Specification\OutboundExcludeCountryCodeSpecification;
 use App\Domain\Outbound\Specification\OutboundExcludeTagSpecification;
@@ -31,9 +31,9 @@ final readonly class FilterOutboundsUseCase
     /**
      * @throws CriticalException
      */
-    public function handle(FilterOutboundsDTO $DTO): UniqueOutboundsMap
+    public function handle(FilterOutboundsDTO $DTO): UniqueTagOutboundsMap
     {
-        $ignoreOutbounds = $DTO->ignoreOutbounds ? $DTO->outboundsMap->withTags($DTO->ignoreOutbounds) : new UniqueOutboundsMap();
+        $ignoreOutbounds = $DTO->ignoreOutbounds ? $DTO->outboundsMap->withTags($DTO->ignoreOutbounds) : new UniqueTagOutboundsMap();
 
         /**
          * Create exclude country code specification
