@@ -19,6 +19,7 @@ use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Domain\Subscription\Entity\ConfigSubscription;
+use App\Domain\Subscription\Entity\OutboundsSubscription;
 use League\CLImate\CLImate;
 use Psl\Collection\Vector;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -52,37 +53,45 @@ final class TestSubscriptionCommand extends AbstractCommand
             throw new CriticalException("Subscription test is not available for config subscriptions");
         }
 
+        if (!($subscription instanceof OutboundsSubscription)) return self::FAILURE;
+
         if ($subscription->getOutbounds()->isEmpty()) throw new CriticalException("Not found schemes for subscription");
 
 
         $subscriptionOutbounds = $subscription->getOutbounds();
 
-        if ($input->getOption('countryCode'))
-            $filterCountryCodesDTO = new FilterCountryCodesDTO(
-                new Vector($input->getOption('countryCode')),
-                $input->getOption('exceptCountryCode') ? new Vector($input->getOption('exceptCountryCode')) : null,
-                $input->getOption('countryCodeForce')
-            );
 
-        if ($input->getOption('excludeCountryCode'))
-            $filterExcludeCountryCodesDTO = new FilterExcludeCountryCodesDTO(
+        /**
+         * Filter outbounds
+         */
+        $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
+            $subscriptionOutbounds,
+            ignoreOutbounds: $input->getOption('exceptOutbound') ? new Vector($input->getOption('exceptOutbound')) : null,
+            excludeOutbounds: null,
+            filterExcludeCountryCodesDTO: $input->getOption('excludeCountryCode') ? new FilterExcludeCountryCodesDTO(
                 new Vector($input->getOption('excludeCountryCode')),
-                $input->getOption('exceptExcludeCountryCode') ? new Vector($input->getOption('exceptExcludeCountryCode')) : null,
-                $input->getOption('excludeCountryCodeForce')
-            );
+                $input->getOption('countryOutboundIpFallback'),
+                $input->getOption('countryOnlyAvailable')
+            ) : null,
+            filterCountryCodesDTO: $input->getOption('countryCode') ? new FilterCountryCodesDTO(
+                new Vector($input->getOption('countryCode')),
+                $input->getOption('countryOutboundIpFallback'),
+                $input->getOption('countryOnlyAvailable')
+            ) : null,
+            filterExcludeOutboundTypes: $input->getOption('excludeOutboundType') ? new Vector($input->getOption('excludeOutboundType')) : null,
+            filterOutboundTypes: $input->getOption('outboundType') ? new Vector($input->getOption('outboundType')) : null
+        ));
 
-        if (isset($filterCountryCodesDTO) || isset($filterExcludeCountryCodesDTO))
-            $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
-                $subscriptionOutbounds, null, $filterExcludeCountryCodesDTO ?? null, $filterCountryCodesDTO ?? null
-            ));
 
-
-        if ($input->getOption('detour')) try {
+        /**
+         * Set detour outbound
+         */
+        if ($input->getOption('detourOutbound')) try {
             $subscriptionOutbounds = $this->setOutboundsDetourUseCase->handle(new SetOutboundsDetourDTO(
-                $subscriptionOutbounds, $subscriptionOutbounds->getWithId($input->getOption('detour'))
+                $subscriptionOutbounds, $subscriptionOutbounds->getWithTag($input->getOption('detourOutbound'))
             ));
         } catch (OutboundNotFoundException) {
-            throw new CriticalException("Outbound with tag '{$input->getOption('detour')}' not found. Try to remove filters");
+            throw new CriticalException("Outbound with tag '{$input->getOption('detourOutbound')}' not found. Try to remove filters");
         }
 
 
@@ -96,7 +105,8 @@ final class TestSubscriptionCommand extends AbstractCommand
             $table[] = [
                 'type' => $ol->outbound->getType()->value,
                 'tag' => $ol->outbound->getTagString(),
-                'latency' => $ol->latency ?? 'N/A'
+                'latency' => $ol->latency ?? 'N/A',
+                'ip' => $ol->outbound->getServer()
             ];
         }
 
@@ -110,12 +120,15 @@ final class TestSubscriptionCommand extends AbstractCommand
     {
         $this->addArgument('name', InputArgument::REQUIRED, 'Subscription name')
             ->addArgument('method', InputArgument::OPTIONAL, 'Test method e.g. proxy_get or tcp_ping. If not provided, will be used method form config')
-            ->addOption('countryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY)
-            ->addOption('exceptCountryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY)
-            ->addOption('countryCodeForce', null, InputOption::VALUE_NONE)
-            ->addOption('excludeCountryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY)
-            ->addOption('exceptExcludeCountryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY)
-            ->addOption('excludeCountryCodeForce', null, InputOption::VALUE_NONE)
-            ->addOption('detour', null, InputOption::VALUE_OPTIONAL);
+            ->addOption('countryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Filter outbounds and use only those whose country code match the specified one')
+            ->addOption('excludeCountryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Filter outbounds and use only those whose country code does not match the specified one')
+            ->addOption('exceptOutbound', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, "One or more outbounds that will be ignored by all filters")
+            ->addOption('countryOutboundIpFallback', null, InputOption::VALUE_NONE, "Use the outbound IP specified in the configuration if its real IP could not be obtained")
+            ->addOption('detourOutbound', null, InputOption::VALUE_OPTIONAL, "Use the specified outbound as detour for all other outbounds")
+            ->addOption('countryOnlyAvailable', null, InputOption::VALUE_NONE, "Exclude all outbounds for which the country code could not be obtained")
+            ->addOption('excludeOutboundType', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL)
+            ->addOption('outboundType', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL);
+
+
     }
 }

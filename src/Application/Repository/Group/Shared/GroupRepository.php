@@ -14,7 +14,7 @@ use App\Application\Repository\Outbound\GetOutboundsListRepository;
 use App\Domain\Group\Collection\GroupsMap;
 use App\Domain\Group\Entity\Group;
 use App\Domain\Group\Exception\GroupAlreadyExistsException;
-use App\Domain\Outbound\Collection\UniqueOutboundsMap;
+use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
@@ -93,7 +93,7 @@ class GroupRepository
             /**
              * Create empty outbounds map
              */
-            $groupOutbounds = new UniqueOutboundsMap();
+            $groupOutbounds = new UniqueTagOutboundsMap();
 
             foreach ($rawGroup['outbounds'] as $outboundId) {
                 /**

@@ -9,7 +9,6 @@ use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Entity\Subscription;
 use App\Domain\Subscription\Exception\SubscriptionAlreadyExistsException;
 use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
-use App\Domain\Subscription\VO\SubscriptionURLVO;
 use JsonException;
 use Psl\Collection\MutableMap;
 
@@ -39,8 +38,7 @@ final readonly class SubscriptionsMap
         /**
          * Check if subscription with provided name or url already exists in map
          */
-        if ($this->containsSubscriptionUrlOrName(
-            $subscription->getUrlVO(),
+        if ($this->containsSubscription(
             $subscription->getNameVO()
         )) throw new SubscriptionAlreadyExistsException();
 
@@ -52,21 +50,16 @@ final readonly class SubscriptionsMap
     }
 
     /**
-     * Check map contains subscription with provided url or name
+     * Check map contains subscription with provided name
      *
-     * @param SubscriptionURLVO $subscriptionUrl Subscription url
      * @param NonEmptyStringVO $subscriptionName Subscription name
      *
-     * @return bool Returns true if map contains subscription with provided url or name
+     * @return bool Returns true if map contains subscription with provided name
      */
-    public function containsSubscriptionUrlOrName(SubscriptionURLVO $subscriptionUrl, NonEmptyStringVO $subscriptionName): bool
+    public function containsSubscription(NonEmptyStringVO $subscriptionName): bool
     {
         foreach ($this->map as $subscription) {
-
-            if (
-                $subscription->getUrl() === $subscriptionUrl->getUrl()
-                || $subscription->getNameString() === $subscriptionName->getValue()
-            ) return true;
+            if ($subscription->getNameVO()->equals($subscriptionName)) return true;
         }
 
         return false;
@@ -125,19 +118,6 @@ final readonly class SubscriptionsMap
     public function toNameUrlMap(): MutableMap
     {
         return $this->map->map(fn(Subscription $subscription) => $subscription->getUrl());
-    }
-
-
-    /**
-     * Check map contains subscription with specific name
-     *
-     * @param NonEmptyStringVO $subscriptionName Subscription name
-     *
-     * @return bool True if contains
-     */
-    public function containsSubscriptionName(NonEmptyStringVO $subscriptionName): bool
-    {
-        return $this->map->contains($subscriptionName->getValue());
     }
 
 

@@ -6,7 +6,7 @@ namespace App\Application\Repository\Subscription\Shared\Builder\Builder;
 
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Repository\Outbound\GetOutboundsListRepository;
-use App\Domain\Outbound\Collection\UniqueOutboundsMap;
+use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Subscription\VO\RawSubscription\RawOutboundsSubscriptionVO;
@@ -49,7 +49,7 @@ final readonly class RawOutboundsSubscriptionVOBuilder
         /**
          * Create empty subscription outbounds map
          */
-        $subscriptionOutbounds = new UniqueOutboundsMap();
+        $subscriptionOutbounds = new UniqueTagOutboundsMap();
 
 
         /**

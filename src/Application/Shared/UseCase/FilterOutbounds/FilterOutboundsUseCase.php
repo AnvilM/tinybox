@@ -6,9 +6,13 @@ namespace App\Application\Shared\UseCase\FilterOutbounds;
 
 use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Domain\Outbound\Collection\OutboundMap;
+use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Specification\OutboundCountryCodeSpecification;
 use App\Domain\Outbound\Specification\OutboundExcludeCountryCodeSpecification;
 use App\Domain\Outbound\Specification\OutboundExcludeTagSpecification;
+use App\Domain\Outbound\Specification\OutboundExcludeTypeSpecification;
+use App\Domain\Outbound\Specification\OutboundTypeSpecification;
+use App\Domain\Outbound\VO\OutboundTypeVO;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\OutboundTest\OutboundCountyCode\OutboundCountyCodePort;
 use Psl\Async\Exception\CompositeException;
@@ -27,25 +31,42 @@ final readonly class FilterOutboundsUseCase
     /**
      * @throws CriticalException
      */
-    public function handle(FilterOutboundsDTO $DTO): OutboundMap
+    public function handle(FilterOutboundsDTO $DTO): UniqueTagOutboundsMap
     {
+        $ignoreOutbounds = $DTO->ignoreOutbounds ? $DTO->outboundsMap->withTags($DTO->ignoreOutbounds) : new UniqueTagOutboundsMap();
+
         /**
          * Create exclude country code specification
          */
         $excludeCountrySpecification = $DTO->filterExcludeCountryCodesDTO
             ? $this->createExcludeCountrySpecification(
                 $DTO->outboundsMap, $DTO->filterExcludeCountryCodesDTO->excludeCountryCodes,
-                $DTO->filterExcludeCountryCodesDTO->force, $DTO->filterExcludeCountryCodesDTO->exceptOutbounds
+                $DTO->filterExcludeCountryCodesDTO->outboundIpFallback,
+                $DTO->filterExcludeCountryCodesDTO->onlyAvailable
             ) : null;
 
 
         /**
          * Create exclude tag specification
          */
-        $excludeTagSpecification = $DTO->excludeTags ?
-            $this->createExcludeTagSpecification(
-                $DTO->excludeTags
-            ) : null;
+        $excludeTagSpecification = $DTO->excludeOutbounds ? new OutboundExcludeTagSpecification($DTO->excludeOutbounds) : null;
+
+
+        /**
+         * Create exclude outbound type specification
+         */
+        $excludeOutboundTypeSpecification = $DTO->filterExcludeOutboundTypes ? new OutboundExcludeTypeSpecification(
+            OutboundTypeVO::fromStringValues($DTO->filterExcludeOutboundTypes)
+        ) : null;
+
+
+        /**
+         * Create outbound type specification
+         */
+        $outboundTypeSpecification = $DTO->filterOutboundTypes ? new OutboundTypeSpecification(
+            OutboundTypeVO::fromStringValues($DTO->filterOutboundTypes)
+        ) : null;
+
 
         /**
          * Create country code specification
@@ -53,58 +74,57 @@ final readonly class FilterOutboundsUseCase
         $countryCodeSpecification = $DTO->filterCountryCodesDTO
             ? $this->createCountryCodeSpecification(
                 $DTO->outboundsMap, $DTO->filterCountryCodesDTO->countryCodes,
-                $DTO->filterCountryCodesDTO->force, $DTO->filterCountryCodesDTO->exceptOutbounds
+                $DTO->filterCountryCodesDTO->outboundIpFallback,
+                $DTO->filterCountryCodesDTO->onlyAvailable
             ) : null;
 
 
         /**
          * Apply specifications
          */
-        return $DTO->outboundsMap->filter(new Vector([
+        $outbounds = $DTO->outboundsMap->filter(new Vector([
             $excludeTagSpecification,
             $excludeCountrySpecification,
             $countryCodeSpecification,
+            $excludeOutboundTypeSpecification,
+            $outboundTypeSpecification,
         ])->filter(fn(mixed $spec) => $spec !== null));
+
+        return $outbounds->merge($ignoreOutbounds);
     }
 
     /**
      * @throws CriticalException
      */
-    private function createExcludeCountrySpecification(OutboundMap $outboundsMap, VectorInterface $excludeCountry, bool $force, ?VectorInterface $exceptOutbounds): OutboundExcludeCountryCodeSpecification
+    private function createExcludeCountrySpecification(OutboundMap $outboundsMap, VectorInterface $excludeCountry, bool $outboundIpFallback, bool $onlyAvailable): OutboundExcludeCountryCodeSpecification
     {
         try {
-            $outboundsCountryCodes = $this->outboundCountyCodePort->getCountryCodes($outboundsMap, $force);
+            $outboundsCountryCodes = $this->outboundCountyCodePort->getCountryCodes($outboundsMap, $outboundIpFallback);
 
             return new OutboundExcludeCountryCodeSpecification(
                 $outboundsCountryCodes,
                 $excludeCountry,
-                $exceptOutbounds,
+                $onlyAvailable
             );
         } catch (CompositeException $e) {
             throw new CriticalException("Cant get outbounds ip's", $e->getMessage());
         }
     }
 
-
-    private function createExcludeTagSpecification(VectorInterface $tags): OutboundExcludeTagSpecification
-    {
-        return new OutboundExcludeTagSpecification($tags);
-    }
-
     /**
      * @throws CriticalException
      */
-    public function createCountryCodeSpecification(OutboundMap $outboundsMap, VectorInterface $countryCodes, bool $force, ?VectorInterface $exceptOutbounds): OutboundCountryCodeSpecification
+    public function createCountryCodeSpecification(OutboundMap $outboundsMap, VectorInterface $countryCodes, bool $outboundIpFallback, bool $onlyAvailable): OutboundCountryCodeSpecification
     {
 
         try {
-            $outboundsCountryCodes = $this->outboundCountyCodePort->getCountryCodes($outboundsMap, $force);
+            $outboundsCountryCodes = $this->outboundCountyCodePort->getCountryCodes($outboundsMap, $outboundIpFallback);
 
 
             return new OutboundCountryCodeSpecification(
                 $outboundsCountryCodes,
                 $countryCodes,
-                $exceptOutbounds,
+                $onlyAvailable
             );
         } catch (CompositeException $e) {
             throw new CriticalException("Cant get outbounds ip's", $e->getMessage());

@@ -50,7 +50,7 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
     /**
      * @inheritdoc
      */
-    public function equals(mixed $other): bool
+    public function equalsContent(mixed $other): bool
     {
         return $other instanceof self &&
             $this->server->equals($other->server) &&
