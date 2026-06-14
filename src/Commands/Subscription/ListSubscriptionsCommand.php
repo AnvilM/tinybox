@@ -6,7 +6,6 @@ namespace App\Commands\Subscription;
 
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Repository\Subscription\GetSubscriptionListRepository;
-use App\Application\Services\Subscription\ListSubscriptions\Handler\ListSubscriptionsHandler;
 use App\Commands\AbstractCommand;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
