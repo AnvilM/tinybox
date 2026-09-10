@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Outbound\Entity;
 
 use App\Domain\Interface\Subscription\DetourProvider;
-use App\Domain\Shared\VO\Outbound\OutboundTypeVO;
-use App\Domain\Shared\VO\Outbound\Security\SecurityVO;
-use App\Domain\Shared\VO\Outbound\Transport\TransportVO;
+use App\Domain\Outbound\VO\ProtocolVO;
+use App\Domain\Outbound\VO\Security\SecurityVO;
+use App\Domain\Outbound\VO\Transport\TransportVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use Override;
@@ -24,7 +24,7 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
 
 
     public function __construct(
-        NonEmptyStringVO  $tag,
+        ?string           $tag,
         NonEmptyStringVO  $server,
         PortVO            $serverPort,
         NonEmptyStringVO  $uuid,
@@ -67,9 +67,9 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
     }
 
     #[Override]
-    public function getType(): OutboundTypeVO
+    public function getType(): ProtocolVO
     {
-        return OutboundTypeVO::Vless;
+        return ProtocolVO::Vless;
     }
 
     #[Override]

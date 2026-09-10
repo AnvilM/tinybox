@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Outbound\Entity;
 
 use App\Domain\Interface\Shared\Equable;
+use App\Domain\Outbound\VO\ProtocolVO;
 use App\Domain\Shared\Trait\ComparesNullable;
-use App\Domain\Shared\VO\Outbound\OutboundTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use Psl\Hash\Algorithm;
 use Ramsey\Uuid\Uuid;
@@ -17,9 +17,9 @@ abstract readonly class Outbound implements Equable
 
     private NonEmptyStringVO $tag;
 
-    public function __construct(?NonEmptyStringVO $tag)
+    public function __construct(?string $tag)
     {
-        $this->tag = $tag ?? $this->generateTag();
+        $this->tag = $tag === null || trim($tag) === '' ? $this->generateTag() : $tag;
     }
 
     private function generateTag(): NonEmptyStringVO
@@ -40,9 +40,9 @@ abstract readonly class Outbound implements Equable
     /**
      * Get outbound type
      *
-     * @return OutboundTypeVO Outbound type
+     * @return ProtocolVO Outbound type
      */
-    public abstract function getType(): OutboundTypeVO;
+    public abstract function getType(): ProtocolVO;
 
     /**
      * Get outbound server, if outbound has no server field, e.g. direct outbound, return null

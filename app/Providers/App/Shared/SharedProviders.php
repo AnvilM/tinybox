@@ -24,7 +24,6 @@ use App\Infrastructure\Config\Instance\ConfigInstance;
 use App\Infrastructure\IO\File\ReadJsonFile;
 use App\Infrastructure\IO\File\ReadJsonFileNotify;
 use App\Infrastructure\IO\File\SaveFileNotify;
-use App\Infrastructure\Outbound\Parser\RawOutboundParser;
 use App\Infrastructure\OutboundTest\OutboundCountyCode\OutboundCountyCode;
 use App\Infrastructure\OutboundTest\OutboundLatency\OutboundLatency;
 use App\Infrastructure\Shared\Http\Http;
@@ -58,7 +57,7 @@ final readonly class SharedProviders implements ProviderInterface
             GetDataHomeDirectoryPort::class => autowire(GetDataHomeDirectory::class),
             OutboundCountyCodePort::class => autowire(OutboundCountyCode::class),
             OutboundLatencyPort::class => autowire(OutboundLatency::class),
-            RawOutboundParserPort::class => autowire(RawOutboundParser::class),
+            RawOutboundParserPort::class => autowire(RawOutboundParserPort::class),
             StringEncodingDetectorPort::class => autowire(StringEncodingDetector::class),
         ];
     }

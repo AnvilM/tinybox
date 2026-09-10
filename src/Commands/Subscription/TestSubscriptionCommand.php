@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
-use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterCountryCodesDTO;
-use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterExcludeCountryCodesDTO;
-use App\Application\Shared\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
-use App\Application\Shared\DTO\UseCase\OutboundsLatency\OutboundsLatencyDTO;
-use App\Application\Shared\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
-use App\Application\Shared\UseCase\FilterOutbounds\FilterOutboundsUseCase;
-use App\Application\Shared\UseCase\OutboundsLatency\OutboundsLatencyUseCase;
-use App\Application\Shared\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
+use App\Application\Outbound\DTO\FilterOutbounds\FilterCountryCodesDTO;
+use App\Application\Outbound\DTO\FilterOutbounds\FilterExcludeCountryCodesDTO;
+use App\Application\Outbound\DTO\FilterOutbounds\FilterOutboundsDTO;
+use App\Application\Outbound\DTO\OutboundsLatency\OutboundsLatencyDTO;
+use App\Application\Outbound\DTO\SetOutboundsDetour\SetOutboundsDetourDTO;
+use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
+use App\Application\Outbound\UseCase\OutboundsLatency\OutboundsLatencyUseCase;
+use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
 use App\Commands\AbstractCommand;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;

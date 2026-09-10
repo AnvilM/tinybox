@@ -14,7 +14,7 @@ use App\Application\Repository\Outbound\Shared\Validator\OutboundsListFormatVali
 use App\Application\Shared\Scheme\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
-use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
+use App\Domain\Outbound\Exception\UnsupportedProtocolException;
 use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
@@ -89,7 +89,7 @@ class OutboundRepository
                 $outbounds->add(FromSchemeOutboundFactory::fromScheme(
                     $this->createSchemeEntityFromStringUseCase->handle($rawScheme)
                 ));
-            } catch (OutboundAlreadyExistsException|UnsupportedSchemeType|UnableToParseRawSchemeStringException|InvalidArgumentException|UnsupportedOutboundTypeException) {
+            } catch (OutboundAlreadyExistsException|UnsupportedSchemeType|UnableToParseRawSchemeStringException|InvalidArgumentException|UnsupportedProtocolException) {
                 continue;
                 // TODO: Add reporter event
             }

@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Outbound\Entity;
 
 use App\Domain\Interface\Subscription\DetourProvider;
-use App\Domain\Shared\VO\Outbound\OutboundTypeVO;
-use App\Domain\Shared\VO\Outbound\Shadowsocks\Plugin\ShadowsocksPluginVO;
-use App\Domain\Shared\VO\Outbound\Shadowsocks\Userinfo\ShadowsocksUserinfoVO;
-use App\Domain\Shared\VO\Outbound\Transport\TransportVO;
+use App\Domain\Outbound\VO\ProtocolVO;
+use App\Domain\Outbound\VO\Shadowsocks\Plugin\ShadowsocksPluginVO;
+use App\Domain\Outbound\VO\Shadowsocks\Userinfo\ShadowsocksUserinfoVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use Override;
@@ -19,24 +18,21 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
     private PortVO $serverPort;
     private ShadowsocksUserinfoVO $userinfo;
     private ?ShadowsocksPluginVO $plugin;
-    private ?TransportVO $transport;
     private ?NonEmptyStringVO $detourTag;
 
 
     public function __construct(
-        NonEmptyStringVO      $tag,
+        ?string               $tag,
         NonEmptyStringVO      $server,
         PortVO                $serverPort,
         ShadowsocksUserinfoVO $userinfo,
         ?ShadowsocksPluginVO  $plugin,
-        ?TransportVO          $transport,
     )
     {
         $this->server = $server;
         $this->serverPort = $serverPort;
         $this->userinfo = $userinfo;
         $this->plugin = $plugin;
-        $this->transport = $transport;
 
         parent::__construct($tag);
     }
@@ -61,8 +57,7 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
             $this->userinfo->getPassword() === $other->userinfo->getPassword() &&
             $this->plugin->getPlugin() === $other->plugin->getPlugin() &&
             $this->plugin->getPluginOptions() === $other->plugin->getPluginOptions() &&
-            $this->equalsNullable($this->detourTag ?? null, $other->detourTag ?? null) &&
-            $this->equalsNullable($this->transport, $other->transport);
+            $this->equalsNullable($this->detourTag ?? null, $other->detourTag ?? null);
     }
 
     public function getPlugin(): ?ShadowsocksPluginVO
@@ -71,9 +66,9 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
     }
 
     #[Override]
-    public function getType(): OutboundTypeVO
+    public function getType(): ProtocolVO
     {
-        return OutboundTypeVO::Shadowsocks;
+        return ProtocolVO::Shadowsocks;
     }
 
     #[Override]
@@ -91,10 +86,5 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
     public function getUserinfo(): ShadowsocksUserinfoVO
     {
         return $this->userinfo;
-    }
-
-    public function getTransport(): ?TransportVO
-    {
-        return $this->transport;
     }
 }

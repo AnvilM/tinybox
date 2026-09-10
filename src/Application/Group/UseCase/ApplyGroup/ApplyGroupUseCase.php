@@ -12,7 +12,7 @@ use App\Application\Shared\UseCase\RestartSingBoxService\RestartSingBoxServiceUs
 use App\Domain\Group\Exception\GroupNotFoundException;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
-use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
+use App\Domain\Outbound\Exception\UnsupportedProtocolException;
 use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
@@ -80,7 +80,7 @@ final readonly class ApplyGroupUseCase
              */
             try {
                 $outboundsMap->add(FromSchemeOutboundFactory::fromScheme($outbound, $outboundsMap->count()));
-            } catch (OutboundAlreadyExistsException|InvalidArgumentException|UnsupportedOutboundTypeException) {
+            } catch (OutboundAlreadyExistsException|InvalidArgumentException|UnsupportedProtocolException) {
                 continue;
                 // TODO: Add reporter event
             }

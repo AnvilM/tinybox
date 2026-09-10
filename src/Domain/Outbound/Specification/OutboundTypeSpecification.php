@@ -6,13 +6,13 @@ namespace App\Domain\Outbound\Specification;
 
 use App\Domain\Interface\Outbound\OutboundSpecificationInterface;
 use App\Domain\Outbound\Entity\Outbound;
-use App\Domain\Shared\VO\Outbound\OutboundTypeVO;
+use App\Domain\Outbound\VO\ProtocolVO;
 use Psl\Collection\VectorInterface;
 
 final readonly class OutboundTypeSpecification implements OutboundSpecificationInterface
 {
     /**
-     * @param VectorInterface<OutboundTypeVO> $outboundTypes
+     * @param VectorInterface<ProtocolVO> $outboundTypes
      */
     public function __construct(
         private VectorInterface $outboundTypes,
