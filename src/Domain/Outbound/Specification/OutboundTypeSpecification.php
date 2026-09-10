@@ -6,7 +6,7 @@ namespace App\Domain\Outbound\Specification;
 
 use App\Domain\Interface\Outbound\OutboundSpecificationInterface;
 use App\Domain\Outbound\Entity\Outbound;
-use App\Domain\Outbound\VO\OutboundTypeVO;
+use App\Domain\Shared\VO\Outbound\OutboundTypeVO;
 use Psl\Collection\VectorInterface;
 
 final readonly class OutboundTypeSpecification implements OutboundSpecificationInterface

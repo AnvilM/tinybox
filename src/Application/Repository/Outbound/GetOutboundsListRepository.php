@@ -8,15 +8,14 @@ use App\Application\Repository\Outbound;
 use App\Application\Repository\Outbound\Shared\File\ReadOutbounds;
 use App\Application\Repository\Outbound\Shared\File\WriteOutbounds;
 use App\Application\Repository\Outbound\Shared\Validator\OutboundsListFormatValidator;
+use App\Application\Shared\Scheme\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
-use App\Domain\Outbound\Factory\FromRawOutbound\FromRawOutboundFactory;
-use App\Domain\Shared\Ports\Outbound\Parser\RawOutboundParserPort;
 
 final class GetOutboundsListRepository extends Outbound\Shared\OutboundRepository
 {
-    public function __construct(ReadOutbounds $readOutbounds, OutboundsListFormatValidator $outboundsListFormatValidator, WriteOutbounds $writeOutbounds, RawOutboundParserPort $rawOutboundParserPort, FromRawOutboundFactory $fromRawOutboundFactory)
+    public function __construct(ReadOutbounds $readOutbounds, OutboundsListFormatValidator $outboundsListFormatValidator, WriteOutbounds $writeOutbounds, CreateSchemeEntityFromStringUseCase $createSchemeEntityFromStringUseCase)
     {
-        parent::__construct($readOutbounds, $outboundsListFormatValidator, $writeOutbounds, $rawOutboundParserPort, $fromRawOutboundFactory);
+        parent::__construct($readOutbounds, $outboundsListFormatValidator, $writeOutbounds, $createSchemeEntityFromStringUseCase);
     }
 
     /**

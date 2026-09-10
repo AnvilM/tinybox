@@ -6,14 +6,16 @@ namespace App\Domain\Outbound\Factory\FromScheme;
 
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Entity\ShadowsocksOutbound;
-use App\Domain\Outbound\Entity\TLS\Reality;
-use App\Domain\Outbound\Entity\TLS\TLS;
-use App\Domain\Outbound\Entity\TLS\UTLS;
 use App\Domain\Outbound\Entity\VlessOutbound;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
+use App\Domain\Outbound\VO\Security\FingerprintVO;
 use App\Domain\Scheme\Entity\Scheme;
 use App\Domain\Scheme\Entity\ShadowsocksScheme;
 use App\Domain\Scheme\Entity\VlessScheme;
+use App\Domain\Scheme\VO\SchemeSecurityVO;
+use App\Domain\Shared\VO\Outbound\Security\RealitySecurityVO;
+use App\Domain\Shared\VO\Outbound\Transport\TransportTypeVO;
+use App\Domain\Shared\VO\Outbound\Transport\WebSocketTransportVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use InvalidArgumentException;
@@ -60,19 +62,17 @@ final readonly class FromSchemeOutboundFactory
             new PortVO($scheme->getServerPort()),
             new NonEmptyStringVO($scheme->getUuid()),
             $scheme->getFlow() === null ? null : new NonEmptyStringVO($scheme->getFlow()),
-            new TLS(
+            $scheme->getSecurity() === null ? null : ($scheme->getSecurity() === SchemeSecurityVO::Reality ? new RealitySecurityVO(
+                new NonEmptyStringVO($scheme->getPbk()),
+                $scheme->getSid() === null ? null : new NonEmptyStringVO($scheme->getSid()),
                 new NonEmptyStringVO($scheme->getSni()),
-                new Reality(
-                    new NonEmptyStringVO($scheme->getPbk()),
-                    $scheme->getSid() ? new NonEmptyStringVO($scheme->getSid()) : null,
-                    true
-                ),
-                $scheme->getFp() ? new UTLS(
-                    new NonEmptyStringVO($scheme->getFp()),
-                    true
-                ) : null,
-                true
-            )
+                $scheme->getFp() === null ? null : FingerprintVO::from($scheme->getFp()),
+            ) : null),
+            $scheme->getTransportType() === null ? null
+                : ($scheme->getTransportType() === TransportTypeVO::WebSocket ? new WebSocketTransportVO(
+                new NonEmptyStringVO($scheme->getPath()),
+                new NonEmptyStringVO($scheme->getHost())
+            ) : null),
         );
     }
 
@@ -91,10 +91,13 @@ final readonly class FromSchemeOutboundFactory
             new NonEmptyStringVO($scheme->getTagString()),
             new NonEmptyStringVO($scheme->getServer()),
             new PortVO($scheme->getServerPort()),
-            new NonEmptyStringVO($scheme->getMethod()->value),
-            new NonEmptyStringVO($scheme->getPassword()),
-            $scheme->getPlugin() === null ? null : new NonEmptyStringVO($scheme->getPlugin()->value),
-            $scheme->getPluginOptions() === null ? null : new NonEmptyStringVO($scheme->getPluginOptions()),
+            $scheme->getUserinfo(),
+            $scheme->getPlugin(),
+            $scheme->getTransport() === null ? null
+                : ($scheme->getTransport() === TransportTypeVO::WebSocket ? new WebSocketTransportVO(
+                new NonEmptyStringVO($scheme->getPath()),
+                new NonEmptyStringVO($scheme->getHost())
+            ) : null),
         );
     }
 }

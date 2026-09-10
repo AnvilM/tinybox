@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Scheme\Entity;
 
+use App\Domain\Scheme\VO\SchemeSecurityVO;
 use App\Domain\Scheme\VO\SchemeTypeVO;
 use App\Domain\Shared\VO\Outbound\Transport\TransportTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
@@ -22,6 +23,9 @@ final readonly class VlessScheme extends Scheme
     private ?NonEmptyStringVO $flow;
     private ?NonEmptyStringVO $fp;
     private ?TransportTypeVO $transportType;
+    private ?SchemeSecurityVO $security;
+    private ?NonEmptyStringVO $path;
+    private ?NonEmptyStringVO $host;
 
 
     public function __construct(
@@ -34,7 +38,10 @@ final readonly class VlessScheme extends Scheme
         ?NonEmptyStringVO $tag,
         ?NonEmptyStringVO $flow,
         ?NonEmptyStringVO $fp,
-        ?TransportTypeVO  $transportType
+        ?TransportTypeVO  $transportType,
+        ?SchemeSecurityVO $security,
+        ?NonEmptyStringVO $path,
+        ?NonEmptyStringVO $host
     )
     {
         $this->uuid = $uuid;
@@ -47,6 +54,9 @@ final readonly class VlessScheme extends Scheme
         $this->flow = $flow;
         $this->fp = $fp;
         $this->transportType = $transportType;
+        $this->security = $security;
+        $this->path = $path;
+        $this->host = $host;
 
         parent::__construct($tag);
     }
@@ -57,7 +67,7 @@ final readonly class VlessScheme extends Scheme
         if (!($scheme instanceof self)) return false;
 
         return (
-            $this->getType()->value === $scheme->getType()->value &&
+            $this->getType() === $scheme->getType() &&
             $this->getUuid() === $scheme->getUuid() &&
             $this->getServer() === $scheme->getServer() &&
             $this->getServerPort() === $scheme->getServerPort() &&
@@ -66,7 +76,10 @@ final readonly class VlessScheme extends Scheme
             $this->getSid() === $scheme->getSid() &&
             $this->getFlow() === $scheme->getFlow() &&
             $this->getFp() === $scheme->getFp() &&
-            $this->getTransportType() === $scheme->getTransportType()
+            $this->getTransportType() === $scheme->getTransportType() &&
+            $this->getSecurity() === $scheme->getSecurity() &&
+            $this->getPath() === $scheme->getPath() &&
+            $this->getHost() === $scheme->getHost()
         );
     }
 
@@ -122,26 +135,20 @@ final readonly class VlessScheme extends Scheme
         return $this->transportType;
     }
 
-    #[Override]
-    public function toRawScheme(): string
+    public function getSecurity(): ?SchemeSecurityVO
     {
-        $rawScheme = $this->getType()->value . "://";
-        $rawScheme .= $this->uuid->getValue() . "@";
-        $rawScheme .= $this->server->getValue() . ":";
-        $rawScheme .= $this->server_port->getPort() . "?";
-        $rawScheme .= "sni=" . $this->sni->getValue();
-        $rawScheme .= "&pbk=" . $this->pbk->getValue();
-
-        if ($this->getSid()) $rawScheme .= "&sid=" . $this->getSid();
-        if ($this->getFlow()) $rawScheme .= "&flow=" . $this->flow->getValue();
-        if ($this->getFp()) $rawScheme .= "&fp=" . $this->fp->getValue();
-        if ($this->getTransportType()) $rawScheme .= "&type=" . $this->getTransportType()->value;
-
-        $rawScheme .= "#" . $this->getTagString();
-
-        return $rawScheme;
+        return $this->security;
     }
 
+    public function getPath(): ?string
+    {
+        return $this->path->getValue();
+    }
+
+    public function getHost(): ?string
+    {
+        return $this->host->getValue();
+    }
 
     #[Override]
     protected function generateTag(): string
@@ -158,4 +165,6 @@ final readonly class VlessScheme extends Scheme
 
         return \Psl\Hash\hash($rawTag, Algorithm::Murmur3F);
     }
+
+
 }

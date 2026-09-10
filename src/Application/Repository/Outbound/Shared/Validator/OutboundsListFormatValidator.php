@@ -21,7 +21,7 @@ final readonly class OutboundsListFormatValidator
             {
                 "type": "array",
                 "items": {
-                    "type": "object"
+                    "type": "string"
                 }
             }
             JSON;

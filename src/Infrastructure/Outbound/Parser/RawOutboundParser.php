@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Infrastructure\Outbound\Parser;
 
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
-use App\Domain\Outbound\VO\OutboundTypeVO;
 use App\Domain\Outbound\VO\RawOutbound\RawOutboundVO;
 use App\Domain\Shared\Ports\Outbound\Parser\RawOutboundParserPort;
+use App\Domain\Shared\VO\Outbound\OutboundTypeVO;
 use App\Infrastructure\Outbound\Parser\Parser\RawShadowsocksOutboundParser;
 use App\Infrastructure\Outbound\Parser\Parser\RawVlessOutboundParser;
 use ValueError;

@@ -58,7 +58,10 @@ final readonly class RawSchemeParser
             $queryParams['flow'] ?? null,
             $queryParams['fp'] ?? null,
             $queryParams['type'] ?? null,
-            $queryParams['plugin'] ?? null
+            $queryParams['plugin'] ?? null,
+            $queryParams['security'] ?? null,
+            $queryParams['path'] ?? null,
+            $queryParams['host'] ?? null,
         );
 
     }

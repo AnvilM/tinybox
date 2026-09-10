@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Outbound\Entity;
 
 use App\Domain\Interface\Subscription\DetourProvider;
-use App\Domain\Outbound\Entity\TLS\TLS;
-use App\Domain\Outbound\VO\OutboundTypeVO;
+use App\Domain\Shared\VO\Outbound\OutboundTypeVO;
+use App\Domain\Shared\VO\Outbound\Security\SecurityVO;
+use App\Domain\Shared\VO\Outbound\Transport\TransportVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use Override;
@@ -17,7 +18,8 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
     private PortVO $serverPort;
     private NonEmptyStringVO $uuid;
     private ?NonEmptyStringVO $flow;
-    private ?TLS $tls;
+    private ?SecurityVO $security;
+    private ?TransportVO $transport;
     private ?NonEmptyStringVO $detourTag;
 
 
@@ -27,14 +29,16 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
         PortVO            $serverPort,
         NonEmptyStringVO  $uuid,
         ?NonEmptyStringVO $flow,
-        ?TLS              $tls
+        ?SecurityVO       $security,
+        ?TransportVO      $transport,
     )
     {
         $this->server = $server;
         $this->serverPort = $serverPort;
         $this->uuid = $uuid;
         $this->flow = $flow;
-        $this->tls = $tls;
+        $this->security = $security;
+        $this->transport = $transport;
 
         parent::__construct($tag);
     }
@@ -57,23 +61,9 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
             $this->serverPort->equals($other->serverPort) &&
             $this->uuid->equals($other->uuid) &&
             $this->equalsNullable($this->flow, $other->flow) &&
-            $this->equalsNullable($this->tls, $other->tls) &&
-            $this->equalsNullable($this->detourTag ?? null, $other->detourTag ?? null);
-    }
-
-    #[Override]
-    public function toArray(): array
-    {
-        return array_filter([
-            'type' => $this->getType()->value,
-            'tag' => $this->getTagString(),
-            'server' => $this->server->getValue(),
-            'server_port' => $this->serverPort->getPort(),
-            'uuid' => $this->uuid->getValue(),
-            'flow' => $this->flow?->getValue(),
-            'tls' => $this->tls?->toArray(),
-            'detour' => isset($this->detourTag) ? $this->detourTag->getValue() : null,
-        ], static fn($value) => $value !== null);
+            $this->equalsNullable($this->security, $other->security) &&
+            $this->equalsNullable($this->detourTag ?? null, $other->detourTag ?? null) &&
+            $this->equalsNullable($this->transport, $other->transport);
     }
 
     #[Override]
@@ -94,5 +84,18 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
         return $this->serverPort->getPort();
     }
 
+    public function getSecurity(): ?SecurityVO
+    {
+        return $this->security;
+    }
 
+    public function getFlow(): ?NonEmptyStringVO
+    {
+        return $this->flow;
+    }
+
+    public function getTransport(): ?TransportVO
+    {
+        return $this->transport;
+    }
 }

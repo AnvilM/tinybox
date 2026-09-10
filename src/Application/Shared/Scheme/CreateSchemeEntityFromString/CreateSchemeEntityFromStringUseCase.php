@@ -8,7 +8,7 @@ use App\Application\Exception\Shared\Scheme\CreateSchemeEntityFromString\UnableT
 use App\Application\Shared\Scheme\CreateSchemeEntityFromString\Parser\RawSchemeParser;
 use App\Domain\Scheme\Entity\Scheme;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
-use App\Domain\Scheme\Factory\SchemeFactory;
+use App\Domain\Scheme\Factory\FromRawSchemeSchemeFactory;
 use InvalidArgumentException;
 
 final readonly class CreateSchemeEntityFromStringUseCase
@@ -32,7 +32,7 @@ final readonly class CreateSchemeEntityFromStringUseCase
      */
     public function handle(string $rawSchemeString): Scheme
     {
-        return SchemeFactory::fromRawSchemeVO(
+        return FromRawSchemeSchemeFactory::fromRawSchemeVO(
             $this->rawSchemeParser->parse($rawSchemeString),
         );
     }

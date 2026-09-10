@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Scheme\VO\ShadowsocksScheme\Userinfo;
+namespace App\Domain\Shared\VO\Outbound\Shadowsocks\Userinfo;
 
 enum ShadowsocksMethod: string
 {

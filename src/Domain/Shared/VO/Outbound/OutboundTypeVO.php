@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Outbound\VO;
+namespace App\Domain\Shared\VO\Outbound;
 
 use Psl\Collection\MutableVector;
 use Psl\Collection\VectorInterface;
@@ -34,7 +34,7 @@ enum OutboundTypeVO: string
                 $types->add($type);
             }
         }
-        
+
         return $types;
     }
 }

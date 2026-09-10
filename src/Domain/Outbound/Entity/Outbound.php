@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Outbound\Entity;
 
 use App\Domain\Interface\Shared\Equable;
-use App\Domain\Outbound\VO\OutboundTypeVO;
 use App\Domain\Shared\Trait\ComparesNullable;
+use App\Domain\Shared\VO\Outbound\OutboundTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use Psl\Hash\Algorithm;
+use Ramsey\Uuid\Uuid;
 
 abstract readonly class Outbound implements Equable
 {
@@ -16,9 +17,14 @@ abstract readonly class Outbound implements Equable
 
     private NonEmptyStringVO $tag;
 
-    public function __construct(NonEmptyStringVO $tag)
+    public function __construct(?NonEmptyStringVO $tag)
     {
-        $this->tag = $tag;
+        $this->tag = $tag ?? $this->generateTag();
+    }
+
+    private function generateTag(): NonEmptyStringVO
+    {
+        return new NonEmptyStringVO(Uuid::uuid4()->toString());
     }
 
     /**
@@ -98,12 +104,5 @@ abstract readonly class Outbound implements Equable
             Algorithm::Murmur3F
         );
     }
-
-    /**
-     * Convert outbound entity to array
-     *
-     * @return array Outbound entity as array
-     */
-    public abstract function toArray(): array;
 
 }

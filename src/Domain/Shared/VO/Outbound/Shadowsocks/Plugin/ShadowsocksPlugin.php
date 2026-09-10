@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Scheme\VO\ShadowsocksScheme\Plugin;
+namespace App\Domain\Shared\VO\Outbound\Shadowsocks\Plugin;
 
 enum ShadowsocksPlugin: string
 {

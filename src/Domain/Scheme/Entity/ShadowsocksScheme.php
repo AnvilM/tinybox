@@ -5,27 +5,46 @@ declare(strict_types=1);
 namespace App\Domain\Scheme\Entity;
 
 use App\Domain\Scheme\VO\SchemeTypeVO;
-use App\Domain\Scheme\VO\ShadowsocksScheme\Plugin\ShadowsocksPlugin;
-use App\Domain\Scheme\VO\ShadowsocksScheme\Plugin\ShadowsocksPluginVO;
-use App\Domain\Scheme\VO\ShadowsocksScheme\Userinfo\ShadowsocksMethod;
-use App\Domain\Scheme\VO\ShadowsocksScheme\Userinfo\ShadowsocksUserinfoVO;
+use App\Domain\Shared\Trait\ComparesNullable;
+use App\Domain\Shared\VO\Outbound\Shadowsocks\Plugin\ShadowsocksPlugin;
+use App\Domain\Shared\VO\Outbound\Shadowsocks\Plugin\ShadowsocksPluginVO;
+use App\Domain\Shared\VO\Outbound\Shadowsocks\Userinfo\ShadowsocksMethod;
+use App\Domain\Shared\VO\Outbound\Shadowsocks\Userinfo\ShadowsocksUserinfoVO;
+use App\Domain\Shared\VO\Outbound\Transport\TransportTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use Psl\Hash\Algorithm;
 
 final readonly class ShadowsocksScheme extends Scheme
 {
+    use ComparesNullable;
+
     private ShadowsocksUserinfoVO $userinfo;
     private ?ShadowsocksPluginVO $plugin;
     private NonEmptyStringVO $server;
     private PortVO $serverPort;
+    private ?TransportTypeVO $transport;
+    private ?NonEmptyStringVO $path;
+    private ?NonEmptyStringVO $host;
 
-    public function __construct(?NonEmptyStringVO $tag, ShadowsocksUserinfoVO $userinfo, ?ShadowsocksPluginVO $plugin, NonEmptyStringVO $server, PortVO $serverPort)
+    public function __construct(
+        ?NonEmptyStringVO     $tag,
+        ShadowsocksUserinfoVO $userinfo,
+        ?ShadowsocksPluginVO  $plugin,
+        NonEmptyStringVO      $server,
+        PortVO                $serverPort,
+        ?TransportTypeVO      $transport,
+        ?NonEmptyStringVO     $path,
+        ?NonEmptyStringVO     $host
+    )
     {
         $this->userinfo = $userinfo;
         $this->plugin = $plugin;
         $this->server = $server;
         $this->serverPort = $serverPort;
+        $this->transport = $transport;
+        $this->path = $path;
+        $this->host = $host;
 
         parent::__construct($tag);
     }
@@ -41,7 +60,10 @@ final readonly class ShadowsocksScheme extends Scheme
             $this->getMethod() === $scheme->getMethod() &&
             $this->getPassword() === $scheme->getPassword() &&
             $this->getServer() === $scheme->getServer() &&
-            $this->getServerPort() === $scheme->getServerPort()
+            $this->getServerPort() === $scheme->getServerPort() &&
+            $this->getTransport() === $scheme->getTransport() &&
+            $this->getPath() === $scheme->getPath() &&
+            $this->getHost() === $scheme->getHost()
         );
     }
 
@@ -80,18 +102,24 @@ final readonly class ShadowsocksScheme extends Scheme
         return $this->serverPort->getPort();
     }
 
-    public function toRawScheme(): string
+    public function getTransport(): ?TransportTypeVO
     {
-        $rawScheme = $this->getType()->value . "://";
-        $rawScheme .= $this->userinfo->getRawUserinfo() . "@";
-        $rawScheme .= $this->getServer() . ":";
-        $rawScheme .= $this->getServerPort();
+        return $this->transport;
+    }
 
-        if ($this->plugin !== null) $rawScheme .= "?plugin=" . $this->plugin->getRawPlugin();
+    public function getPath(): ?string
+    {
+        return $this->path->getValue();
+    }
 
-        $rawScheme .= "#" . $this->getTagString();
+    public function getHost(): ?string
+    {
+        return $this->host->getValue();
+    }
 
-        return $rawScheme;
+    public function getUserinfo(): ShadowsocksUserinfoVO
+    {
+        return $this->userinfo;
     }
 
     protected function generateTag(): string
@@ -106,4 +134,6 @@ final readonly class ShadowsocksScheme extends Scheme
 
         return \Psl\Hash\hash($rawTag, Algorithm::Murmur3F);
     }
+
+
 }

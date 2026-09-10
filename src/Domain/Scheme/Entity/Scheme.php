@@ -7,7 +7,6 @@ namespace App\Domain\Scheme\Entity;
 use App\Domain\Scheme\VO\SchemeTypeVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use InvalidArgumentException;
-use Psl\Hash\Algorithm;
 
 abstract readonly class Scheme
 {
@@ -39,12 +38,5 @@ abstract readonly class Scheme
     {
         return clone $this->tag;
     }
-
-    public function getHash(): string
-    {
-        return \Psl\Hash\hash($this->toRawScheme(), Algorithm::Murmur3F);
-    }
-
-    public abstract function toRawScheme(): string;
 
 }

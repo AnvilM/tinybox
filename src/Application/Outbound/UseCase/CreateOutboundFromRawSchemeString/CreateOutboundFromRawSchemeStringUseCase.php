@@ -10,7 +10,7 @@ use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
 use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
 use App\Domain\Scheme\Exception\UnsupportedSchemeType;
-use App\Domain\Scheme\Factory\SchemeFactory;
+use App\Domain\Scheme\Factory\FromRawSchemeSchemeFactory;
 use App\Domain\Shared\Exception\CriticalException;
 use InvalidArgumentException;
 
@@ -30,7 +30,7 @@ final readonly class CreateOutboundFromRawSchemeStringUseCase
 
         try {
             return FromSchemeOutboundFactory::fromScheme(
-                SchemeFactory::fromRawSchemeVO(
+                FromRawSchemeSchemeFactory::fromRawSchemeVO(
                     $this->rawSchemeParser->parse($rawSchemeString)
                 )
             );
