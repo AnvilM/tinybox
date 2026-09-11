@@ -8,7 +8,6 @@ use App\Domain\Interface\Shared\Equable;
 use App\Domain\Outbound\VO\ProtocolVO;
 use App\Domain\Shared\Trait\ComparesNullable;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
-use Psl\Hash\Algorithm;
 use Ramsey\Uuid\Uuid;
 
 abstract readonly class Outbound implements Equable
@@ -16,10 +15,12 @@ abstract readonly class Outbound implements Equable
     use ComparesNullable;
 
     private NonEmptyStringVO $tag;
+    private NonEmptyStringVO $id;
 
-    public function __construct(?string $tag)
+    public function __construct(?string $tag, NonEmptyStringVO $id)
     {
         $this->tag = $tag === null || trim($tag) === '' ? $this->generateTag() : new NonEmptyStringVO($tag);
+        $this->id = $id;
     }
 
     private function generateTag(): NonEmptyStringVO
@@ -99,10 +100,7 @@ abstract readonly class Outbound implements Equable
      */
     public function getId(): string
     {
-        return \Psl\Hash\hash(
-            json_encode($this->toArray()),
-            Algorithm::Murmur3F
-        );
+        return $this->id->getValue();
     }
 
 }

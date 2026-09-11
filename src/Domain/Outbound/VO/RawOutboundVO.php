@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Outbound\DTO;
+namespace App\Domain\Outbound\VO;
 
-final readonly class RawOutboundDTO
+final readonly class RawOutboundVO
 {
     public function __construct(
         public ?string $protocol,

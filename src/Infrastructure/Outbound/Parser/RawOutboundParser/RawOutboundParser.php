@@ -6,7 +6,7 @@ namespace App\Infrastructure\Outbound\Parser\RawOutboundParser;
 
 use App\Application\Exception\Shared\Scheme\CreateSchemeEntityFromString\UnableToParseRawSchemeStringException;
 use App\Application\Shared\Ports\Outbound\Parser\RawOutboundParserPort;
-use App\Domain\Outbound\DTO\RawOutboundDTO;
+use App\Domain\Outbound\VO\RawOutboundVO;
 use App\Infrastructure\Outbound\Parser\RawOutboundParser\Utils\TagEncodingDetector;
 use App\Infrastructure\Outbound\Parser\RawOutboundParser\Utils\TagEncodingType;
 
@@ -18,11 +18,11 @@ final readonly class RawOutboundParser implements RawOutboundParserPort
      *
      * @param string $rawSchemeString Scheme string e.g., vless://uuid@host:port?...
      *
-     * @return RawOutboundDTO Raw outbound dto
+     * @return RawOutboundVO Raw outbound dto
      *
      * @throws UnableToParseRawSchemeStringException Throws if unable to parse scheme
      */
-    public function parse(string $rawSchemeString): RawOutboundDTO
+    public function parse(string $rawSchemeString): RawOutboundVO
     {
 
         if (trim($rawSchemeString) === '') throw new UnableToParseRawSchemeStringException("Invalid raw scheme string");
@@ -47,7 +47,7 @@ final readonly class RawOutboundParser implements RawOutboundParserPort
             };
         }
 
-        return new RawOutboundDTO(
+        return new RawOutboundVO(
             $parsed['scheme'] ?? null,
             $tag,
             $parsed['user'] ?? null,

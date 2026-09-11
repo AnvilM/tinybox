@@ -20,6 +20,7 @@ use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
 use App\Domain\Shared\Ports\OutboundTest\OutboundCountyCode\OutboundCountyCodePort;
 use App\Domain\Shared\Ports\OutboundTest\OutboundLatency\OutboundLatencyPort;
 use App\Domain\Shared\Ports\String\Encoding\StringEncodingDetectorPort;
+use App\Domain\Shared\Ports\UUID\UUIDPort;
 use App\Infrastructure\Config\Instance\ConfigInstance;
 use App\Infrastructure\IO\File\ReadJsonFile;
 use App\Infrastructure\IO\File\ReadJsonFileNotify;
@@ -36,6 +37,7 @@ use App\Infrastructure\Shared\OS\Directories\GetConfigsDirectory;
 use App\Infrastructure\Shared\OS\Directories\GetDataHomeDirectory;
 use App\Infrastructure\Shared\OS\Path\NormalizePath;
 use App\Infrastructure\Shared\String\Encoding\StringEncodingDetector;
+use App\Infrastructure\Shared\UUID\UUID;
 use Application\Providers\ProviderInterface;
 use function DI\autowire;
 
@@ -60,6 +62,7 @@ final readonly class SharedProviders implements ProviderInterface
             OutboundLatencyPort::class => autowire(OutboundLatency::class),
             RawOutboundParserPort::class => autowire(RawOutboundParser::class),
             StringEncodingDetectorPort::class => autowire(StringEncodingDetector::class),
+            UUIDPort::class => autowire(UUID::class),
         ];
     }
 }

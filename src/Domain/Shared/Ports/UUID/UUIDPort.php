@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Ports\UUID;
 
-use RuntimeException;
+use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 
 interface UUIDPort
 {
@@ -12,8 +12,13 @@ interface UUIDPort
      * Generate UUID
      *
      * @return string UUID
-     *
-     * @throws RuntimeException If unable to generate UUID
      */
     public function generate(): string;
+
+    /**
+     * Generate UUID
+     *
+     * @return NonEmptyStringVO UUID
+     */
+    public function generateNonEmptyString(): NonEmptyStringVO;
 }

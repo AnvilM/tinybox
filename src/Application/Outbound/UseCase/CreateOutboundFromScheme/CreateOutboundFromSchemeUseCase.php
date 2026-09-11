@@ -16,7 +16,8 @@ use InvalidArgumentException;
 final readonly class CreateOutboundFromSchemeUseCase
 {
     public function __construct(
-        private RawOutboundParserPort $rawOutboundParserPort
+        private RawOutboundParserPort $rawOutboundParserPort,
+        private OutboundFactory       $outboundFactory
     )
     {
     }
@@ -25,6 +26,8 @@ final readonly class CreateOutboundFromSchemeUseCase
      * Create outbound entity from scheme string
      *
      * @param string $rawSchemeString Scheme string
+     * @param string|null $id Outbound id null for auto generate
+     *
      * @return Outbound Outbound entity
      *
      * @throws UnableToParseRawSchemeStringException If error while parsing scheme string
@@ -33,10 +36,10 @@ final readonly class CreateOutboundFromSchemeUseCase
      * @throws UnsupportedTransportException If scheme contains unsupported transport type
      * @throws InvalidArgumentException If scheme contains invalid fields
      */
-    public function handle(string $rawSchemeString): Outbound
+    public function handle(string $rawSchemeString, ?string $id = null): Outbound
     {
-        return OutboundFactory::fromRawOutbound(
-            $this->rawOutboundParserPort->parse($rawSchemeString)
+        return $this->outboundFactory->fromRawOutbound(
+            $this->rawOutboundParserPort->parse($rawSchemeString), $id
         );
     }
 }

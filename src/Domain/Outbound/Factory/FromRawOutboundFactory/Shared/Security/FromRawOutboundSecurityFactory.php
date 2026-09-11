@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\Factory\FromRawOutboundFactory\Shared\Security;
 
-use App\Domain\Outbound\DTO\RawOutboundDTO;
 use App\Domain\Outbound\Exception\UnsupportedSecurityException;
+use App\Domain\Outbound\VO\RawOutboundVO;
 use App\Domain\Outbound\VO\Security\RealitySecurityVO;
 use App\Domain\Outbound\VO\Security\SecurityTypeVO;
 use App\Domain\Outbound\VO\Security\SecurityVO;
@@ -18,10 +18,10 @@ final readonly class FromRawOutboundSecurityFactory
      * @throws UnsupportedSecurityException
      * @throws InvalidArgumentException
      */
-    public static function create(RawOutboundDTO $rawOutbound): SecurityVO
+    public function create(RawOutboundVO $rawOutbound): SecurityVO
     {
         return match (SecurityTypeVO::tryFrom($rawOutbound->security)) {
-            SecurityTypeVO::Reality => self::createRealitySecurity($rawOutbound),
+            SecurityTypeVO::Reality => $this->createRealitySecurity($rawOutbound),
             default => throw new UnsupportedSecurityException()
         };
     }
@@ -30,7 +30,7 @@ final readonly class FromRawOutboundSecurityFactory
     /**
      * @throws InvalidArgumentException
      */
-    private static function createRealitySecurity(RawOutboundDTO $rawOutbound): RealitySecurityVO
+    private function createRealitySecurity(RawOutboundVO $rawOutbound): RealitySecurityVO
     {
         return new RealitySecurityVO(
             new NonEmptyStringVO($rawOutbound->sni),

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\Factory\FromRawOutboundFactory\Outbound;
 
-use App\Domain\Outbound\DTO\RawOutboundDTO;
 use App\Domain\Outbound\Entity\ShadowsocksOutbound;
+use App\Domain\Outbound\VO\RawOutboundVO;
 use App\Domain\Outbound\VO\Shadowsocks\Plugin\ShadowsocksPlugin;
 use App\Domain\Outbound\VO\Shadowsocks\Plugin\ShadowsocksPluginVO;
 use App\Domain\Outbound\VO\Shadowsocks\Userinfo\ShadowsocksMethod;
@@ -16,25 +16,28 @@ use InvalidArgumentException;
 
 final readonly class FromRawOutboundShadowsocksOutboundFactory
 {
+
     /**
      * Creates a shadowsocks outbound from raw outbound dto.
      *
-     * @param RawOutboundDTO $rawOutbound Raw outbound dto
+     * @param RawOutboundVO $rawOutbound Raw outbound dto
+     * @param NonEmptyStringVO $id Outbound id
      *
      * @return ShadowsocksOutbound Created shadowsocks outbound entity
      *
      * @throws InvalidArgumentException If required fields are missing or invalid
      */
-    public static function create(RawOutboundDTO $rawOutbound): ShadowsocksOutbound
+    public function create(RawOutboundVO $rawOutbound, NonEmptyStringVO $id): ShadowsocksOutbound
     {
-        [$method, $password] = self::parseUserinfo($rawOutbound->uuid);
+        [$method, $password] = $this->parseUserinfo($rawOutbound->uuid);
 
         $plugin = $rawOutbound->shadowsocksPlugin !== null
-            ? self::parsePlugin($rawOutbound->shadowsocksPlugin)
+            ? $this->parsePlugin($rawOutbound->shadowsocksPlugin)
             : null;
 
         return new ShadowsocksOutbound(
             $rawOutbound->tag,
+            $id,
             new NonEmptyStringVO($rawOutbound->server),
             new PortVO($rawOutbound->server_port),
             new ShadowsocksUserinfoVO(
@@ -56,7 +59,7 @@ final readonly class FromRawOutboundShadowsocksOutboundFactory
      *
      * @throws InvalidArgumentException If userinfo format is invalid
      */
-    private static function parseUserinfo(?string $userinfo): array
+    private function parseUserinfo(?string $userinfo): array
     {
         if ($userinfo === null || $userinfo === '') {
             throw new InvalidArgumentException('Userinfo cannot be empty');
@@ -64,7 +67,7 @@ final readonly class FromRawOutboundShadowsocksOutboundFactory
 
         $decodedUserinfo = str_contains($userinfo, ':')
             ? $userinfo
-            : self::decodeUserinfo($userinfo);
+            : $this->decodeUserinfo($userinfo);
 
         [$method, $password] = explode(':', $decodedUserinfo, 2);
 
@@ -92,7 +95,7 @@ final readonly class FromRawOutboundShadowsocksOutboundFactory
      *
      * @throws InvalidArgumentException If the value is not valid base64
      */
-    private static function decodeUserinfo(string $userinfo): string
+    private function decodeUserinfo(string $userinfo): string
     {
         $decoded = base64_decode($userinfo, true);
 
@@ -112,7 +115,7 @@ final readonly class FromRawOutboundShadowsocksOutboundFactory
      *
      * @throws InvalidArgumentException If plugin is unsupported
      */
-    private static function parsePlugin(string $plugin): ShadowsocksPluginVO
+    private function parsePlugin(string $plugin): ShadowsocksPluginVO
     {
         $decodedPlugin = urldecode($plugin);
 

@@ -67,7 +67,7 @@ class OutboundRepository
             $this->outboundsListFormatValidator->validate($rawSchemesList);
 
 
-            /** @var string[] $rawSchemesList */
+            /** @var array<string, string> $rawSchemesList */
 
         } catch (UnableToReadFileException|UnableToDecodeJsonException|InvalidOutboundsListFormatException $e) {
             throw new UnableToGetListException($e instanceof UnableToReadFileException
@@ -84,13 +84,13 @@ class OutboundRepository
         $outbounds = new OutboundMap();
 
 
-        foreach ($rawSchemesList as $rawScheme) {
+        foreach ($rawSchemesList as $id => $rawScheme) {
             /**
              * Try to create and add outbound to outbounds map
              */
             try {
                 $outbounds->add(
-                    $this->createOutboundFromSchemeUseCase->handle($rawScheme)
+                    $this->createOutboundFromSchemeUseCase->handle($rawScheme, $id)
                 );
             } catch (OutboundAlreadyExistsException|UnableToParseRawSchemeStringException|UnsupportedProtocolException|UnsupportedTransportException|UnsupportedSecurityException|InvalidArgumentException $e) {
                 continue;
@@ -128,7 +128,7 @@ class OutboundRepository
 
         foreach (self::$outboundsMap->getOutbounds() as $outbound) {
             try {
-                $outbounds[] = $this->toSchemeStringOutboundMapper->map($outbound);
+                $outbounds[$outbound->getId()] = $this->toSchemeStringOutboundMapper->map($outbound);
             } catch (InvalidArgumentException) {
                 continue;
                 // TODO: Add reporter event

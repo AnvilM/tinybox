@@ -23,6 +23,7 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
 
     public function __construct(
         ?string               $tag,
+        NonEmptyStringVO      $id,
         NonEmptyStringVO      $server,
         PortVO                $serverPort,
         ShadowsocksUserinfoVO $userinfo,
@@ -34,7 +35,7 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
         $this->userinfo = $userinfo;
         $this->plugin = $plugin;
 
-        parent::__construct($tag);
+        parent::__construct($tag, $id);
     }
 
     /**
@@ -72,13 +73,13 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
     }
 
     #[Override]
-    public function getServer(): ?string
+    public function getServer(): string
     {
         return $this->server->getValue();
     }
 
     #[Override]
-    public function getServerPort(): ?int
+    public function getServerPort(): int
     {
         return $this->serverPort->getPort();
     }

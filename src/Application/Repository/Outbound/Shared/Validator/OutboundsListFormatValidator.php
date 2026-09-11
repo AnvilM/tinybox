@@ -19,8 +19,8 @@ final readonly class OutboundsListFormatValidator
     {
         $this->schema = <<<'JSON'
             {
-                "type": "array",
-                "items": {
+                "type": "object",
+                "additionalProperties": {
                     "type": "string"
                 }
             }
@@ -38,6 +38,8 @@ final readonly class OutboundsListFormatValidator
      */
     public function validate(array $rawOutboundsArray): void
     {
+        if ($rawOutboundsArray === []) return;
+        
         try {
             $validation = $this->validator->validate(
                 Helper::toJSON($rawOutboundsArray),

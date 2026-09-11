@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Shared\Ports\Outbound\Parser;
 
 use App\Application\Exception\Shared\Scheme\CreateSchemeEntityFromString\UnableToParseRawSchemeStringException;
-use App\Domain\Outbound\DTO\RawOutboundDTO;
+use App\Domain\Outbound\VO\RawOutboundVO;
 
 interface RawOutboundParserPort
 {
@@ -14,9 +14,9 @@ interface RawOutboundParserPort
      *
      * @param string $rawSchemeString Scheme string e.g., vless://uuid@host:port?...
      *
-     * @return RawOutboundDTO Raw outbound dto
+     * @return RawOutboundVO Raw outbound dto
      *
      * @throws UnableToParseRawSchemeStringException Throws if unable to parse scheme
      */
-    public function parse(string $rawSchemeString): RawOutboundDTO;
+    public function parse(string $rawSchemeString): RawOutboundVO;
 }
