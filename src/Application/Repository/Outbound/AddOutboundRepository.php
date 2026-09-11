@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Application\Repository\Outbound;
 
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Outbound\Mapper\ToSchemeString\ToSchemeStringOutboundMapper;
+use App\Application\Outbound\UseCase\CreateOutboundFromScheme\CreateOutboundFromSchemeUseCase;
 use App\Application\Repository\Outbound\Shared\File\ReadOutbounds;
 use App\Application\Repository\Outbound\Shared\File\WriteOutbounds;
 use App\Application\Repository\Outbound\Shared\OutboundRepository;
@@ -15,9 +17,9 @@ use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 
 final class AddOutboundRepository extends OutboundRepository
 {
-    public function __construct(ReadOutbounds $readOutbounds, OutboundsListFormatValidator $outboundsListFormatValidator, WriteOutbounds $writeOutbounds, CreateSchemeEntityFromStringUseCase $createSchemeEntityFromStringUseCase)
+    public function __construct(ReadOutbounds $readOutbounds, OutboundsListFormatValidator $outboundsListFormatValidator, WriteOutbounds $writeOutbounds, CreateOutboundFromSchemeUseCase $createOutboundFromSchemeUseCase, ToSchemeStringOutboundMapper $toSchemeStringOutboundMapper)
     {
-        parent::__construct($readOutbounds, $outboundsListFormatValidator, $writeOutbounds, $createSchemeEntityFromStringUseCase);
+        parent::__construct($readOutbounds, $outboundsListFormatValidator, $writeOutbounds, $createOutboundFromSchemeUseCase, $toSchemeStringOutboundMapper);
     }
 
     /**

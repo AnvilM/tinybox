@@ -8,15 +8,16 @@ use App\Application\Exception\Repository\Outbound\Validator\InvalidOutboundsList
 use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Exception\Repository\Shared\UnableToSaveListException;
 use App\Application\Exception\Shared\Scheme\CreateSchemeEntityFromString\UnableToParseRawSchemeStringException;
+use App\Application\Outbound\Mapper\ToSchemeString\ToSchemeStringOutboundMapper;
+use App\Application\Outbound\UseCase\CreateOutboundFromScheme\CreateOutboundFromSchemeUseCase;
 use App\Application\Repository\Outbound\Shared\File\ReadOutbounds;
 use App\Application\Repository\Outbound\Shared\File\WriteOutbounds;
 use App\Application\Repository\Outbound\Shared\Validator\OutboundsListFormatValidator;
-use App\Application\Shared\Scheme\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedProtocolException;
-use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
-use App\Domain\Scheme\Exception\UnsupportedSchemeType;
+use App\Domain\Outbound\Exception\UnsupportedSecurityException;
+use App\Domain\Outbound\Exception\UnsupportedTransportException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
@@ -28,10 +29,12 @@ class OutboundRepository
     private static ?OutboundMap $outboundsMap = null;
 
     public function __construct(
-        private readonly ReadOutbounds                       $readOutbounds,
-        private readonly OutboundsListFormatValidator        $outboundsListFormatValidator,
-        private readonly WriteOutbounds                      $writeOutbounds,
-        private readonly CreateSchemeEntityFromStringUseCase $createSchemeEntityFromStringUseCase,
+        private readonly ReadOutbounds                   $readOutbounds,
+        private readonly OutboundsListFormatValidator    $outboundsListFormatValidator,
+        private readonly WriteOutbounds                  $writeOutbounds,
+        private readonly CreateOutboundFromSchemeUseCase $createOutboundFromSchemeUseCase,
+        private readonly ToSchemeStringOutboundMapper    $toSchemeStringOutboundMapper,
+
     )
     {
 
@@ -86,12 +89,12 @@ class OutboundRepository
              * Try to create and add outbound to outbounds map
              */
             try {
-                $outbounds->add(FromSchemeOutboundFactory::fromScheme(
-                    $this->createSchemeEntityFromStringUseCase->handle($rawScheme)
-                ));
-            } catch (OutboundAlreadyExistsException|UnsupportedSchemeType|UnableToParseRawSchemeStringException|InvalidArgumentException|UnsupportedProtocolException) {
+                $outbounds->add(
+                    $this->createOutboundFromSchemeUseCase->handle($rawScheme)
+                );
+            } catch (OutboundAlreadyExistsException|UnableToParseRawSchemeStringException|UnsupportedProtocolException|UnsupportedTransportException|UnsupportedSecurityException|InvalidArgumentException $e) {
                 continue;
-                // TODO: Add reporter event
+                // TODO: add reporter event
             }
         }
 
@@ -116,8 +119,24 @@ class OutboundRepository
             "No outbounds list available"
         );
 
+
+        /**
+         * Try to create scheme strings from outbounds
+         */
+
+        $outbounds = [];
+
+        foreach (self::$outboundsMap->getOutbounds() as $outbound) {
+            try {
+                $outbounds[] = $this->toSchemeStringOutboundMapper->map($outbound);
+            } catch (InvalidArgumentException) {
+                continue;
+                // TODO: Add reporter event
+            }
+        }
+
         try {
-            $this->writeOutbounds->write(self::$outboundsMap);
+            $this->writeOutbounds->write($outbounds);
         } catch (UnableToSaveFileException|UnableToEncodeJsonException $e) {
             throw new UnableToSaveListException($e->getMessage(), $e->getDebugMessage());
         }

@@ -9,8 +9,6 @@ use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Outbound\Specification\OutboundTagSpecification;
-use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
-use JsonException;
 use Psl\Collection\MutableMap;
 use Psl\Collection\MutableVector;
 use Psl\Collection\Vector;
@@ -166,45 +164,7 @@ readonly class OutboundMap
 
         return $tags;
     }
-
-    /**
-     * Convert outbounds map to JSON
-     *
-     * @return string Outbounds map JSON: "id1" => Outbound, "id2" => ... OR empty array: []
-     *
-     * @throws UnableToEncodeJsonException If unable to encode outbounds map to json
-     */
-    public function toJson(): string
-    {
-        /**
-         * Assert map is not empty
-         */
-        if ($this->outbounds->isEmpty()) return '[]';
-
-
-        $array = [];
-
-
-        /**
-         * Mapping map to string array of raw outbounds strings
-         */
-        foreach ($this->outbounds as $outbound) {
-            $array[] = $outbound->toArray();
-        }
-
-        /**
-         * Try to convert array to JSON
-         */
-        try {
-            return json_encode(
-                $array,
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR
-            );
-        } catch (JsonException) {
-            throw new UnableToEncodeJsonException();
-        }
-    }
-
+    
     /**
      * Check if outbounds map is empty
      *
