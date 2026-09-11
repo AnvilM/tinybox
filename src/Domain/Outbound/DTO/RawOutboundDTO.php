@@ -22,6 +22,7 @@ final readonly class RawOutboundDTO
         public ?string $security,
         public ?string $path,
         public ?string $host,
+        public ?string $spx
     )
     {
     }

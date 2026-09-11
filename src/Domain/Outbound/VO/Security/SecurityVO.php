@@ -56,4 +56,7 @@ abstract readonly class SecurityVO implements Equable
     }
 
 
+    abstract public function getType(): SecurityTypeVO;
+
+
 }

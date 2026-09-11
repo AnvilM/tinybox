@@ -19,7 +19,7 @@ abstract readonly class Outbound implements Equable
 
     public function __construct(?string $tag)
     {
-        $this->tag = $tag === null || trim($tag) === '' ? $this->generateTag() : $tag;
+        $this->tag = $tag === null || trim($tag) === '' ? $this->generateTag() : new NonEmptyStringVO($tag);
     }
 
     private function generateTag(): NonEmptyStringVO

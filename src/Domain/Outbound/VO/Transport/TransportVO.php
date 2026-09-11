@@ -13,4 +13,6 @@ abstract readonly class TransportVO implements Equable
         return $other instanceof static;
     }
 
+    abstract public function getType(): TransportTypeVO;
+
 }

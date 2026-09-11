@@ -37,6 +37,7 @@ final readonly class FromRawOutboundSecurityFactory
             new NonEmptyStringVO($rawOutbound->pbk),
             $rawOutbound->sid === null ? null : new NonEmptyStringVO($rawOutbound->sid),
             $rawOutbound->fp === null ? null : new NonEmptyStringVO($rawOutbound->fp),
+            $rawOutbound->spx === null ? null : new NonEmptyStringVO($rawOutbound->spx),
         );
     }
 }

@@ -14,19 +14,22 @@ final readonly class RealitySecurityVO extends SecurityVO
 
     private NonEmptyStringVO $publicKey;
     private ?NonEmptyStringVO $shortId;
+    private ?NonEmptyStringVO $spiderX;
 
 
     public function __construct(
         NonEmptyStringVO  $serverName,
         NonEmptyStringVO  $publicKey,
         ?NonEmptyStringVO $shortId,
-        ?NonEmptyStringVO $fingerprint
+        ?NonEmptyStringVO $fingerprint,
+        ?NonEmptyStringVO $spiderX
     )
     {
         parent::__construct($serverName, $fingerprint);
 
         $this->publicKey = $publicKey;
         $this->shortId = $shortId;
+        $this->spiderX = $spiderX;
     }
 
 
@@ -54,5 +57,14 @@ final readonly class RealitySecurityVO extends SecurityVO
         return $this->shortId;
     }
 
+    public function getType(): SecurityTypeVO
+    {
+        return SecurityTypeVO::Reality;
+    }
+
+    public function getSpiderX(): ?NonEmptyStringVO
+    {
+        return $this->spiderX;
+    }
 
 }

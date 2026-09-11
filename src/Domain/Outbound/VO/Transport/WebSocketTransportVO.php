@@ -34,5 +34,10 @@ final readonly class WebSocketTransportVO extends TransportVO
         return $this->host;
     }
 
+    public function getType(): TransportTypeVO
+    {
+        return TransportTypeVO::WebSocket;
+    }
+
 
 }

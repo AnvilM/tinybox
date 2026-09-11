@@ -13,17 +13,26 @@ use Symfony\Component\Console\Application;
 
 abstract class BaseTestCase extends TestCase
 {
+    private Container $container;
+
     protected function getApp(array $services = []): Application
     {
         $app = new Application();
 
         CommandsBootstrapper::registerCommands($app,
-            new Container(
-                array_merge(ProvidersBootstrapper::getProviders(), $services)
-            )
+            $this->getContainer($services)
         );
 
         return $app;
+    }
+
+    protected function getContainer(array $services = []): Container
+    {
+        if (isset($this->container)) return $this->container;
+
+        $this->container = new Container(array_merge(ProvidersBootstrapper::getProviders(), $services));
+
+        return $this->container;
     }
 
 

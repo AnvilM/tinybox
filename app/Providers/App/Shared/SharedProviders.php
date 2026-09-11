@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Providers\App\Shared;
 
+use App\Application\Shared\Ports\Outbound\Parser\RawOutboundParserPort;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\Http\HttpPort;
 use App\Domain\Shared\Ports\IO\Directory\ScanDirectoryForFilesPort;
@@ -16,7 +17,6 @@ use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Domain\Shared\Ports\OS\Directories\GetConfigsDirectoryPort;
 use App\Domain\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
 use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
-use App\Domain\Shared\Ports\Outbound\Parser\RawOutboundParserPort;
 use App\Domain\Shared\Ports\OutboundTest\OutboundCountyCode\OutboundCountyCodePort;
 use App\Domain\Shared\Ports\OutboundTest\OutboundLatency\OutboundLatencyPort;
 use App\Domain\Shared\Ports\String\Encoding\StringEncodingDetectorPort;
@@ -24,6 +24,7 @@ use App\Infrastructure\Config\Instance\ConfigInstance;
 use App\Infrastructure\IO\File\ReadJsonFile;
 use App\Infrastructure\IO\File\ReadJsonFileNotify;
 use App\Infrastructure\IO\File\SaveFileNotify;
+use App\Infrastructure\Outbound\Parser\RawOutboundParser\RawOutboundParser;
 use App\Infrastructure\OutboundTest\OutboundCountyCode\OutboundCountyCode;
 use App\Infrastructure\OutboundTest\OutboundLatency\OutboundLatency;
 use App\Infrastructure\Shared\Http\Http;
@@ -57,7 +58,7 @@ final readonly class SharedProviders implements ProviderInterface
             GetDataHomeDirectoryPort::class => autowire(GetDataHomeDirectory::class),
             OutboundCountyCodePort::class => autowire(OutboundCountyCode::class),
             OutboundLatencyPort::class => autowire(OutboundLatency::class),
-            RawOutboundParserPort::class => autowire(RawOutboundParserPort::class),
+            RawOutboundParserPort::class => autowire(RawOutboundParser::class),
             StringEncodingDetectorPort::class => autowire(StringEncodingDetector::class),
         ];
     }

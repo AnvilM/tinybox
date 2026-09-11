@@ -89,13 +89,18 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
         return $this->security;
     }
 
-    public function getFlow(): ?NonEmptyStringVO
+    public function getFlow(): ?string
     {
-        return $this->flow;
+        return $this->flow?->getValue();
     }
 
     public function getTransport(): ?TransportVO
     {
         return $this->transport;
+    }
+
+    public function getUUID(): string
+    {
+        return $this->uuid->getValue();
     }
 }

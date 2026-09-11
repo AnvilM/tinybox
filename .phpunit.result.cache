@@ -1,0 +1,1 @@
+{"version":2,"defects":{"Tests\\Feature\\ExampleTest::testExample":8,"Feature\\CreateOutboundFromStringAndStringFromOutboundTest::testCreateOutboundFromStringAndStringFromOutbound":5},"times":{"Tests\\Feature\\ExampleTest::testExample":0,"Feature\\CreateOutboundFromStringAndStringFromOutboundTest::testCreateOutboundFromStringAndStringFromOutbound":0.004}}
