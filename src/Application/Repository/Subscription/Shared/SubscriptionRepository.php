@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Subscription\Shared;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
-use App\Application\Exception\Repository\Shared\UnableToSaveListException;
-use App\Application\Exception\Repository\Subscription\Validator\InvalidSubscriptionsListFormatException;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
+use App\Application\Repository\Shared\Exception\UnableToSaveListException;
 use App\Application\Repository\Subscription\Shared\Builder\RawSubscriptionVOBuilder;
+use App\Application\Repository\Subscription\Shared\Exception\Validator\InvalidSubscriptionsListFormatException;
 use App\Application\Repository\Subscription\Shared\File\ReadSubscriptions;
 use App\Application\Repository\Subscription\Shared\File\WriteSubscriptions;
 use App\Application\Repository\Subscription\Shared\Validator\SubscriptionsListFormatValidator;

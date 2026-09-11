@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Subscription\UseCase\SaveFetchedSubscriptionSchemes;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
-use App\Application\Exception\Repository\Shared\UnableToSaveListException;
-use App\Application\Exception\Services\Shared\FetchSchemes\NoValidSchemesFoundException;
-use App\Application\Exception\Shared\Scheme\CreateSchemeEntityFromString\UnableToParseRawSchemeStringException;
+use App\Application\Outbound\Exception\UnableToParseRawSchemeStringException;
 use App\Application\Outbound\UseCase\CreateOutboundFromScheme\CreateOutboundFromSchemeUseCase;
 use App\Application\Repository\Outbound\AddOutboundRepository;
 use App\Application\Repository\Outbound\GetOutboundsListRepository;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
+use App\Application\Repository\Shared\Exception\UnableToSaveListException;
 use App\Application\Repository\Subscription\AddSubscriptionRepository;
+use App\Application\Subscription\Exception\UseCase\SaveFetchedSubscriptionSchemes\NoValidSchemesFoundException;
 use App\Domain\Outbound\Collection\UniqueTagAndContentOutboundsMap;
 use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Entity\Outbound;

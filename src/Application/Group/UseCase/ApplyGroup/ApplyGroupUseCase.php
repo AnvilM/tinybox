@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Group\UseCase\ApplyGroup;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Repository\Group\GetGroupListRepository;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
 use App\Application\Shared\Exception\UseCase\RestartSingBox\UnableToRestartSingBoxServiceException;
 use App\Application\Shared\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
 use App\Application\Shared\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;

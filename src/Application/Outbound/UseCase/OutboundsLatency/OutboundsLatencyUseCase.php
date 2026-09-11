@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Outbound\UseCase\OutboundsLatency;
 
 use App\Application\Outbound\DTO\OutboundLatencyDTO;
-use App\Application\Outbound\DTO\OutboundsLatency\OutboundsLatencyDTO;
+use App\Application\Outbound\DTO\UseCase\OutboundsLatency\OutboundsLatencyDTO;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;

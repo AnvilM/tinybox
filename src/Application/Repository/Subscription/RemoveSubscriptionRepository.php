@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Subscription;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
 use App\Application\Repository\Subscription\Shared\Builder\RawSubscriptionVOBuilder;
 use App\Application\Repository\Subscription\Shared\File\ReadSubscriptions;
 use App\Application\Repository\Subscription\Shared\File\WriteSubscriptions;

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Outbound\Shared;
 
-use App\Application\Exception\Repository\Outbound\Validator\InvalidOutboundsListFormatException;
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
-use App\Application\Exception\Repository\Shared\UnableToSaveListException;
-use App\Application\Exception\Shared\Scheme\CreateSchemeEntityFromString\UnableToParseRawSchemeStringException;
+use App\Application\Outbound\Exception\UnableToParseRawSchemeStringException;
 use App\Application\Outbound\Mapper\ToSchemeString\ToSchemeStringOutboundMapper;
 use App\Application\Outbound\UseCase\CreateOutboundFromScheme\CreateOutboundFromSchemeUseCase;
+use App\Application\Repository\Outbound\Shared\Exception\Validator\InvalidOutboundsListFormatException;
 use App\Application\Repository\Outbound\Shared\File\ReadOutbounds;
 use App\Application\Repository\Outbound\Shared\File\WriteOutbounds;
 use App\Application\Repository\Outbound\Shared\Validator\OutboundsListFormatValidator;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
+use App\Application\Repository\Shared\Exception\UnableToSaveListException;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\UnsupportedProtocolException;

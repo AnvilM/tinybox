@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Outbound\Shared\Validator;
 
-use App\Application\Exception\Repository\Outbound\Validator\InvalidOutboundsListFormatException;
+use App\Application\Repository\Outbound\Shared\Exception\Validator\InvalidOutboundsListFormatException;
 use InvalidArgumentException;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Validator;
@@ -39,7 +39,7 @@ final readonly class OutboundsListFormatValidator
     public function validate(array $rawOutboundsArray): void
     {
         if ($rawOutboundsArray === []) return;
-        
+
         try {
             $validation = $this->validator->validate(
                 Helper::toJSON($rawOutboundsArray),

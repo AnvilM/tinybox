@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
-use App\Application\Outbound\DTO\FilterOutbounds\FilterCountryCodesDTO;
-use App\Application\Outbound\DTO\FilterOutbounds\FilterExcludeCountryCodesDTO;
-use App\Application\Outbound\DTO\FilterOutbounds\FilterOutboundsDTO;
-use App\Application\Outbound\DTO\OutboundsLatency\OutboundsLatencyDTO;
-use App\Application\Outbound\DTO\SetOutboundsDetour\SetOutboundsDetourDTO;
+use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterCountryCodesDTO;
+use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterExcludeCountryCodesDTO;
+use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
+use App\Application\Outbound\DTO\UseCase\OutboundsLatency\OutboundsLatencyDTO;
+use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
 use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
 use App\Application\Outbound\UseCase\OutboundsLatency\OutboundsLatencyUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;

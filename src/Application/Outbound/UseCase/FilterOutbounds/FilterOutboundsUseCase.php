@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Outbound\UseCase\FilterOutbounds;
 
-use App\Application\Outbound\DTO\FilterOutbounds\FilterOutboundsDTO;
+use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Specification\OutboundCountryCodeSpecification;

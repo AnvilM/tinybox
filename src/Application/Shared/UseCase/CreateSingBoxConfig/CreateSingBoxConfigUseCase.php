@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\UseCase\CreateSingBoxConfig;
 
+use App\Application\Outbound\Exception\Export\IncompatibleOutboundException;
+use App\Application\Outbound\Exception\Export\UnsupportedByCoreException;
+use App\Application\Outbound\Export\CoreType;
+use App\Application\Outbound\Export\ExporterRegistryFactory;
 use App\Application\Shared\UseCase\CreateSingBoxConfig\FIle\ReadOutboundTemplate;
 use App\Application\Shared\UseCase\CreateSingBoxConfig\FIle\ReadSingBoxConfigTemplate;
 use App\Application\Shared\UseCase\CreateSingBoxConfig\FIle\ReadUrltestTemplate;
@@ -77,7 +81,14 @@ final readonly class CreateSingBoxConfigUseCase
             /**
              * Add outbound to sing-box config outbounds array
              */
-            $singBoxConfigTemplate['outbounds'][] = array_merge($outboundTemplate, $outbound->toArray());
+            try {
+                $singBoxConfigTemplate['outbounds'][] = array_merge($outboundTemplate,
+                    ExporterRegistryFactory::createDefaultExporter()->export($outbound, CoreType::SingBox)
+                );
+            } catch (IncompatibleOutboundException|UnsupportedByCoreException) {
+                continue;
+                //TODO: add reporter event
+            }
 
         }
 

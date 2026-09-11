@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Subscription\UseCase\FetchSubscriptionContent;
 
-use App\Application\Exception\Subscription\FetchSubscriptionContent\UnsupportedSubscriptionContentFormatException;
-use App\Application\Subscription\DTO\FetchSubscriptionContent\SubscriptionContentDTO;
-use App\Application\Subscription\DTO\FetchSubscriptionContent\SubscriptionContentTypeDTO;
+use App\Application\Subscription\DTO\UseCase\FetchSubscriptionContent\SubscriptionContentDTO;
+use App\Application\Subscription\DTO\UseCase\FetchSubscriptionContent\SubscriptionContentTypeDTO;
+use App\Application\Subscription\Exception\UseCase\FetchSubscriptionContent\UnsupportedSubscriptionContentFormatException;
 use App\Domain\Shared\Exception\HTTP\HttpException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\Http\HttpPort;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Group\Shared\Validator;
 
-use App\Application\Exception\Repository\Group\Validator\InvalidGroupListFormatException;
+use App\Application\Repository\Group\Shared\Exception\Validator\InvalidGroupListFormatException;
 use InvalidArgumentException;
 use Opis\JsonSchema\Helper;
 use Opis\JsonSchema\Validator;

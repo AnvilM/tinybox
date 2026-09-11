@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Group;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Repository\Group\Shared\File\ReadGroups;
 use App\Application\Repository\Group\Shared\File\WriteGroups;
 use App\Application\Repository\Group\Shared\GroupRepository;
 use App\Application\Repository\Group\Shared\Validator\GroupsListFormatValidator;
 use App\Application\Repository\Outbound\GetOutboundsListRepository;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
 use App\Domain\Group\Entity\Group;
 use App\Domain\Group\Exception\GroupNotFoundException;
 use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
