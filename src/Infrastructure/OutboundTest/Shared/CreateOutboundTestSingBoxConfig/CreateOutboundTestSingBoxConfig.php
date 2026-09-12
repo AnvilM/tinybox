@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Infrastructure\OutboundTest\Shared\CreateOutboundTestSingBoxConfig;
 
 
+use App\Application\Outbound\Exception\Export\IncompatibleOutboundException;
+use App\Application\Outbound\Exception\Export\UnsupportedByCoreException;
+use App\Application\Outbound\Export\CoreType;
+use App\Application\Outbound\Export\ExporterRegistryFactory;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
@@ -65,7 +69,14 @@ final readonly class CreateOutboundTestSingBoxConfig
             /**
              * Add outbound to outbound test sing-box config outbounds array
              */
-            $singBoxConfigTemplate['outbounds'][] = array_merge($outboundTemplate, $outbound->toArray());
+            try {
+                $singBoxConfigTemplate['outbounds'][] = array_merge($outboundTemplate,
+                    ExporterRegistryFactory::createDefaultExporter()->export($outbound, CoreType::SingBox)
+                );
+            } catch (IncompatibleOutboundException|UnsupportedByCoreException) {
+                continue;
+                // TODO: Add reporter event
+            }
         }
 
 

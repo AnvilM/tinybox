@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
-use App\Application\Exception\Subscription\FetchSubscriptionContent\UnsupportedSubscriptionContentFormatException;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
 use App\Application\Repository\Subscription\GetSubscriptionListRepository;
-use App\Application\Subscription\DTO\FetchSubscriptionContent\SubscriptionContentTypeDTO;
+use App\Application\Subscription\DTO\UseCase\FetchSubscriptionContent\SubscriptionContentTypeDTO;
+use App\Application\Subscription\Exception\UseCase\FetchSubscriptionContent\UnsupportedSubscriptionContentFormatException;
 use App\Application\Subscription\UseCase\FetchSubscriptionContent\FetchSubscriptionContentUseCase;
 use App\Application\Subscription\UseCase\SaveFetchedSubscriptionConfig\SaveFetchedSubscriptionConfigUseCase;
 use App\Application\Subscription\UseCase\SaveFetchedSubscriptionSchemes\SaveFetchedSubscriptionSchemesUseCase;

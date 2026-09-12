@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Subscription\Shared\Builder;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
 use App\Application\Repository\Subscription\Shared\Builder\Builder\RawConfigSubscriptionVOBuilder;
 use App\Application\Repository\Subscription\Shared\Builder\Builder\RawOutboundsSubscriptionVOBuilder;
 use App\Domain\Subscription\Exception\UnsupportedSubscriptionTypeException;

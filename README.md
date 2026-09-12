@@ -108,6 +108,14 @@ If the configuration file is missing or some parameters are not specified, defau
       },
       "timeout": 10
     }
+  },
+  "xray": {
+    "templates": {
+      "outbound": "~/.config/tinybox/templates/xray/outbound.json",
+      "config": "~/.config/tinybox/templates/xray/config.json",
+      "observatory": "~/.config/tinybox/templates/xray/observatory.json",
+      "balancer": "~/.config/tinybox/templates/xray/balancer.json"
+    }
   }
 }
 ```

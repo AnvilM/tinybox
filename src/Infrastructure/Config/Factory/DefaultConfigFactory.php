@@ -15,6 +15,8 @@ use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Templates\OutboundTestTempl
 use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\Subscriptions\SubscriptionsConfigVO;
+use App\Domain\Shared\VO\Config\Xray\Templates\TemplatesXrayConfigVO;
+use App\Domain\Shared\VO\Config\Xray\XrayConfigVO;
 
 final readonly class DefaultConfigFactory
 {
@@ -32,6 +34,7 @@ final readonly class DefaultConfigFactory
             $this->getDataHomeDirectory->execute() . '/subscriptions.json',
             $this->getDataHomeDirectory->execute() . '/groups.json',
             $this->getDataHomeDirectory->execute() . '/outbounds.json',
+            $this->getDataHomeDirectory->execute() . '/config.json',
             new SubscriptionsConfigVO(
                 10,
                 "tinybox/0.1",
@@ -44,7 +47,6 @@ final readonly class DefaultConfigFactory
                     $this->getConfigsDirectory->execute() . '/templates/urltest.json',
                     $this->getConfigsDirectory->execute() . '/templates/config.json',
                 ),
-                "/etc/sing-box/config.json",
                 "sing-box",
                 new OutboundTestSingBoxConfigVO(
                     new OutboundTestTemplatesSingBoxConfigVO(
@@ -64,6 +66,14 @@ final readonly class DefaultConfigFactory
                     10
                 )
             ),
+            new XrayConfigVO(
+                new TemplatesXrayConfigVO(
+                    $this->getConfigsDirectory->execute() . '/templates/xray/outbound.json',
+                    $this->getConfigsDirectory->execute() . '/templates/xray/observatory.json',
+                    $this->getConfigsDirectory->execute() . '/templates/xray/balancer.json',
+                    $this->getConfigsDirectory->execute() . '/templates/xray/config.json',
+                )
+            )
         );
     }
 

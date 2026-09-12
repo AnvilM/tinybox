@@ -6,6 +6,7 @@ namespace App\Domain\Shared\VO\Config;
 
 use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
 use App\Domain\Shared\VO\Config\Subscriptions\SubscriptionsConfigVO;
+use App\Domain\Shared\VO\Config\Xray\XrayConfigVO;
 
 final readonly  class ConfigVO
 {
@@ -13,8 +14,10 @@ final readonly  class ConfigVO
         public string                $subscriptionsListPath,
         public string                $groupsListPath,
         public string                $outboundsListPath,
+        public string                $configSavePath,
         public SubscriptionsConfigVO $subscriptionsConfig,
         public SingBoxConfigVO       $singBoxConfig,
+        public XrayConfigVO          $xrayConfig,
     )
     {
     }

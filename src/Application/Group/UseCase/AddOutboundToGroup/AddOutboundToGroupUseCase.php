@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\Group\UseCase\AddOutboundToGroup;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
-use App\Application\Exception\Repository\Shared\UnableToSaveListException;
 use App\Application\Repository\Group\AddOutboundToGroupOrCreateNewRepository;
 use App\Application\Repository\Group\SaveGroupListRepository;
 use App\Application\Repository\Outbound\GetOutboundsListRepository;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
+use App\Application\Repository\Shared\Exception\UnableToSaveListException;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;

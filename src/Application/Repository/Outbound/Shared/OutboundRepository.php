@@ -4,21 +4,24 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Outbound\Shared;
 
-use App\Application\Exception\Repository\Outbound\Validator\InvalidOutboundsListFormatException;
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
-use App\Application\Exception\Repository\Shared\UnableToSaveListException;
+use App\Application\Outbound\Exception\UnableToParseRawSchemeStringException;
+use App\Application\Outbound\Mapper\ToSchemeString\ToSchemeStringOutboundMapper;
+use App\Application\Outbound\UseCase\CreateOutboundFromScheme\CreateOutboundFromSchemeUseCase;
+use App\Application\Repository\Outbound\Shared\Exception\Validator\InvalidOutboundsListFormatException;
 use App\Application\Repository\Outbound\Shared\File\ReadOutbounds;
 use App\Application\Repository\Outbound\Shared\File\WriteOutbounds;
 use App\Application\Repository\Outbound\Shared\Validator\OutboundsListFormatValidator;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
+use App\Application\Repository\Shared\Exception\UnableToSaveListException;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
-use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
-use App\Domain\Outbound\Factory\FromRawOutbound\FromRawOutboundFactory;
+use App\Domain\Outbound\Exception\UnsupportedProtocolException;
+use App\Domain\Outbound\Exception\UnsupportedSecurityException;
+use App\Domain\Outbound\Exception\UnsupportedTransportException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Exception\Json\UnableToEncodeJsonException;
-use App\Domain\Shared\Ports\Outbound\Parser\RawOutboundParserPort;
 use InvalidArgumentException;
 
 class OutboundRepository
@@ -26,11 +29,12 @@ class OutboundRepository
     private static ?OutboundMap $outboundsMap = null;
 
     public function __construct(
-        private readonly ReadOutbounds                $readOutbounds,
-        private readonly OutboundsListFormatValidator $outboundsListFormatValidator,
-        private readonly WriteOutbounds               $writeOutbounds,
-        private readonly RawOutboundParserPort        $rawOutboundParserPort,
-        private readonly FromRawOutboundFactory       $fromRawOutboundFactory,
+        private readonly ReadOutbounds                   $readOutbounds,
+        private readonly OutboundsListFormatValidator    $outboundsListFormatValidator,
+        private readonly WriteOutbounds                  $writeOutbounds,
+        private readonly CreateOutboundFromSchemeUseCase $createOutboundFromSchemeUseCase,
+        private readonly ToSchemeStringOutboundMapper    $toSchemeStringOutboundMapper,
+
     )
     {
 
@@ -55,15 +59,15 @@ class OutboundRepository
             /**
              * Read outbounds
              */
-            $rawOutboundsList = $this->readOutbounds->read();
+            $rawSchemesList = $this->readOutbounds->read();
 
             /**
              * Validate outbounds
              */
-            $this->outboundsListFormatValidator->validate($rawOutboundsList);
+            $this->outboundsListFormatValidator->validate($rawSchemesList);
 
 
-            /** @var array[] $rawOutboundsList */
+            /** @var array<string, string> $rawSchemesList */
 
         } catch (UnableToReadFileException|UnableToDecodeJsonException|InvalidOutboundsListFormatException $e) {
             throw new UnableToGetListException($e instanceof UnableToReadFileException
@@ -80,17 +84,17 @@ class OutboundRepository
         $outbounds = new OutboundMap();
 
 
-        foreach ($rawOutboundsList as $rawOutbound) {
+        foreach ($rawSchemesList as $id => $rawScheme) {
             /**
              * Try to create and add outbound to outbounds map
              */
             try {
-                $outbounds->add($this->fromRawOutboundFactory->fromRawOutboundVO(
-                    $this->rawOutboundParserPort->parse($rawOutbound)
-                ));
-            } catch (UnsupportedOutboundTypeException|OutboundAlreadyExistsException|InvalidArgumentException) {
+                $outbounds->add(
+                    $this->createOutboundFromSchemeUseCase->handle($rawScheme, $id)
+                );
+            } catch (OutboundAlreadyExistsException|UnableToParseRawSchemeStringException|UnsupportedProtocolException|UnsupportedTransportException|UnsupportedSecurityException|InvalidArgumentException $e) {
                 continue;
-                // TODO: Add reporter event
+                // TODO: add reporter event
             }
         }
 
@@ -115,8 +119,24 @@ class OutboundRepository
             "No outbounds list available"
         );
 
+
+        /**
+         * Try to create scheme strings from outbounds
+         */
+
+        $outbounds = [];
+
+        foreach (self::$outboundsMap->getOutbounds() as $outbound) {
+            try {
+                $outbounds[$outbound->getId()] = $this->toSchemeStringOutboundMapper->map($outbound);
+            } catch (InvalidArgumentException) {
+                continue;
+                // TODO: Add reporter event
+            }
+        }
+
         try {
-            $this->writeOutbounds->write(self::$outboundsMap);
+            $this->writeOutbounds->write($outbounds);
         } catch (UnableToSaveFileException|UnableToEncodeJsonException $e) {
             throw new UnableToSaveListException($e->getMessage(), $e->getDebugMessage());
         }

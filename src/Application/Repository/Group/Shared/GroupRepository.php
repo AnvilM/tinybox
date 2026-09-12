@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Group\Shared;
 
-use App\Application\Exception\Repository\Group\Validator\InvalidGroupListFormatException;
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
-use App\Application\Exception\Repository\Shared\UnableToSaveListException;
+use App\Application\Repository\Group\Shared\Exception\Validator\InvalidGroupListFormatException;
 use App\Application\Repository\Group\Shared\File\ReadGroups;
 use App\Application\Repository\Group\Shared\File\WriteGroups;
 use App\Application\Repository\Group\Shared\Validator\GroupsListFormatValidator;
 use App\Application\Repository\Outbound\GetOutboundsListRepository;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
+use App\Application\Repository\Shared\Exception\UnableToSaveListException;
 use App\Domain\Group\Collection\GroupsMap;
 use App\Domain\Group\Entity\Group;
 use App\Domain\Group\Exception\GroupAlreadyExistsException;

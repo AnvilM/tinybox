@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace App\Application\Subscription\UseCase\SaveFetchedSubscriptionSchemes;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
-use App\Application\Exception\Repository\Shared\UnableToSaveListException;
-use App\Application\Exception\Services\Shared\FetchSchemes\NoValidSchemesFoundException;
-use App\Application\Exception\Shared\Scheme\CreateSchemeEntityFromString\UnableToParseRawSchemeStringException;
+use App\Application\Outbound\Exception\UnableToParseRawSchemeStringException;
+use App\Application\Outbound\UseCase\CreateOutboundFromScheme\CreateOutboundFromSchemeUseCase;
 use App\Application\Repository\Outbound\AddOutboundRepository;
 use App\Application\Repository\Outbound\GetOutboundsListRepository;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
+use App\Application\Repository\Shared\Exception\UnableToSaveListException;
 use App\Application\Repository\Subscription\AddSubscriptionRepository;
-use App\Application\Shared\Scheme\CreateSchemeEntityFromString\CreateSchemeEntityFromStringUseCase;
+use App\Application\Subscription\Exception\UseCase\SaveFetchedSubscriptionSchemes\NoValidSchemesFoundException;
 use App\Domain\Outbound\Collection\UniqueTagAndContentOutboundsMap;
 use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
-use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Entity\OutboundsSubscription;
 use App\Domain\Subscription\Exception\SubscriptionAlreadyExistsException;
@@ -27,10 +26,10 @@ use Throwable;
 final readonly class SaveFetchedSubscriptionSchemesUseCase
 {
     public function __construct(
-        private CreateSchemeEntityFromStringUseCase $createSchemeEntityFromStringUseCase,
-        private AddOutboundRepository               $addOutboundRepository,
-        private AddSubscriptionRepository           $addSubscriptionRepository,
-        private GetOutboundsListRepository          $getOutboundsListRepository
+        private CreateOutboundFromSchemeUseCase $createOutboundFromSchemeUseCase,
+        private AddOutboundRepository           $addOutboundRepository,
+        private AddSubscriptionRepository       $addSubscriptionRepository,
+        private GetOutboundsListRepository      $getOutboundsListRepository
     )
     {
     }
@@ -69,9 +68,7 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
              */
             try {
                 $outbounds->add(
-                    FromSchemeOutboundFactory::fromScheme(
-                        $this->createSchemeEntityFromStringUseCase->handle($schemeString),
-                    )
+                    $this->createOutboundFromSchemeUseCase->handle($schemeString)
                 );
             } catch (UnableToParseRawSchemeStringException|InvalidArgumentException|OutboundAlreadyExistsException) {
                 continue;

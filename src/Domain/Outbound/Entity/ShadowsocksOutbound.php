@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Outbound\Entity;
 
 use App\Domain\Interface\Subscription\DetourProvider;
-use App\Domain\Outbound\VO\OutboundTypeVO;
+use App\Domain\Outbound\VO\ProtocolVO;
+use App\Domain\Outbound\VO\Shadowsocks\Plugin\ShadowsocksPluginVO;
+use App\Domain\Outbound\VO\Shadowsocks\Userinfo\ShadowsocksUserinfoVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use Override;
@@ -14,32 +16,26 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
 {
     private NonEmptyStringVO $server;
     private PortVO $serverPort;
-    private NonEmptyStringVO $method;
-    private NonEmptyStringVO $password;
-    private ?NonEmptyStringVO $plugin;
-    private ?NonEmptyStringVO $pluginOptions;
+    private ShadowsocksUserinfoVO $userinfo;
+    private ?ShadowsocksPluginVO $plugin;
     private ?NonEmptyStringVO $detourTag;
 
 
     public function __construct(
-        NonEmptyStringVO  $tag,
-        NonEmptyStringVO  $server,
-        PortVO            $serverPort,
-        NonEmptyStringVO  $method,
-        NonEmptyStringVO  $password,
-        ?NonEmptyStringVO $plugin,
-        ?NonEmptyStringVO $pluginOptions
+        ?string               $tag,
+        NonEmptyStringVO      $id,
+        NonEmptyStringVO      $server,
+        PortVO                $serverPort,
+        ShadowsocksUserinfoVO $userinfo,
+        ?ShadowsocksPluginVO  $plugin,
     )
     {
         $this->server = $server;
         $this->serverPort = $serverPort;
-        $this->method = $method;
-        $this->password = $password;
+        $this->userinfo = $userinfo;
         $this->plugin = $plugin;
-        $this->pluginOptions = $pluginOptions;
 
-
-        parent::__construct($tag);
+        parent::__construct($tag, $id);
     }
 
     /**
@@ -58,44 +54,38 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
         return $other instanceof self &&
             $this->server->equals($other->server) &&
             $this->serverPort->equals($other->serverPort) &&
-            $this->method->equals($other->method) &&
-            $this->password->equals($other->password) &&
-            $this->equalsNullable($this->plugin, $other->plugin) &&
-            $this->equalsNullable($this->pluginOptions, $other->pluginOptions) &&
+            $this->userinfo->getMethod() === $other->userinfo->getMethod() &&
+            $this->userinfo->getPassword() === $other->userinfo->getPassword() &&
+            $this->plugin->getPlugin() === $other->plugin->getPlugin() &&
+            $this->plugin->getPluginOptions() === $other->plugin->getPluginOptions() &&
             $this->equalsNullable($this->detourTag ?? null, $other->detourTag ?? null);
     }
 
-    #[Override]
-    public function toArray(): array
+    public function getPlugin(): ?ShadowsocksPluginVO
     {
-        return array_filter([
-            'type' => $this->getType()->value,
-            'tag' => $this->getTagString(),
-            'server' => $this->server->getValue(),
-            'server_port' => $this->serverPort->getPort(),
-            'method' => $this->method->getValue(),
-            'password' => $this->password->getValue(),
-            'plugin' => $this->plugin?->getValue(),
-            'plugin_opts' => $this->pluginOptions?->getValue(),
-            'detour' => isset($this->detourTag) ? $this->detourTag->getValue() : null,
-        ], static fn($value) => $value !== null);
+        return $this->plugin;
     }
 
     #[Override]
-    public function getType(): OutboundTypeVO
+    public function getType(): ProtocolVO
     {
-        return OutboundTypeVO::Shadowsocks;
+        return ProtocolVO::Shadowsocks;
     }
 
     #[Override]
-    public function getServer(): ?string
+    public function getServer(): string
     {
         return $this->server->getValue();
     }
 
     #[Override]
-    public function getServerPort(): ?int
+    public function getServerPort(): int
     {
         return $this->serverPort->getPort();
+    }
+
+    public function getUserinfo(): ShadowsocksUserinfoVO
+    {
+        return $this->userinfo;
     }
 }

@@ -5,12 +5,18 @@ declare(strict_types=1);
 namespace App\Infrastructure\Shared\UUID;
 
 use App\Domain\Shared\Ports\UUID\UUIDPort;
+use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use DateTimeImmutable;
 use Ramsey\Uuid\Exception\UnsupportedOperationException;
 use RuntimeException;
 
 final readonly class UUID implements UUIDPort
 {
+    public function generateNonEmptyString(): NonEmptyStringVO
+    {
+        return new NonEmptyStringVO($this->generate());
+    }
+
     public function generate(): string
     {
         try {
@@ -21,4 +27,6 @@ final readonly class UUID implements UUIDPort
             throw new RuntimeException('UUID generation failed');
         }
     }
+
+
 }

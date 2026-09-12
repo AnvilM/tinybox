@@ -14,6 +14,8 @@ use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Templates\OutboundTestTempl
 use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\Subscriptions\SubscriptionsConfigVO;
+use App\Domain\Shared\VO\Config\Xray\Templates\TemplatesXrayConfigVO;
+use App\Domain\Shared\VO\Config\Xray\XrayConfigVO;
 
 final readonly class ConfigFactory
 {
@@ -37,6 +39,7 @@ final readonly class ConfigFactory
             $this->normalizePath($rawConfig['subscriptions_list'] ?? $defaultConfig->subscriptionsListPath),
             $this->normalizePath($rawConfig['groups_list'] ?? $defaultConfig->groupsListPath),
             $this->normalizePath($rawConfig['outbounds_list'] ?? $defaultConfig->outboundsListPath),
+            $this->normalizePath($rawConfig['config_save_path'] ?? $defaultConfig->configSavePath),
 
             new SubscriptionsConfigVO(
                 $rawConfig['subscriptions']['timeout'] ?? $defaultConfig->subscriptionsConfig->timeout,
@@ -50,7 +53,6 @@ final readonly class ConfigFactory
                     $this->normalizePath($rawConfig['sing_box']['templates']['outbound_urltest'] ?? $defaultConfig->singBoxConfig->templates->outboundUrltest),
                     $this->normalizePath($rawConfig['sing_box']['templates']['config'] ?? $defaultConfig->singBoxConfig->templates->config),
                 ),
-                $this->normalizePath($rawConfig['sing_box']['default_config_path'] ?? $defaultConfig->singBoxConfig->defaultConfigPath),
                 $rawConfig['sing_box']['systemd_service_name'] ?? $defaultConfig->singBoxConfig->systemdServiceName,
                 new OutboundTestSingBoxConfigVO(
                     new OutboundTestTemplatesSingBoxConfigVO(
@@ -71,6 +73,14 @@ final readonly class ConfigFactory
 
                 ),
             ),
+            new XrayConfigVO(
+                new TemplatesXrayConfigVO(
+                    $this->normalizePath($rawConfig['xray']['templates']['outbound'] ?? $defaultConfig->xrayConfig->templates->outbound),
+                    $this->normalizePath($rawConfig['xray']['templates']['observatory'] ?? $defaultConfig->xrayConfig->templates->observatory),
+                    $this->normalizePath($rawConfig['xray']['templates']['balancer'] ?? $defaultConfig->xrayConfig->templates->balancer),
+                    $this->normalizePath($rawConfig['xray']['templates']['config'] ?? $defaultConfig->xrayConfig->templates->config),
+                )
+            )
         );
     }
 

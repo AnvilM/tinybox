@@ -11,3 +11,5 @@ composer.lock
 build
 
 build.sh
+
+.phpunit.result.cache

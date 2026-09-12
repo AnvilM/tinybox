@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
 use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Commands\AbstractCommand;
 use App\Domain\Shared\Exception\CriticalException;

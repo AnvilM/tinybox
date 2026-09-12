@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Outbound\VO\Transport;
+
+use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
+
+final readonly class WebSocketTransportVO extends TransportVO
+{
+    private NonEmptyStringVO $path;
+    private NonEmptyStringVO $host;
+
+    public function __construct(NonEmptyStringVO $path, NonEmptyStringVO $host)
+    {
+        $this->path = $path;
+        $this->host = $host;
+    }
+
+    public function equals(mixed $other): bool
+    {
+        return parent::equals($other) &&
+            $this->path->equals($other->path) &&
+            $this->host->equals($other->host);
+    }
+
+    public function getPath(): NonEmptyStringVO
+    {
+        return $this->path;
+    }
+
+    public function getHost(): NonEmptyStringVO
+    {
+        return $this->host;
+    }
+
+    public function getType(): TransportTypeVO
+    {
+        return TransportTypeVO::WebSocket;
+    }
+
+
+}

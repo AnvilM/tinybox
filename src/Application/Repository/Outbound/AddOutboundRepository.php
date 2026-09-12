@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Outbound;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
+use App\Application\Outbound\Mapper\ToSchemeString\ToSchemeStringOutboundMapper;
+use App\Application\Outbound\UseCase\CreateOutboundFromScheme\CreateOutboundFromSchemeUseCase;
 use App\Application\Repository\Outbound\Shared\File\ReadOutbounds;
 use App\Application\Repository\Outbound\Shared\File\WriteOutbounds;
 use App\Application\Repository\Outbound\Shared\OutboundRepository;
 use App\Application\Repository\Outbound\Shared\Validator\OutboundsListFormatValidator;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
-use App\Domain\Outbound\Factory\FromRawOutbound\FromRawOutboundFactory;
-use App\Domain\Shared\Ports\Outbound\Parser\RawOutboundParserPort;
 
 final class AddOutboundRepository extends OutboundRepository
 {
-    public function __construct(ReadOutbounds $readOutbounds, OutboundsListFormatValidator $outboundsListFormatValidator, WriteOutbounds $writeOutbounds, RawOutboundParserPort $rawOutboundParserPort, FromRawOutboundFactory $fromRawOutboundFactory)
+    public function __construct(ReadOutbounds $readOutbounds, OutboundsListFormatValidator $outboundsListFormatValidator, WriteOutbounds $writeOutbounds, CreateOutboundFromSchemeUseCase $createOutboundFromSchemeUseCase, ToSchemeStringOutboundMapper $toSchemeStringOutboundMapper)
     {
-        parent::__construct($readOutbounds, $outboundsListFormatValidator, $writeOutbounds, $rawOutboundParserPort, $fromRawOutboundFactory);
+        parent::__construct($readOutbounds, $outboundsListFormatValidator, $writeOutbounds, $createOutboundFromSchemeUseCase, $toSchemeStringOutboundMapper);
     }
 
     /**

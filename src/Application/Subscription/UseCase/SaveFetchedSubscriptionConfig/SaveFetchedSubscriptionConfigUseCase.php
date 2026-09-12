@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Subscription\UseCase\SaveFetchedSubscriptionConfig;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
-use App\Application\Exception\Repository\Shared\UnableToSaveListException;
-use App\Application\Exception\Services\Shared\FetchSchemes\NoValidSchemesFoundException;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
+use App\Application\Repository\Shared\Exception\UnableToSaveListException;
 use App\Application\Repository\Subscription\AddSubscriptionRepository;
+use App\Application\Subscription\Exception\UseCase\SaveFetchedSubscriptionSchemes\NoValidSchemesFoundException;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Entity\ConfigSubscription;
 use App\Domain\Subscription\Exception\SubscriptionAlreadyExistsException;

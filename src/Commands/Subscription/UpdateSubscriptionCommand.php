@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
-use App\Application\Exception\Subscription\FetchSubscriptionContent\UnsupportedSubscriptionContentFormatException;
 use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Application\Repository\Subscription\RemoveSubscriptionRepository;
-use App\Application\Subscription\DTO\FetchSubscriptionContent\SubscriptionContentTypeDTO;
+use App\Application\Subscription\DTO\UseCase\FetchSubscriptionContent\SubscriptionContentTypeDTO;
+use App\Application\Subscription\Exception\UseCase\FetchSubscriptionContent\UnsupportedSubscriptionContentFormatException;
 use App\Application\Subscription\UseCase\FetchSubscriptionContent\FetchSubscriptionContentUseCase;
 use App\Application\Subscription\UseCase\SaveFetchedSubscriptionConfig\SaveFetchedSubscriptionConfigUseCase;
 use App\Application\Subscription\UseCase\SaveFetchedSubscriptionSchemes\SaveFetchedSubscriptionSchemesUseCase;
@@ -21,6 +21,7 @@ use InvalidArgumentException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'subscription:update', description: 'Update subscription', aliases: ['sub:update'])]
@@ -83,7 +84,7 @@ final class UpdateSubscriptionCommand extends AbstractCommand
          * If subscription content type is schemes list
          */
         if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::SCHEMES)
-            $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscription->getUrlVO(), $subscriptionContent->content);
+            $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscription->getUrlVO(), $subscriptionContent->content, (bool)$input->getOption('skipDuplicates'));
         else if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::CONFIG) {
             $this->saveFetchedSubscriptionConfigUseCase->handle($subscriptionName, $subscription->getUrlVO(), $subscriptionContent->content);
         }
@@ -93,6 +94,7 @@ final class UpdateSubscriptionCommand extends AbstractCommand
 
     protected function configure(): void
     {
-        $this->addArgument('name', InputArgument::REQUIRED, 'Subscription name');
+        $this->addArgument('name', InputArgument::REQUIRED, 'Subscription name')
+            ->addOption('skipDuplicates', 's', InputOption::VALUE_NONE);
     }
 }

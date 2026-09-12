@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Repository\Subscription\Shared\Builder\Builder;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Repository\Outbound\GetOutboundsListRepository;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
 use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;

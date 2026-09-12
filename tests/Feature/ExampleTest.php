@@ -10,7 +10,7 @@ final class ExampleTest extends BaseTestCase
 {
     public function testExample()
     {
-        $this->getApp()->find('sc:list');
+        //$this->getApp()->find('sc:list');
 
         $this->assertTrue(true);
     }

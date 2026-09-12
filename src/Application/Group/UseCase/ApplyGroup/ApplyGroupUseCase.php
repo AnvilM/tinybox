@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace App\Application\Group\UseCase\ApplyGroup;
 
-use App\Application\Exception\Repository\Shared\UnableToGetListException;
 use App\Application\Repository\Group\GetGroupListRepository;
+use App\Application\Repository\Shared\Exception\UnableToGetListException;
 use App\Application\Shared\Exception\UseCase\RestartSingBox\UnableToRestartSingBoxServiceException;
-use App\Application\Shared\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
-use App\Application\Shared\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
+use App\Application\Shared\UseCase\CreateConfig\CreateConfigUseCase;
 use App\Domain\Group\Exception\GroupNotFoundException;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
-use App\Domain\Outbound\Exception\UnsupportedOutboundTypeException;
-use App\Domain\Outbound\Factory\FromScheme\FromSchemeOutboundFactory;
+use App\Domain\Outbound\Exception\UnsupportedProtocolException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -24,11 +22,10 @@ use InvalidArgumentException;
 final readonly class ApplyGroupUseCase
 {
     public function __construct(
-        private GetGroupListRepository       $getGroupListRepository,
-        private CreateSingBoxConfigUseCase   $createSingBoxConfigUseCase,
-        private SaveFilePort                 $saveFilePort,
-        private ConfigInstancePort           $configInstancePort,
-        private RestartSingBoxServiceUseCase $restartSingBoxServiceUseCase,
+        private GetGroupListRepository $getGroupListRepository,
+        private CreateConfigUseCase    $createSingBoxConfigUseCase,
+        private SaveFilePort           $saveFilePort,
+        private ConfigInstancePort     $configInstancePort,
     )
     {
     }
@@ -80,7 +77,7 @@ final readonly class ApplyGroupUseCase
              */
             try {
                 $outboundsMap->add(FromSchemeOutboundFactory::fromScheme($outbound, $outboundsMap->count()));
-            } catch (OutboundAlreadyExistsException|InvalidArgumentException|UnsupportedOutboundTypeException) {
+            } catch (OutboundAlreadyExistsException|InvalidArgumentException|UnsupportedProtocolException) {
                 continue;
                 // TODO: Add reporter event
             }
