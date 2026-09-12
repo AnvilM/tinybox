@@ -4,26 +4,24 @@ declare(strict_types=1);
 
 namespace App\Application\Outbound\DTO\UseCase\FilterOutbounds;
 
-use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
+use App\Application\Outbound\Filter\Interface\OutboundFilterCriteriaInterface;
+use App\Domain\Outbound\Collection\OutboundMap;
+use Psl\Collection\Vector;
 use Psl\Collection\VectorInterface;
 
 final readonly class FilterOutboundsDTO
 {
     /**
-     * @param UniqueTagOutboundsMap $outboundsMap Outbounds map to filter
-     * @param VectorInterface<string>|null $excludeOutbounds Exclude outbounds with provided tags
-     * @param FilterExcludeCountryCodesDTO<string>|null $filterExcludeCountryCodesDTO Exclude outbounds with ips in provided countries
-     * @param null|FilterCountryCodesDTO<string> $filterCountryCodesDTO Exclude outbounds with ips not in provided countries
+     * @param OutboundMap $outboundsMap Outbounds to filter
+     * @param VectorInterface<OutboundFilterCriteriaInterface> $criteria Filter rules to apply, order does not matter -
+     *                                                                   every criteria must be satisfied (logical AND)
+     * @param VectorInterface<string>|null $ignoreOutbounds Tags of outbounds that must always be kept in the result,
+     *                                                       regardless of $criteria
      */
     public function __construct(
-        public UniqueTagOutboundsMap         $outboundsMap,
-        public ?VectorInterface              $ignoreOutbounds = null,
-        public ?VectorInterface              $excludeOutbounds = null,
-        public ?FilterExcludeCountryCodesDTO $filterExcludeCountryCodesDTO = null,
-        public ?FilterCountryCodesDTO        $filterCountryCodesDTO = null,
-        public ?VectorInterface              $filterExcludeOutboundTypes = null,
-        public ?VectorInterface              $filterOutboundTypes = null,
-
+        public OutboundMap      $outboundsMap,
+        public VectorInterface  $criteria = new Vector([]),
+        public ?VectorInterface $ignoreOutbounds = null,
     )
     {
     }

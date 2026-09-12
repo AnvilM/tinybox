@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
-use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterCountryCodesDTO;
-use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterExcludeCountryCodesDTO;
 use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
+use App\Application\Outbound\Filter\Criteria\CountryCodeCriteria;
+use App\Application\Outbound\Filter\Criteria\CountryCodeExcludeCriteria;
+use App\Application\Outbound\Filter\Criteria\TagExcludeCriteria;
+use App\Application\Outbound\Filter\Criteria\TypeCriteria;
+use App\Application\Outbound\Filter\Criteria\TypeExcludeCriteria;
+use App\Application\Outbound\Filter\Interface\OutboundFilterCriteriaInterface;
 use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Shared\DTO\UseCase\CreateConfig\ConfigType;
@@ -73,20 +77,8 @@ final class ApplySubscriptionCommand extends AbstractCommand
          */
         $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
             $subscriptionOutbounds,
+            criteria: new Vector($this->buildFilterCriteria($input)),
             ignoreOutbounds: $input->getOption('exceptOutbound') ? new Vector($input->getOption('exceptOutbound')) : null,
-            excludeOutbounds: $input->getOption('excludeOutbound') ? new Vector($input->getOption('excludeOutbound')) : null,
-            filterExcludeCountryCodesDTO: $input->getOption('excludeCountryCode') ? new FilterExcludeCountryCodesDTO(
-                new Vector($input->getOption('excludeCountryCode')),
-                $input->getOption('countryOutboundIpFallback'),
-                $input->getOption('countryOnlyAvailable')
-            ) : null,
-            filterCountryCodesDTO: $input->getOption('countryCode') ? new FilterCountryCodesDTO(
-                new Vector($input->getOption('countryCode')),
-                $input->getOption('countryOutboundIpFallback'),
-                $input->getOption('countryOnlyAvailable')
-            ) : null,
-            filterExcludeOutboundTypes: $input->getOption('excludeOutboundType') ? new Vector($input->getOption('excludeOutboundType')) : null,
-            filterOutboundTypes: $input->getOption('outboundType') ? new Vector($input->getOption('outboundType')) : null
         ));
 
 
@@ -98,7 +90,10 @@ final class ApplySubscriptionCommand extends AbstractCommand
             $urltestOutbounds = clone $subscriptionOutbounds;
 
             if ($input->getOption('urltestExclude')) {
-                $urltestOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO($urltestOutbounds, null, new Vector($input->getOption('urltestExclude'))));
+                $urltestOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
+                    $urltestOutbounds,
+                    criteria: new Vector([new TagExcludeCriteria(new Vector($input->getOption('urltestExclude')))]),
+                ));
             }
         }
 
@@ -129,6 +124,50 @@ final class ApplySubscriptionCommand extends AbstractCommand
         //$this->restartSingBoxServiceUseCase->handle();
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Build the flat list of filter criteria from the command's CLI options.
+     *
+     * NOTE: Adding a new CLI-driven filter option only means adding one more
+     * `if` block here that pushes a new `*Criteria` instance - the use case
+     * and the DTO itself never need to change.
+     *
+     * @return list<OutboundFilterCriteriaInterface>
+     */
+    private function buildFilterCriteria(InputInterface $input): array
+    {
+        $criteria = [];
+
+        if ($input->getOption('excludeOutbound')) {
+            $criteria[] = new TagExcludeCriteria(new Vector($input->getOption('excludeOutbound')));
+        }
+
+        if ($input->getOption('excludeCountryCode')) {
+            $criteria[] = new CountryCodeExcludeCriteria(
+                new Vector($input->getOption('excludeCountryCode')),
+                (bool)$input->getOption('countryOutboundIpFallback'),
+                (bool)$input->getOption('countryOnlyAvailable'),
+            );
+        }
+
+        if ($input->getOption('countryCode')) {
+            $criteria[] = new CountryCodeCriteria(
+                new Vector($input->getOption('countryCode')),
+                (bool)$input->getOption('countryOutboundIpFallback'),
+                (bool)$input->getOption('countryOnlyAvailable'),
+            );
+        }
+
+        if ($input->getOption('excludeOutboundType')) {
+            $criteria[] = new TypeExcludeCriteria(new Vector($input->getOption('excludeOutboundType')));
+        }
+
+        if ($input->getOption('outboundType')) {
+            $criteria[] = new TypeCriteria(new Vector($input->getOption('outboundType')));
+        }
+
+        return $criteria;
     }
 
     protected function configure(): void
