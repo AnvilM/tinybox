@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Outbound\Parser\RawOutboundParser;
 
 use App\Application\Outbound\Exception\UnableToParseRawSchemeStringException;
-use App\Application\Shared\Outbound\Ports\Parser\RawOutboundParserPort;
+use App\Application\Outbound\Ports\Parser\RawOutboundParserPort;
 use App\Domain\Outbound\VO\RawOutboundVO;
 use App\Infrastructure\Outbound\Parser\RawOutboundParser\Utils\TagEncodingDetector;
 use App\Infrastructure\Outbound\Parser\RawOutboundParser\Utils\TagEncodingType;

@@ -10,8 +10,10 @@ use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
 use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
+use App\Application\Shared\DTO\UseCase\CreateConfig\ConfigType;
+use App\Application\Shared\DTO\UseCase\CreateConfig\CreateConfigDTO;
 use App\Application\Shared\DTO\UseCase\SaveSingBoxConfig\SaveSingBoxConfigDTO;
-use App\Application\Shared\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
+use App\Application\Shared\UseCase\CreateConfig\CreateConfigUseCase;
 use App\Application\Shared\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
 use App\Application\Shared\UseCase\SaveSingBoxConfig\SaveSingBoxConfigUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
@@ -37,7 +39,7 @@ final class ApplySubscriptionCommand extends AbstractCommand
         private readonly GetSubscriptionWithNameUseCase $getSubscriptionWithNameUseCase,
         private readonly FilterOutboundsUseCase         $filterOutboundsUseCase,
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
-        private readonly CreateSingBoxConfigUseCase     $createSingBoxConfigUseCase,
+        private readonly CreateConfigUseCase            $createConfigUseCase,
         private readonly SaveSingBoxConfigUseCase       $saveSingBoxConfigUseCase,
         private readonly RestartSingBoxServiceUseCase   $restartSingBoxServiceUseCase,
         ConfigInstancePort                              $configInstancePort,
@@ -112,13 +114,19 @@ final class ApplySubscriptionCommand extends AbstractCommand
         }
 
 
-        $singBoxConfigJSON = $this->createSingBoxConfigUseCase->handle(
-            $subscriptionOutbounds, $urltestOutbounds
+        $singBoxConfigJSON = $this->createConfigUseCase->handle(
+            new CreateConfigDTO(
+                $subscriptionOutbounds,
+                $input->getOption('sing-box')
+                    ? ConfigType::SingBox
+                    : ($input->getOption('xray') ? ConfigType::Xray : ConfigType::SingBox),
+                $urltestOutbounds
+            )
         );
 
         $this->saveSingBoxConfigUseCase->handle(new SaveSingBoxConfigDTO($singBoxConfigJSON));
 
-        $this->restartSingBoxServiceUseCase->handle();
+        //$this->restartSingBoxServiceUseCase->handle();
 
         return self::SUCCESS;
     }
@@ -136,6 +144,8 @@ final class ApplySubscriptionCommand extends AbstractCommand
             ->addOption('countryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Filter outbounds and use only those whose country code match the specified one')
             ->addOption('countryOnlyAvailable', null, InputOption::VALUE_NONE, "Exclude all outbounds for which the country code could not be obtained")
             ->addOption('excludeOutboundType', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL)
-            ->addOption('outboundType', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL);
+            ->addOption('outboundType', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL)
+            ->addOption('sing-box', 's', InputOption::VALUE_NONE, 'Generate config for sing box format. Sing box format using by default')
+            ->addOption('xray', 'x', InputOption::VALUE_NONE, 'Generate config for xray format. Sing box format is used by default');
     }
 }

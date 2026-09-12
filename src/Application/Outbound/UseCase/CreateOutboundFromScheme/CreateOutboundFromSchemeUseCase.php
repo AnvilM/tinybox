@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Outbound\UseCase\CreateOutboundFromScheme;
 
 use App\Application\Outbound\Exception\UnableToParseRawSchemeStringException;
-use App\Application\Shared\Outbound\Ports\Parser\RawOutboundParserPort;
+use App\Application\Outbound\Ports\Parser\RawOutboundParserPort;
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\UnsupportedProtocolException;
 use App\Domain\Outbound\Exception\UnsupportedSecurityException;

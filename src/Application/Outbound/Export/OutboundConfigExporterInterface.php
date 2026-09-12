@@ -29,18 +29,4 @@ interface OutboundConfigExporterInterface
      *                                       spec is violated
      */
     public function export(Outbound $outbound, CoreType $core): array;
-
-    /**
-     * Builds configs for a set of outbounds, skipping ones incompatible
-     * with the given core.
-     *
-     * @param iterable<Outbound> $outbounds Outbounds to build configs for
-     * @param CoreType $core Target proxy core
-     * @param callable|null $onSkipped Optional callback for logging skipped
-     *                                 outbounds:
-     *                                 function(Outbound $outbound, \Throwable $reason): void
-     *
-     * @return list<array<string, mixed>>
-     */
-    public function exportMany(iterable $outbounds, CoreType $core, ?callable $onSkipped = null): array;
 }

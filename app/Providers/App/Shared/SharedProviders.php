@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Providers\App\Shared;
 
-use App\Application\Shared\Outbound\Ports\Parser\RawOutboundParserPort;
+use App\Application\Outbound\Ports\Parser\RawOutboundParserPort;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\Http\HttpPort;
 use App\Domain\Shared\Ports\IO\Directory\ScanDirectoryForFilesPort;

@@ -15,6 +15,8 @@ use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Templates\OutboundTestTempl
 use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\Templates\TemplatesSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\Subscriptions\SubscriptionsConfigVO;
+use App\Domain\Shared\VO\Config\Xray\Templates\TemplatesXrayConfigVO;
+use App\Domain\Shared\VO\Config\Xray\XrayConfigVO;
 
 final readonly class DefaultConfigFactory
 {
@@ -64,6 +66,14 @@ final readonly class DefaultConfigFactory
                     10
                 )
             ),
+            new XrayConfigVO(
+                new TemplatesXrayConfigVO(
+                    $this->getConfigsDirectory->execute() . '/templates/xray/outbound.json',
+                    $this->getConfigsDirectory->execute() . '/templates/xray/observatory.json',
+                    $this->getConfigsDirectory->execute() . '/templates/xray/balancer.json',
+                    $this->getConfigsDirectory->execute() . '/templates/xray/config.json',
+                )
+            )
         );
     }
 

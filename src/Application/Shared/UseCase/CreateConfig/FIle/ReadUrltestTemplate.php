@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\UseCase\CreateSingBoxConfig\FIle;
+namespace App\Application\Shared\UseCase\CreateConfig\FIle;
 
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
@@ -31,8 +31,8 @@ final readonly class ReadUrltestTemplate
     public function read(): array
     {
         return $this->readJsonFileNotifyPort->notifyStartAndSuccess(
-            "Reading urltest template file...",
-            "Urltest template file successfully read"
+            "Reading sing-box urltest template file...",
+            "Sing-box urltest template file successfully read"
         )->read($this->configInstancePort->get()->singBoxConfig->templates->outboundUrltest);
     }
 }

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\UseCase\CreateSingBoxConfig\FIle;
+namespace App\Application\Shared\UseCase\CreateConfig\FIle;
 
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 
-final readonly class ReadSingBoxConfigTemplate
+final readonly class ReadBalancerTemplate
 {
     public function __construct(
         private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
@@ -20,9 +20,9 @@ final readonly class ReadSingBoxConfigTemplate
 
 
     /**
-     * Read sing-box config template file
+     * Read xray balancer template file
      *
-     * @return array Sing-Box config template as JSON decoded array
+     * @return array Xray balancer template as JSON decoded array
      *
      * @throws UnableToReadFileException If unable to read file
      * @throws UnableToDecodeJsonException If unable to decode JSON
@@ -31,8 +31,8 @@ final readonly class ReadSingBoxConfigTemplate
     public function read(): array
     {
         return $this->readJsonFileNotifyPort->notifyStartAndSuccess(
-            "Reading sing-box config template file...",
-            "Sing-Box Group template file successfully read"
-        )->read($this->configInstancePort->get()->singBoxConfig->templates->config);
+            "Reading xray balancer template file...",
+            "Xray balancer template file successfully read"
+        )->read($this->configInstancePort->get()->xrayConfig->templates->balancer);
     }
 }

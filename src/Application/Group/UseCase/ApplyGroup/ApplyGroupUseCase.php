@@ -7,7 +7,7 @@ namespace App\Application\Group\UseCase\ApplyGroup;
 use App\Application\Repository\Group\GetGroupListRepository;
 use App\Application\Repository\Shared\Exception\UnableToGetListException;
 use App\Application\Shared\Exception\UseCase\RestartSingBox\UnableToRestartSingBoxServiceException;
-use App\Application\Shared\UseCase\CreateSingBoxConfig\CreateSingBoxConfigUseCase;
+use App\Application\Shared\UseCase\CreateConfig\CreateConfigUseCase;
 use App\Application\Shared\UseCase\RestartSingBoxService\RestartSingBoxServiceUseCase;
 use App\Domain\Group\Exception\GroupNotFoundException;
 use App\Domain\Outbound\Collection\OutboundMap;
@@ -25,7 +25,7 @@ final readonly class ApplyGroupUseCase
 {
     public function __construct(
         private GetGroupListRepository       $getGroupListRepository,
-        private CreateSingBoxConfigUseCase   $createSingBoxConfigUseCase,
+        private CreateConfigUseCase          $createSingBoxConfigUseCase,
         private SaveFilePort                 $saveFilePort,
         private ConfigInstancePort           $configInstancePort,
         private RestartSingBoxServiceUseCase $restartSingBoxServiceUseCase,

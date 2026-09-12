@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\UseCase\CreateSingBoxConfig\FIle;
+namespace App\Application\Shared\UseCase\CreateConfig\FIle;
 
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 
-final readonly class ReadOutboundTemplate
+final readonly class ReadObservatoryTemplate
 {
     public function __construct(
         private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
@@ -20,9 +20,9 @@ final readonly class ReadOutboundTemplate
 
 
     /**
-     * Read outbound template file
+     * Read xray observatory template file
      *
-     * @return array Outbound template as JSON decoded array
+     * @return array Observatory template as JSON decoded array
      *
      * @throws UnableToReadFileException If unable to read file
      * @throws UnableToDecodeJsonException If unable to decode JSON
@@ -31,8 +31,8 @@ final readonly class ReadOutboundTemplate
     public function read(): array
     {
         return $this->readJsonFileNotifyPort->notifyStartAndSuccess(
-            "Reading outbound template file...",
-            "Outbound template file successfully read"
-        )->read($this->configInstancePort->get()->singBoxConfig->templates->outbound);
+            "Reading xray observatory template file...",
+            "Xray observatory template file successfully read"
+        )->read($this->configInstancePort->get()->xrayConfig->templates->observatory);
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\Outbound\Ports\Parser;
+namespace App\Application\Outbound\Ports\Parser;
 
 use App\Application\Outbound\Exception\UnableToParseRawSchemeStringException;
 use App\Domain\Outbound\VO\RawOutboundVO;
