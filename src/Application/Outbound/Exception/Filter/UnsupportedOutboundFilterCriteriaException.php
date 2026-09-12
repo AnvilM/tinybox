@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\Outbound\Exception\Filter;
 
-use App\Application\Outbound\Filter\Interface\OutboundFilterCriteriaInterface;
+use App\Application\Outbound\Filter\Contract\OutboundFilterCriteriaInterface;
 use App\Domain\Shared\Exception\CriticalException;
 
 /**
- * Thrown when no registered {@see \App\Application\Outbound\Filter\Interface\OutboundSpecificationFactoryInterface}
+ * Thrown when no registered {@see \App\Application\Outbound\Filter\Contract\OutboundSpecificationFactoryInterface}
  * knows how to handle a given criteria.
  *
  * NOTE: In practice this signals a wiring mistake (a new Criteria class was

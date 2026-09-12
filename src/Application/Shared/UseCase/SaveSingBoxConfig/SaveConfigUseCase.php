@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\UseCase\SaveSingBoxConfig;
 
-use App\Application\Shared\DTO\UseCase\SaveSingBoxConfig\SaveSingBoxConfigDTO;
+use App\Application\Shared\DTO\UseCase\SaveConfig\SaveConfigDTO;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToSaveFileException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\SaveFilePort;
 
-final readonly class SaveSingBoxConfigUseCase
+final readonly class SaveConfigUseCase
 {
     public function __construct(
         private SaveFilePort       $saveFilePort,
@@ -24,15 +24,15 @@ final readonly class SaveSingBoxConfigUseCase
      *
      * @throws CriticalException
      */
-    public function handle(SaveSingBoxConfigDTO $dto): void
+    public function handle(SaveConfigDTO $dto): void
     {
         /**
          * Try to save config file
          */
         try {
             $this->saveFilePort->save(
-                $this->configInstancePort->get()->singBoxConfig->defaultConfigPath,
-                $dto->singBoxConfig
+                $this->configInstancePort->get()->configSavePath,
+                $dto->config
             );
         } catch (UnableToSaveFileException) {
             throw new CriticalException("Unable to save the configuration file");

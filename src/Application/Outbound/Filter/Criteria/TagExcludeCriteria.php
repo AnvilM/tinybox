@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Outbound\Filter\Criteria;
 
-use App\Application\Outbound\Filter\Interface\OutboundFilterCriteriaInterface;
+use App\Application\Outbound\Filter\Contract\OutboundFilterCriteriaInterface;
 use Psl\Collection\VectorInterface;
 
 /**

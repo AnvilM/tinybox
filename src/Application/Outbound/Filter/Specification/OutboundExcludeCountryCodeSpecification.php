@@ -26,16 +26,19 @@ final readonly class OutboundExcludeCountryCodeSpecification implements Outbound
 
     public function isSatisfiedBy(Outbound $outbound): bool
     {
-        foreach ($this->outboundsCountryCode as $outboundTag => $outboundCountryCode) {
-            if ($outboundTag === $outbound->getTagString()) {
-                foreach ($this->countryCodes as $countryCode) {
-                    if ($countryCode === $outboundCountryCode) return false;
-                }
+        $countryCode = $this->outboundsCountryCode->get($outbound->getTagString());
 
-                return true;
-            }
+        /**
+         * Country code could not be resolved for this outbound at all.
+         */
+        if ($countryCode === null) {
+            return !$this->onlyAvailable;
         }
 
-        return !$this->onlyAvailable;
+        foreach ($this->countryCodes as $countryCodeToMatch) {
+            if ($countryCodeToMatch === $countryCode) return false;
+        }
+
+        return true;
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Outbound\Filter\Interface;
+namespace App\Application\Outbound\Filter\Contract;
 
 use App\Domain\Interface\Outbound\OutboundSpecificationInterface;
 use App\Domain\Outbound\Collection\OutboundMap;

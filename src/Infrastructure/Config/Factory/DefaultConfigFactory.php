@@ -34,6 +34,7 @@ final readonly class DefaultConfigFactory
             $this->getDataHomeDirectory->execute() . '/subscriptions.json',
             $this->getDataHomeDirectory->execute() . '/groups.json',
             $this->getDataHomeDirectory->execute() . '/outbounds.json',
+            $this->getDataHomeDirectory->execute() . '/config.json',
             new SubscriptionsConfigVO(
                 10,
                 "tinybox/0.1",
@@ -46,7 +47,6 @@ final readonly class DefaultConfigFactory
                     $this->getConfigsDirectory->execute() . '/templates/urltest.json',
                     $this->getConfigsDirectory->execute() . '/templates/config.json',
                 ),
-                "/etc/sing-box/config.json",
                 "sing-box",
                 new OutboundTestSingBoxConfigVO(
                     new OutboundTestTemplatesSingBoxConfigVO(

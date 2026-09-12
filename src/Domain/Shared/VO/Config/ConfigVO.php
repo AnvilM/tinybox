@@ -14,6 +14,7 @@ final readonly  class ConfigVO
         public string                $subscriptionsListPath,
         public string                $groupsListPath,
         public string                $outboundsListPath,
+        public string                $configSavePath,
         public SubscriptionsConfigVO $subscriptionsConfig,
         public SingBoxConfigVO       $singBoxConfig,
         public XrayConfigVO          $xrayConfig,

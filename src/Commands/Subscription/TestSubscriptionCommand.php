@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
-use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterCountryCodesDTO;
-use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterExcludeCountryCodesDTO;
 use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\OutboundsLatency\OutboundsLatencyDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
+use App\Application\Outbound\Export\CoreType;
+use App\Application\Outbound\Filter\Criteria\OutboundCoreSupportCriteria;
 use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
 use App\Application\Outbound\UseCase\OutboundsLatency\OutboundsLatencyUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
 use App\Commands\AbstractCommand;
+use App\Commands\Shared\OutboundFilter\OutboundFilterOptionsBinder;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -21,14 +22,14 @@ use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Domain\Subscription\Entity\ConfigSubscription;
 use App\Domain\Subscription\Entity\OutboundsSubscription;
 use League\CLImate\CLImate;
-use Psl\Collection\Vector;
+use Psl\Collection\MutableVector;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand(name: 'subscription:test', description: 'Test subscription outbounds', aliases: ['sub:test'])]
+#[AsCommand(name: 'subscription:test', description: 'Test subscription outbounds. NOTE: Only for sing box outbounds', aliases: ['sub:test'])]
 final class TestSubscriptionCommand extends AbstractCommand
 {
     public function __construct(
@@ -37,6 +38,7 @@ final class TestSubscriptionCommand extends AbstractCommand
         private readonly OutboundsLatencyUseCase        $outboundsLatencyUseCase,
         private readonly FilterOutboundsUseCase         $filterOutboundsUseCase,
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
+        private readonly OutboundFilterOptionsBinder    $outboundFilterOptionsBinder,
         ConfigInstancePort                              $configInstancePort,
     )
     {
@@ -64,22 +66,18 @@ final class TestSubscriptionCommand extends AbstractCommand
         /**
          * Filter outbounds
          */
+        $filters = $this->outboundFilterOptionsBinder->resolve($input);
+
+        /**
+         * Filter non sing-box outbounds
+         */
+        $criteria = new MutableVector($filters->criteria->toArray())
+            ->add(new OutboundCoreSupportCriteria(CoreType::SingBox));
+
         $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
             $subscriptionOutbounds,
-            ignoreOutbounds: $input->getOption('exceptOutbound') ? new Vector($input->getOption('exceptOutbound')) : null,
-            excludeOutbounds: null,
-            filterExcludeCountryCodesDTO: $input->getOption('excludeCountryCode') ? new FilterExcludeCountryCodesDTO(
-                new Vector($input->getOption('excludeCountryCode')),
-                $input->getOption('countryOutboundIpFallback'),
-                $input->getOption('countryOnlyAvailable')
-            ) : null,
-            filterCountryCodesDTO: $input->getOption('countryCode') ? new FilterCountryCodesDTO(
-                new Vector($input->getOption('countryCode')),
-                $input->getOption('countryOutboundIpFallback'),
-                $input->getOption('countryOnlyAvailable')
-            ) : null,
-            filterExcludeOutboundTypes: $input->getOption('excludeOutboundType') ? new Vector($input->getOption('excludeOutboundType')) : null,
-            filterOutboundTypes: $input->getOption('outboundType') ? new Vector($input->getOption('outboundType')) : null
+            criteria: $criteria,
+            ignoreOutbounds: $filters->ignoreOutbounds,
         ));
 
 
@@ -120,15 +118,13 @@ final class TestSubscriptionCommand extends AbstractCommand
     {
         $this->addArgument('name', InputArgument::REQUIRED, 'Subscription name')
             ->addArgument('method', InputArgument::OPTIONAL, 'Test method e.g. proxy_get or tcp_ping. If not provided, will be used method form config')
-            ->addOption('countryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Filter outbounds and use only those whose country code match the specified one')
-            ->addOption('excludeCountryCode', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Filter outbounds and use only those whose country code does not match the specified one')
-            ->addOption('exceptOutbound', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, "One or more outbounds that will be ignored by all filters")
-            ->addOption('countryOutboundIpFallback', null, InputOption::VALUE_NONE, "Use the outbound IP specified in the configuration if its real IP could not be obtained")
-            ->addOption('detourOutbound', null, InputOption::VALUE_OPTIONAL, "Use the specified outbound as detour for all other outbounds")
-            ->addOption('countryOnlyAvailable', null, InputOption::VALUE_NONE, "Exclude all outbounds for which the country code could not be obtained")
-            ->addOption('excludeOutboundType', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL)
-            ->addOption('outboundType', null, InputOption::VALUE_IS_ARRAY | InputOption::VALUE_OPTIONAL);
+            ->addOption('detourOutbound', null, InputOption::VALUE_OPTIONAL, "Use the specified outbound as detour for all other outbounds");
 
-
+        /**
+         * Registers the entire filtering option set (see
+         * OutboundFilterOptionsBinder), identical to what
+         * ApplySubscriptionCommand uses for its main config group.
+         */
+        $this->outboundFilterOptionsBinder->configure($this);
     }
 }

@@ -39,6 +39,7 @@ final readonly class ConfigFactory
             $this->normalizePath($rawConfig['subscriptions_list'] ?? $defaultConfig->subscriptionsListPath),
             $this->normalizePath($rawConfig['groups_list'] ?? $defaultConfig->groupsListPath),
             $this->normalizePath($rawConfig['outbounds_list'] ?? $defaultConfig->outboundsListPath),
+            $this->normalizePath($rawConfig['config_save_path'] ?? $defaultConfig->configSavePath),
 
             new SubscriptionsConfigVO(
                 $rawConfig['subscriptions']['timeout'] ?? $defaultConfig->subscriptionsConfig->timeout,
@@ -52,7 +53,6 @@ final readonly class ConfigFactory
                     $this->normalizePath($rawConfig['sing_box']['templates']['outbound_urltest'] ?? $defaultConfig->singBoxConfig->templates->outboundUrltest),
                     $this->normalizePath($rawConfig['sing_box']['templates']['config'] ?? $defaultConfig->singBoxConfig->templates->config),
                 ),
-                $this->normalizePath($rawConfig['sing_box']['default_config_path'] ?? $defaultConfig->singBoxConfig->defaultConfigPath),
                 $rawConfig['sing_box']['systemd_service_name'] ?? $defaultConfig->singBoxConfig->systemdServiceName,
                 new OutboundTestSingBoxConfigVO(
                     new OutboundTestTemplatesSingBoxConfigVO(

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Outbound\Filter\Interface;
+namespace App\Application\Outbound\Filter\Contract;
 
 /**
  * Marker interface for a single, self-describing filtering intent.
