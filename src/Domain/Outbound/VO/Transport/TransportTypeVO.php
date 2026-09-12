@@ -15,4 +15,6 @@ enum TransportTypeVO: string
     case gRPC = 'grpc';
 
     case HTTPUpgrade = 'httpupgrade';
+
+    case XHTTP = 'xhttp';
 }

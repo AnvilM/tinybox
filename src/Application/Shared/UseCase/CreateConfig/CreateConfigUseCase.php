@@ -7,6 +7,7 @@ namespace App\Application\Shared\UseCase\CreateConfig;
 use App\Application\Outbound\Exception\Export\IncompatibleOutboundException;
 use App\Application\Outbound\Exception\Export\UnsupportedByCoreException;
 use App\Application\Outbound\Export\ExporterRegistryFactory;
+use App\Application\Repository\Outbound\GetOutboundsListRepository;
 use App\Application\Shared\DTO\UseCase\CreateConfig\ConfigType;
 use App\Application\Shared\DTO\UseCase\CreateConfig\CreateConfigDTO;
 use App\Application\Shared\UseCase\CreateConfig\FIle\ReadBalancerTemplate;
@@ -23,11 +24,12 @@ final readonly class CreateConfigUseCase
 {
 
     public function __construct(
-        private ReadOutboundTemplate    $readOutboundTemplate,
-        private ReadConfigTemplate      $readConfigTemplate,
-        private ReadUrltestTemplate     $readUrltestTemplate,
-        private ReadObservatoryTemplate $readObservatoryTemplate,
-        private ReadBalancerTemplate    $readBalancerTemplate,
+        private ReadOutboundTemplate       $readOutboundTemplate,
+        private ReadConfigTemplate         $readConfigTemplate,
+        private ReadUrltestTemplate        $readUrltestTemplate,
+        private ReadObservatoryTemplate    $readObservatoryTemplate,
+        private ReadBalancerTemplate       $readBalancerTemplate,
+        private GetOutboundsListRepository $outboundRepository,
     )
     {
     }

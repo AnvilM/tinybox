@@ -9,6 +9,7 @@ use App\Domain\Outbound\VO\RawOutboundVO;
 use App\Domain\Outbound\VO\Security\RealitySecurityVO;
 use App\Domain\Outbound\VO\Security\SecurityTypeVO;
 use App\Domain\Outbound\VO\Security\SecurityVO;
+use App\Domain\Outbound\VO\Security\TLSSecurityVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use InvalidArgumentException;
 
@@ -22,6 +23,7 @@ final readonly class FromRawOutboundSecurityFactory
     {
         return match (SecurityTypeVO::tryFrom($rawOutbound->security)) {
             SecurityTypeVO::Reality => $this->createRealitySecurity($rawOutbound),
+            SecurityTypeVO::TLS => $this->createTLSSecurity($rawOutbound),
             default => throw new UnsupportedSecurityException()
         };
     }
@@ -38,6 +40,19 @@ final readonly class FromRawOutboundSecurityFactory
             $rawOutbound->sid === null ? null : new NonEmptyStringVO($rawOutbound->sid),
             $rawOutbound->fp === null ? null : new NonEmptyStringVO($rawOutbound->fp),
             $rawOutbound->spx === null ? null : new NonEmptyStringVO($rawOutbound->spx),
+        );
+    }
+
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    private function createTLSSecurity(RawOutboundVO $rawOutbound): TLSSecurityVO
+    {
+        return new TLSSecurityVO(
+            new NonEmptyStringVO($rawOutbound->sni),
+            $rawOutbound->fp === null ? null : new NonEmptyStringVO($rawOutbound->fp),
+            new NonEmptyStringVO($rawOutbound->alpn),
         );
     }
 }

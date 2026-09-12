@@ -22,7 +22,10 @@ final readonly class RawOutboundVO
         public ?string $security,
         public ?string $path,
         public ?string $host,
-        public ?string $spx
+        public ?string $spx,
+        public ?string $mode,
+        public ?string $extra,
+        public ?string $alpn
     )
     {
     }

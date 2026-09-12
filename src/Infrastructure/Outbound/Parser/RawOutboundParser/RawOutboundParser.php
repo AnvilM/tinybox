@@ -64,6 +64,9 @@ final readonly class RawOutboundParser implements RawOutboundParserPort
             $queryParams['path'] ?? null,
             $queryParams['host'] ?? null,
             $queryParams['spx'] ?? null,
+            $queryParams['mode'] ?? null,
+            $queryParams['extra'] ?? null,
+            $queryParams['alpn'] ?? null,
         );
 
     }

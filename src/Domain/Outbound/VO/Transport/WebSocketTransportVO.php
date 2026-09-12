@@ -20,8 +20,8 @@ final readonly class WebSocketTransportVO extends TransportVO
     public function equals(mixed $other): bool
     {
         return parent::equals($other) &&
-            $this->path === $other->path &&
-            $this->host === $other->host;
+            $this->path->equals($other->path) &&
+            $this->host->equals($other->host);
     }
 
     public function getPath(): NonEmptyStringVO

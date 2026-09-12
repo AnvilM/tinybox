@@ -7,7 +7,7 @@ namespace App\Application\Outbound\Export\Exporter\Security;
 use App\Application\Outbound\Export\CoreType;
 use App\Application\Outbound\Export\ExporterRegistry;
 use App\Application\Outbound\Export\Interface\NodeExporterInterface;
-use App\Domain\Outbound\VO\Security\RealitySecurityVO;
+use App\Domain\Outbound\VO\Security\TLSSecurityVO;
 
 /**
  * Reality is xray-only — sing-box has no Reality client config, so this
@@ -17,26 +17,24 @@ use App\Domain\Outbound\VO\Security\RealitySecurityVO;
  * when building a sing-box config for a Reality outbound — that's the
  * intended core-level restriction.
  */
-final class RealitySecurityExporter implements NodeExporterInterface
+final class TLSSecurityExporter implements NodeExporterInterface
 {
     public function supports(object $node, CoreType $core): bool
     {
-        return $node instanceof RealitySecurityVO;
+        return $node instanceof TLSSecurityVO;
     }
 
     public function export(object $node, CoreType $core, ExporterRegistry $registry): array
     {
-        /** @var RealitySecurityVO $node */
+        /** @var TLSSecurityVO $node */
         return match ($core) {
             CoreType::Xray => [
-                'security' => 'reality',
-                'realitySettings' => array_filter(
+                'security' => $node->getType()->value,
+                'tlsSettings' => array_filter(
                     [
                         'serverName' => $node->getServerName()->getValue(),
                         'fingerprint' => $node->getFingerprint()?->getValue(),
-                        'publicKey' => $node->getPublicKey()->getValue(),
-                        'shortId' => $node->getShortId()?->getValue(),
-                        'spiderX' => $node->getSpiderX()?->getValue(),
+                        'alpn' => [$node->getAlpn()->getValue()],
                     ],
                     static fn(mixed $value): bool => $value !== null,
                 ),
@@ -45,14 +43,10 @@ final class RealitySecurityExporter implements NodeExporterInterface
                 'tls' => [
                     'enabled' => true,
                     'server_name' => $node->getServerName()->getValue(),
+                    'alpn' => [$node->getAlpn()->getValue()],
                     'utls' => $node->getFingerprint() === null ? null : [
                         'enabled' => true,
                         'fingerprint' => $node->getFingerprint()->getValue(),
-                    ],
-                    'reality' => [
-                        'enabled' => true,
-                        'public_key' => $node->getPublicKey()->getValue(),
-                        'short_id' => $node->getShortId()?->getValue(),
                     ]
                 ]
             ], static fn(mixed $value): bool => $value !== null),
