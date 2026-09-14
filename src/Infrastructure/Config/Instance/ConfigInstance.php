@@ -34,10 +34,10 @@ final readonly class ConfigInstance implements ConfigInstancePort
         return $this->config;
     }
 
-    public function set(string $configPath, ?array $configOptions): void
+    public function set(?string $configPath, ?array $configOptions): void
     {
         try {
-            $rawConfig = $this->readJsonFileNotifyPort
+            $rawConfig = $configPath === null ? [] : $this->readJsonFileNotifyPort
                 ->notifyStartAndSuccess(
                     "Reading configuration file...",
                     "Configuration file successfully read"

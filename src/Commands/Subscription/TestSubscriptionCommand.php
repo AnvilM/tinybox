@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
+use App\Application\Outbound\DTO\Export\CoreType;
 use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\OutboundsLatency\OutboundsLatencyDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
-use App\Application\Outbound\Export\CoreType;
 use App\Application\Outbound\Filter\Criteria\OutboundCoreSupportCriteria;
 use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
 use App\Application\Outbound\UseCase\OutboundsLatency\OutboundsLatencyUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
 use App\Commands\AbstractCommand;
-use App\Commands\Shared\OutboundFilter\OutboundFilterOptionsBinder;
+use App\Commands\Shared\OptionGroup\Groups\OutboundFilterOptionsGroup;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -38,11 +38,18 @@ final class TestSubscriptionCommand extends AbstractCommand
         private readonly OutboundsLatencyUseCase        $outboundsLatencyUseCase,
         private readonly FilterOutboundsUseCase         $filterOutboundsUseCase,
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
-        private readonly OutboundFilterOptionsBinder    $outboundFilterOptionsBinder,
         ConfigInstancePort                              $configInstancePort,
     )
     {
         parent::__construct($reporterPort, $configInstancePort);
+    }
+
+
+    protected function optionGroups(): array
+    {
+        return [
+            new OutboundFilterOptionsGroup()
+        ];
     }
 
     protected function handle(InputInterface $input, OutputInterface $output): int
@@ -66,7 +73,7 @@ final class TestSubscriptionCommand extends AbstractCommand
         /**
          * Filter outbounds
          */
-        $filters = $this->outboundFilterOptionsBinder->resolve($input);
+        $filters = $this->optionGroups->get(OutboundFilterOptionsGroup::class)->resolve();
 
         /**
          * Filter non sing-box outbounds
@@ -119,12 +126,5 @@ final class TestSubscriptionCommand extends AbstractCommand
         $this->addArgument('name', InputArgument::REQUIRED, 'Subscription name')
             ->addArgument('method', InputArgument::OPTIONAL, 'Test method e.g. proxy_get or tcp_ping. If not provided, will be used method form config')
             ->addOption('detourOutbound', null, InputOption::VALUE_OPTIONAL, "Use the specified outbound as detour for all other outbounds");
-
-        /**
-         * Registers the entire filtering option set (see
-         * OutboundFilterOptionsBinder), identical to what
-         * ApplySubscriptionCommand uses for its main config group.
-         */
-        $this->outboundFilterOptionsBinder->configure($this);
     }
 }

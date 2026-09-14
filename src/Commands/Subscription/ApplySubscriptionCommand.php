@@ -8,14 +8,14 @@ use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
 use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
-use App\Application\Shared\DTO\UseCase\CreateConfig\ConfigType;
 use App\Application\Shared\DTO\UseCase\CreateConfig\CreateConfigDTO;
 use App\Application\Shared\DTO\UseCase\SaveConfig\SaveConfigDTO;
 use App\Application\Shared\UseCase\CreateConfig\CreateConfigUseCase;
 use App\Application\Shared\UseCase\SaveSingBoxConfig\SaveConfigUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
 use App\Commands\AbstractCommand;
-use App\Commands\Shared\OutboundFilter\OutboundFilterOptionsBinder;
+use App\Commands\Shared\OptionGroup\Groups\CoreOptionsGroup;
+use App\Commands\Shared\OptionGroup\Groups\OutboundFilterOptionsGroup;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -31,11 +31,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'subscription:apply', description: 'Apply subscription', aliases: ['sub:apply'])]
 final class ApplySubscriptionCommand extends AbstractCommand
 {
-    /**
-     * Every outbound-filter option registered by OutboundFilterOptionsBinder
-     * is duplicated under this prefix (--urltestCountryCode, --urltestExcludeOutbound, ...)
-     * to filter the urltest group completely independently from the main config.
-     */
+
     private const string URLTEST_FILTER_PREFIX = 'urltest';
 
     public function __construct(
@@ -45,12 +41,21 @@ final class ApplySubscriptionCommand extends AbstractCommand
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
         private readonly CreateConfigUseCase            $createConfigUseCase,
         private readonly SaveConfigUseCase              $saveSingBoxConfigUseCase,
-        private readonly OutboundFilterOptionsBinder    $outboundFilterOptionsBinder,
         ConfigInstancePort                              $configInstancePort,
     )
     {
         parent::__construct($reporterPort, $configInstancePort);
+
     }
+
+    protected function optionGroups(): array
+    {
+        return [
+            new OutboundFilterOptionsGroup(true, self::URLTEST_FILTER_PREFIX),
+            new CoreOptionsGroup()
+        ];
+    }
+
 
     protected function handle(InputInterface $input, OutputInterface $output): int
     {
@@ -74,7 +79,7 @@ final class ApplySubscriptionCommand extends AbstractCommand
         /**
          * Filter outbounds (main config group)
          */
-        $mainFilters = $this->outboundFilterOptionsBinder->resolve($input);
+        $mainFilters = $this->optionGroups->get(OutboundFilterOptionsGroup::class)->resolve();
 
         $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
             $subscriptionOutbounds,
@@ -96,7 +101,7 @@ final class ApplySubscriptionCommand extends AbstractCommand
         if ($input->getOption('urltest')) {
             $urltestOutbounds = clone $subscriptionOutbounds;
 
-            $urltestFilters = $this->outboundFilterOptionsBinder->resolve($input, self::URLTEST_FILTER_PREFIX);
+            $urltestFilters = $this->optionGroups->get(OutboundFilterOptionsGroup::class)->resolve(self::URLTEST_FILTER_PREFIX);
 
             if (!$urltestFilters->isEmpty()) {
                 $urltestOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
@@ -122,15 +127,13 @@ final class ApplySubscriptionCommand extends AbstractCommand
         $singBoxConfigJSON = $this->createConfigUseCase->handle(
             new CreateConfigDTO(
                 $subscriptionOutbounds,
-                $input->getOption('sing-box')
-                    ? ConfigType::SingBox
-                    : ($input->getOption('xray') ? ConfigType::Xray : ConfigType::SingBox),
+                $this->optionGroups->get(CoreOptionsGroup::class)->resolve(),
                 $urltestOutbounds
             )
         );
 
         $this->saveSingBoxConfigUseCase->handle(new SaveConfigDTO($singBoxConfigJSON));
-        
+
         return self::SUCCESS;
     }
 
@@ -138,19 +141,6 @@ final class ApplySubscriptionCommand extends AbstractCommand
     {
         $this->addArgument('name', InputArgument::REQUIRED, 'Subscription name')
             ->addOption('urltest', 'u', InputOption::VALUE_NONE, 'Add urltest outbound to config')
-            ->addOption('detourOutbound', null, InputOption::VALUE_OPTIONAL, "Use the specified outbound as detour for all other outbounds")
-            ->addOption('sing-box', 's', InputOption::VALUE_NONE, 'Generate config for sing box format. Sing box format using by default')
-            ->addOption('xray', 'x', InputOption::VALUE_NONE, 'Generate config for xray format. Sing box format is used by default');
-
-        /**
-         * Registers the *entire* filtering option set (see
-         * OutboundFilterOptionsBinder) twice: once for the main config
-         * outbounds, once more prefixed with "urltest" for the urltest
-         * group. Adding a new filter rule to the binder makes it appear
-         * here automatically, for both groups, with zero changes in this
-         * command.
-         */
-        $this->outboundFilterOptionsBinder->configure($this);
-        $this->outboundFilterOptionsBinder->configure($this, self::URLTEST_FILTER_PREFIX);
+            ->addOption('detourOutbound', null, InputOption::VALUE_OPTIONAL, "Use the specified outbound as detour for all other outbounds");
     }
 }

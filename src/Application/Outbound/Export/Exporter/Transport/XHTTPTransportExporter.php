@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Outbound\Export\Exporter\Transport;
 
-use App\Application\Outbound\Export\CoreType;
+use App\Application\Outbound\DTO\Export\CoreType;
 use App\Application\Outbound\Export\ExporterRegistry;
 use App\Application\Outbound\Export\Interface\NodeExporterInterface;
 use App\Domain\Outbound\VO\Transport\XHTTPTransportVO;

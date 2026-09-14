@@ -19,8 +19,8 @@ interface ConfigInstancePort
     /**
      * Create and bind config
      *
-     * @param string $configPath Path to config file
+     * @param ?string $configPath Path to config file
      * @param array|null $configOptions Config as array
      */
-    public function set(string $configPath, ?array $configOptions): void;
+    public function set(?string $configPath, ?array $configOptions): void;
 }
