@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Outbound\Export\Interface;
 
-use App\Application\Outbound\Export\CoreType;
+use App\Application\Outbound\DTO\Export\CoreType;
 use App\Domain\Outbound\Entity\Outbound;
 
 /**

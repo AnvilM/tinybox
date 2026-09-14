@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Outbound\Export\Specification;
 
-use App\Application\Outbound\Export\CoreType;
+use App\Application\Outbound\DTO\Export\CoreType;
 use App\Application\Outbound\Export\Interface\OutboundCompatibilitySpecificationInterface;
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Entity\VlessOutbound;

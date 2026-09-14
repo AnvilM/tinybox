@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Infrastructure\OutboundTest\Shared\CreateOutboundTestSingBoxConfig;
 
 
+use App\Application\Outbound\DTO\Export\CoreType;
 use App\Application\Outbound\Exception\Export\IncompatibleOutboundException;
 use App\Application\Outbound\Exception\Export\UnsupportedByCoreException;
-use App\Application\Outbound\Export\CoreType;
 use App\Application\Outbound\Export\ExporterRegistryFactory;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;

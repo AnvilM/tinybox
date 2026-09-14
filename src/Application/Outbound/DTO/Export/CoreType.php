@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Outbound\Export;
+namespace App\Application\Outbound\DTO\Export;
 
 /**
  * Proxy core whose config format the array is generated for.
