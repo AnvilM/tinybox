@@ -33,6 +33,6 @@ final readonly class ToSchemeStringOutboundMapper
             return $this->toSchemeStringShadowsocksOutboundMapper->map($outbound);
         }
 
-        throw new InvalidArgumentException();
+        throw new InvalidArgumentException("Can't map outbound \"{$outbound->getTagString()}\" to scheme string: Unsupported outbound type");
     }
 }
