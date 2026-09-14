@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Commands\Subscription;
 
 use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
+use App\Application\Outbound\DTO\UseCase\OverrideOutbounds\OverrideOutboundDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
 use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
+use App\Application\Outbound\UseCase\OverrideOutbounds\OverrideOutboundsUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Shared\DTO\UseCase\CreateConfig\CreateConfigDTO;
 use App\Application\Shared\DTO\UseCase\SaveConfig\SaveConfigDTO;
@@ -16,6 +18,7 @@ use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscription
 use App\Commands\AbstractCommand;
 use App\Commands\Shared\OptionGroup\Groups\CoreOptionsGroup;
 use App\Commands\Shared\OptionGroup\Groups\OutboundFilterOptionsGroup;
+use App\Commands\Shared\OptionGroup\Groups\OverridesOptionsGroup;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -41,6 +44,7 @@ final class ApplySubscriptionCommand extends AbstractCommand
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
         private readonly CreateConfigUseCase            $createConfigUseCase,
         private readonly SaveConfigUseCase              $saveSingBoxConfigUseCase,
+        private readonly OverrideOutboundsUseCase       $overrideOutboundsUseCase,
         ConfigInstancePort                              $configInstancePort,
     )
     {
@@ -52,7 +56,8 @@ final class ApplySubscriptionCommand extends AbstractCommand
     {
         return [
             new OutboundFilterOptionsGroup(true, self::URLTEST_FILTER_PREFIX),
-            new CoreOptionsGroup()
+            new CoreOptionsGroup(),
+            new OverridesOptionsGroup()
         ];
     }
 
@@ -87,6 +92,14 @@ final class ApplySubscriptionCommand extends AbstractCommand
             ignoreOutbounds: $mainFilters->ignoreOutbounds,
         ));
 
+
+        $subscriptionOutbounds = $this->overrideOutboundsUseCase->override(
+            new OverrideOutboundDTO(
+                $subscriptionOutbounds,
+                $this->optionGroups->get(OverridesOptionsGroup::class)->getUUID(),
+                $this->optionGroups->get(OverridesOptionsGroup::class)->getSSPass(),
+            )
+        );
 
         /**
          * Create urltest outbounds

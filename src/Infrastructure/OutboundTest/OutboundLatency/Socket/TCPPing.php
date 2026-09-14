@@ -47,8 +47,8 @@ final readonly class TCPPing
 
                 $result = new OutboundFetchResultVO((int)(microtime(true) * 1000), $outbound);
                 run(function () use ($outbound) {
-                    $server = $outbound->getServer();
-                    $port = $outbound->getServerPort();
+                    $server = $outbound->getServerString();
+                    $port = $outbound->getServerPortInt();
                     if ($port === null || $server === null) throw new Exception();
 
                     $socket = connect($server, $port, cancellation: new TimeoutCancellationToken(Duration::seconds(

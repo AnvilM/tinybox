@@ -24,7 +24,7 @@ final class VisionFlowRequiresSecureSecuritySpecification implements OutboundCom
 
     public function isSatisfiedBy(Outbound $outbound, CoreType $core): bool
     {
-        if (!$outbound instanceof VlessOutbound || $outbound->getFlow() !== self::VISION_FLOW) {
+        if (!$outbound instanceof VlessOutbound || $outbound->getFlowString() !== self::VISION_FLOW) {
             return true;
         }
 

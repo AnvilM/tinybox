@@ -73,15 +73,26 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
     }
 
     #[Override]
-    public function getServer(): string
+    public function getServerString(): string
     {
         return $this->server->getValue();
     }
 
     #[Override]
-    public function getServerPort(): int
+    public function getServerPortInt(): int
     {
         return $this->serverPort->getPort();
+    }
+
+
+    public function getServer(): NonEmptyStringVO
+    {
+        return $this->server;
+    }
+
+    public function getServerPort(): PortVO
+    {
+        return $this->serverPort;
     }
 
     public function getUserinfo(): ShadowsocksUserinfoVO

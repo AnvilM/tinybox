@@ -50,14 +50,14 @@ abstract readonly class Outbound implements Equable
      *
      * @return string|null Outbound server or null if outbound has no server field, e.g. direct outbound
      */
-    public abstract function getServer(): ?string;
+    public abstract function getServerString(): ?string;
 
     /**
      * Get outbound server port, if outbound has no server port field, e.g. direct outbound, return null
      *
      * @return int|null Outbound server port or null if outbound has no server port field, e.g. direct outbound
      */
-    public abstract function getServerPort(): ?int;
+    public abstract function getServerPortInt(): ?int;
 
     /**
      * Check if other object is equals to current
@@ -94,13 +94,24 @@ abstract readonly class Outbound implements Equable
     }
 
     /**
-     * Get outbound id
+     * Get outbound id as string
      *
-     * @return string Outbound id
+     * @return string Outbound id as string
      */
-    public function getId(): string
+    public function getIdString(): string
     {
         return $this->id->getValue();
+    }
+
+
+    /**
+     * Get outbound id
+     *
+     * @return NonEmptyStringVO Outbound id
+     */
+    public function getId(): NonEmptyStringVO
+    {
+        return $this->id;
     }
 
 }

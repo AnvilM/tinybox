@@ -41,8 +41,8 @@ final class VlessOutboundExporter implements NodeExporterInterface
     {
         $user = array_filter(
             [
-                'id' => $node->getUUID(),
-                'flow' => $node->getFlow(),
+                'id' => $node->getUUIDString(),
+                'flow' => $node->getFlowString(),
                 'encryption' => 'none',
             ],
             static fn(mixed $value): bool => $value !== null,
@@ -57,8 +57,8 @@ final class VlessOutboundExporter implements NodeExporterInterface
                 'settings' => [
                     'vnext' => [
                         [
-                            'address' => $node->getServer(),
-                            'port' => $node->getServerPort(),
+                            'address' => $node->getServerString(),
+                            'port' => $node->getServerPortInt(),
                             'users' => [$user],
                         ],
                     ],
@@ -100,10 +100,10 @@ final class VlessOutboundExporter implements NodeExporterInterface
             [
                 'type' => $node->getType()->value,
                 'tag' => $node->getTagString(),
-                'server' => $node->getServer(),
-                'server_port' => $node->getServerPort(),
-                'uuid' => $node->getUUID(),
-                'flow' => $node->getFlow(),
+                'server' => $node->getServerString(),
+                'server_port' => $node->getServerPortInt(),
+                'uuid' => $node->getUUIDString(),
+                'flow' => $node->getFlowString(),
             ],
             static fn(mixed $value): bool => $value !== null,
         );

@@ -24,10 +24,10 @@ final readonly class ToSchemeStringVlessOutboundMapper
     public function map(VlessOutbound $outbound): string
     {
         $string = $outbound->getType()->value . '://';
-        $string .= $outbound->getUUID() . '@';
-        $string .= $outbound->getServer() . ':';
-        $string .= $outbound->getServerPort() . '?';
-        $string .= 'flow=' . $outbound->getFlow() . '&';
+        $string .= $outbound->getUUIDString() . '@';
+        $string .= $outbound->getServerString() . ':';
+        $string .= $outbound->getServerPortInt() . '?';
+        $string .= 'flow=' . $outbound->getFlowString() . '&';
 
         foreach (array_merge(
                      $this->toSchemeParamsSecurityMapper->map($outbound->getSecurity()),

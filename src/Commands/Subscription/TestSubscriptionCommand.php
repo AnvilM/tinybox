@@ -111,7 +111,7 @@ final class TestSubscriptionCommand extends AbstractCommand
                 'type' => $ol->outbound->getType()->value,
                 'tag' => $ol->outbound->getTagString(),
                 'latency' => $ol->latency ?? 'N/A',
-                'ip' => $ol->outbound->getServer()
+                'ip' => $ol->outbound->getServerString()
             ];
         }
 
