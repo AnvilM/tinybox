@@ -10,8 +10,8 @@ use App\Commands\Group\ListSchemeGroupsCommand;
 use App\Commands\Scheme\AddSchemeCommand;
 use App\Commands\Scheme\ListSchemesCommand;
 use App\Commands\Scheme\ToOutboundsCommand;
-use App\Commands\Subscription\ApplySubscriptionCommand;
 use App\Commands\Subscription\CreateSubscriptionCommand;
+use App\Commands\Subscription\ExportSubscriptionCommand;
 use App\Commands\Subscription\ListSubscriptionsCommand;
 use App\Commands\Subscription\TestSubscriptionCommand;
 use App\Commands\Subscription\UpdateSubscriptionCommand;
@@ -28,7 +28,7 @@ final class CommandsBootstrapper
         ListSchemeGroupsCommand::class,
         CreateSubscriptionCommand::class,
         ListSubscriptionsCommand::class,
-        ApplySubscriptionCommand::class,
+        ExportSubscriptionCommand::class,
         ApplySchemeGroupCommand::class,
         UpdateSubscriptionCommand::class,
         TestSubscriptionCommand::class,
