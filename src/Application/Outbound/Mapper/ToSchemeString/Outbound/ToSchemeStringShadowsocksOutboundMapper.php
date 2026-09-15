@@ -14,8 +14,8 @@ final readonly class ToSchemeStringShadowsocksOutboundMapper
         $string .= base64_encode(
                 $outbound->getUserinfo()->getMethod()->value . ':' . $outbound->getUserinfo()->getPassword()
             ) . '@';
-        $string .= $outbound->getServer() . ':';
-        $string .= $outbound->getServerPort() . '?';
+        $string .= $outbound->getServerString() . ':';
+        $string .= $outbound->getServerPortInt() . '?';
 
         if ($outbound->getPlugin()) {
             $param = $outbound->getPlugin()->getPlugin()->value;

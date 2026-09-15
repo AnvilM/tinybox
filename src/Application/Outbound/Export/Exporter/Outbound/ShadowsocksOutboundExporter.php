@@ -43,8 +43,8 @@ final class ShadowsocksOutboundExporter implements NodeExporterInterface
     {
         $server = array_filter(
             [
-                'address' => $node->getServer(),
-                'port' => $node->getServerPort(),
+                'address' => $node->getServerString(),
+                'port' => $node->getServerPortInt(),
                 'method' => $node->getUserinfo()->getMethod()->value,
                 'password' => $node->getUserinfo()->getPassword(),
                 ...$this->buildPluginFields($node->getPlugin(), 'plugin', 'pluginOpts'),
@@ -88,8 +88,8 @@ final class ShadowsocksOutboundExporter implements NodeExporterInterface
             [
                 'type' => $node->getType()->value,
                 'tag' => $node->getTagString(),
-                'server' => $node->getServer(),
-                'server_port' => $node->getServerPort(),
+                'server' => $node->getServerString(),
+                'server_port' => $node->getServerPortInt(),
                 'method' => $node->getUserinfo()->getMethod()->value,
                 'password' => $node->getUserinfo()->getPassword(),
                 ...$this->buildPluginFields($node->getPlugin(), 'plugin', 'plugin_opts'),

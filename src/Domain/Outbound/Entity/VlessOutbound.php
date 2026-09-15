@@ -74,15 +74,25 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
     }
 
     #[Override]
-    public function getServer(): string
+    public function getServerString(): string
     {
         return $this->server->getValue();
     }
 
+    public function getServer(): NonEmptyStringVO
+    {
+        return $this->server;
+    }
+
     #[Override]
-    public function getServerPort(): int
+    public function getServerPortInt(): int
     {
         return $this->serverPort->getPort();
+    }
+
+    public function getServerPort(): PortVO
+    {
+        return $this->serverPort;
     }
 
     public function getSecurity(): ?SecurityVO
@@ -90,7 +100,7 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
         return $this->security;
     }
 
-    public function getFlow(): ?string
+    public function getFlowString(): ?string
     {
         return $this->flow?->getValue();
     }
@@ -100,8 +110,13 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
         return $this->transport;
     }
 
-    public function getUUID(): string
+    public function getUUIDString(): string
     {
         return $this->uuid->getValue();
+    }
+
+    public function getFlow(): ?NonEmptyStringVO
+    {
+        return $this->flow;
     }
 }

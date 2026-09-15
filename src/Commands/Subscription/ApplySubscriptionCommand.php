@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Commands\Subscription;
 
 use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
+use App\Application\Outbound\DTO\UseCase\OverrideOutbounds\OverrideOutboundDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
+use App\Application\Outbound\Filter\Criteria\OutboundCoreSupportCriteria;
 use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
+use App\Application\Outbound\UseCase\OverrideOutbounds\OverrideOutboundsUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Shared\DTO\UseCase\CreateConfig\CreateConfigDTO;
 use App\Application\Shared\DTO\UseCase\SaveConfig\SaveConfigDTO;
@@ -16,12 +19,14 @@ use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscription
 use App\Commands\AbstractCommand;
 use App\Commands\Shared\OptionGroup\Groups\CoreOptionsGroup;
 use App\Commands\Shared\OptionGroup\Groups\OutboundFilterOptionsGroup;
+use App\Commands\Shared\OptionGroup\Groups\OverridesOptionsGroup;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Domain\Subscription\Entity\ConfigSubscription;
 use App\Domain\Subscription\Entity\OutboundsSubscription;
+use Psl\Collection\MutableVector;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -41,6 +46,7 @@ final class ApplySubscriptionCommand extends AbstractCommand
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
         private readonly CreateConfigUseCase            $createConfigUseCase,
         private readonly SaveConfigUseCase              $saveSingBoxConfigUseCase,
+        private readonly OverrideOutboundsUseCase       $overrideOutboundsUseCase,
         ConfigInstancePort                              $configInstancePort,
     )
     {
@@ -52,7 +58,8 @@ final class ApplySubscriptionCommand extends AbstractCommand
     {
         return [
             new OutboundFilterOptionsGroup(true, self::URLTEST_FILTER_PREFIX),
-            new CoreOptionsGroup()
+            new CoreOptionsGroup(),
+            new OverridesOptionsGroup()
         ];
     }
 
@@ -81,22 +88,29 @@ final class ApplySubscriptionCommand extends AbstractCommand
          */
         $mainFilters = $this->optionGroups->get(OutboundFilterOptionsGroup::class)->resolve();
 
+        $criteria = new MutableVector($mainFilters->criteria->toArray())
+            ->add(new OutboundCoreSupportCriteria(
+                $this->optionGroups->get(CoreOptionsGroup::class)->resolve()->toCoreType()
+            ));
+
         $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
             $subscriptionOutbounds,
-            criteria: $mainFilters->criteria,
+            criteria: $criteria,
             ignoreOutbounds: $mainFilters->ignoreOutbounds,
         ));
 
 
-        /**
-         * Create urltest outbounds
-         *
-         * NOTE: the urltest group has its own, fully independent copy of
-         * every filter above (--urltestCountryCode, --urltestExcludeOutbound,
-         * --urltestExceptOutbound, ...), applied only to the outbounds that
-         * end up inside the urltest block - it never affects the main config
-         * outbounds filtered above, and vice versa.
-         */
+        $subscriptionOutbounds = $this->overrideOutboundsUseCase->override(
+            new OverrideOutboundDTO(
+                $subscriptionOutbounds,
+                $this->optionGroups->get(OverridesOptionsGroup::class)->getUUID(),
+                $this->optionGroups->get(OverridesOptionsGroup::class)->getSSPass(),
+            )
+        );
+
+        if ($subscriptionOutbounds->isEmpty()) throw new CriticalException("No outbound calls matching the filter criteria were found");
+
+
         $urltestOutbounds = null;
         if ($input->getOption('urltest')) {
             $urltestOutbounds = clone $subscriptionOutbounds;

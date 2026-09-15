@@ -128,7 +128,7 @@ class OutboundRepository
 
         foreach (self::$outboundsMap->getOutbounds() as $outbound) {
             try {
-                $outbounds[$outbound->getId()] = $this->toSchemeStringOutboundMapper->map($outbound);
+                $outbounds[$outbound->getIdString()] = $this->toSchemeStringOutboundMapper->map($outbound);
             } catch (InvalidArgumentException $e) {
                 echo $e->getMessage();
                 continue;

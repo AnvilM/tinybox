@@ -70,7 +70,7 @@ readonly class OutboundMap
         /**
          * Add outbound to map
          */
-        $this->outbounds->add($outbound->getId(), $outbound);
+        $this->outbounds->add($outbound->getIdString(), $outbound);
 
         return $this;
     }
@@ -164,7 +164,7 @@ readonly class OutboundMap
 
         return $tags;
     }
-    
+
     /**
      * Check if outbounds map is empty
      *
@@ -268,7 +268,7 @@ readonly class OutboundMap
      */
     public function remove(Outbound $outbound): self
     {
-        $this->outbounds->remove($outbound->getId());
+        $this->outbounds->remove($outbound->getIdString());
 
         return $this;
     }
