@@ -7,6 +7,7 @@ namespace App\Commands\Subscription;
 use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\OverrideOutbounds\OverrideOutboundDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
+use App\Application\Outbound\Filter\Criteria\OutboundCoreSupportCriteria;
 use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
 use App\Application\Outbound\UseCase\OverrideOutbounds\OverrideOutboundsUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
@@ -25,6 +26,7 @@ use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Domain\Subscription\Entity\ConfigSubscription;
 use App\Domain\Subscription\Entity\OutboundsSubscription;
+use Psl\Collection\MutableVector;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -86,9 +88,14 @@ final class ApplySubscriptionCommand extends AbstractCommand
          */
         $mainFilters = $this->optionGroups->get(OutboundFilterOptionsGroup::class)->resolve();
 
+        $criteria = new MutableVector($mainFilters->criteria->toArray())
+            ->add(new OutboundCoreSupportCriteria(
+                $this->optionGroups->get(CoreOptionsGroup::class)->resolve()->toCoreType()
+            ));
+
         $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
             $subscriptionOutbounds,
-            criteria: $mainFilters->criteria,
+            criteria: $criteria,
             ignoreOutbounds: $mainFilters->ignoreOutbounds,
         ));
 
@@ -101,15 +108,9 @@ final class ApplySubscriptionCommand extends AbstractCommand
             )
         );
 
-        /**
-         * Create urltest outbounds
-         *
-         * NOTE: the urltest group has its own, fully independent copy of
-         * every filter above (--urltestCountryCode, --urltestExcludeOutbound,
-         * --urltestExceptOutbound, ...), applied only to the outbounds that
-         * end up inside the urltest block - it never affects the main config
-         * outbounds filtered above, and vice versa.
-         */
+        if ($subscriptionOutbounds->isEmpty()) throw new CriticalException("No outbound calls matching the filter criteria were found");
+
+
         $urltestOutbounds = null;
         if ($input->getOption('urltest')) {
             $urltestOutbounds = clone $subscriptionOutbounds;
