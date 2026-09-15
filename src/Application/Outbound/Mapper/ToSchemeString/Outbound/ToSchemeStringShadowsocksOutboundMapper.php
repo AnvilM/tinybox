@@ -10,7 +10,7 @@ final readonly class ToSchemeStringShadowsocksOutboundMapper
 {
     public function map(ShadowsocksOutbound $outbound): string
     {
-        $string = $outbound->getType()->value . '://';
+        $string = 'ss://';
         $string .= base64_encode(
                 $outbound->getUserinfo()->getMethod()->value . ':' . $outbound->getUserinfo()->getPassword()
             ) . '@';
