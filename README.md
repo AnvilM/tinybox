@@ -26,16 +26,15 @@ templates.
 ## Features
 
 - **Subscription Management**
+    - Fetch subscriptions from url
     - Store subscriptions
     - Update subscriptions
-    - Apply subscriptions
-
-- **Configuration Management**
-    - Generate configurations
-    - Store configurations
-    - Apply configurations
+    - Testing subscription outbounds (only sing-box outbounds)
+    - Generate sing-box/xray configs from subscriptions
 
 - **Other Features**
+    - HWID spoofing
+    - Vless UUID and Shadowsocks password spoofing
     - Filtering outbounds
     - Multiple methods for outbounds testing
 
@@ -44,7 +43,17 @@ templates.
 - Vless
 - Shadowsocks
 
-> Other protocols will be added later.
+## Supported transport
+
+- WebSocket
+- XHTTP (sing-box only)
+
+## Supported security
+
+- Reality
+- TLS
+
+> Other protocols and transport will be added later.
 
 ## Supported Platforms
 
@@ -58,13 +67,7 @@ Tinybox is supported on:
 
 Tinybox requires the following software to function properly:
 
-- **sing-box** — required sing-box cli.
-- **sudo** — required for operations that need elevated privileges.
-
-> [!NOTE]
-> For tinybox to work correctly, you need to create a systemd service for sing-box. (In most cases, it is created
-> automatically when installing sing-box.) You can check whether this service exists using the command
-> `systemctl status sing-box`
+- **sing-box** — required sing-box cli. (only for outbounds testing)
 
 ## Configuration
 
@@ -76,7 +79,8 @@ If the configuration file is missing or some parameters are not specified, defau
 {
   "subscriptions_list": "~/.local/share/tinybox/subscriptions.json",
   "groups_list": "~/.local/share/tinybox/groups.json",
-  "schemes_list": "~/.local/share/tinybox/schemes.json",
+  "outbounds_list": "~/.local/share/tinybox/outbounds.json",
+  "config_save_path": "/etc/sing-box/config.json",
   "subscriptions": {
     "timeout": 10,
     "useragent": "tinybox/0.1",
@@ -84,8 +88,6 @@ If the configuration file is missing or some parameters are not specified, defau
   },
   "sing_box": {
     "binary": "sing-box",
-    "default_config_path": "/etc/sing-box/config.json",
-    "systemd_service_name": "sing-box",
     "templates": {
       "outbound": "~/.config/tinybox/templates/outbound.json",
       "outbound_urltest": "~/.config/tinybox/templates/outbound_urltest.json",
@@ -125,116 +127,87 @@ If the configuration file is missing or some parameters are not specified, defau
 
 ## Configuration Description
 
-The tinybox configuration file is a JSON object that fully defines the application's behavior when working with
-subscriptions, groups, schemes, and integration with **sing-box**. All paths are specified in a POSIX-compatible
-format (the \~ symbol is supported for the user's home directory).
+The configuration file defines paths, templates, and behavior for managing subscriptions, groups, outbounds, and
+generating Sing-box / Xray configurations.
 
-The configuration is divided into two main levels:
+### Top-level Paths
 
-- **Root parameters** — paths to the main data storage files.
-- **sing_box section** — settings for integration with the sing-box core, including template paths, systemd service
-  management, and the outbound testing system.
+| Parameter            | Type     | Default                                     | Description                                                   |
+|----------------------|----------|---------------------------------------------|---------------------------------------------------------------|
+| `subscriptions_list` | `string` | `~/.local/share/tinybox/subscriptions.json` | Path to the file that stores subscription data.               |
+| `groups_list`        | `string` | `~/.local/share/tinybox/groups.json`        | Path to the file that stores groups.                          |
+| `outbounds_list`     | `string` | `~/.local/share/tinybox/outbounds.json`     | Path to the file that stores all outbounds.                   |
+| `config_save_path`   | `string` | `/etc/sing-box/config.json`                 | Path where the final Sing-box or Xray configuration is saved. |
 
-### Root Parameters
+### `subscriptions`
 
-| Parameter          | Type   | Description                                                                |
-|--------------------|--------|----------------------------------------------------------------------------|
-| subscriptions_list | string | Path to the JSON file that stores the list of all subscriptions (sources). |
-| groups_list        | string | Path to the JSON file containing the list of groups.                       |
-| schemes_list       | string | Path to the JSON file containing all available schemes (outbound schemes). |
+Controls how subscription URLs are fetched.
 
-These files serve as the primary state storage for the application and are automatically created or updated by tinybox.
+| Parameter   | Type             | Default         | Description                                                                                           |
+|-------------|------------------|-----------------|-------------------------------------------------------------------------------------------------------|
+| `timeout`   | `integer`        | `10`            | Timeout in seconds when fetching schemes from a subscription URL.                                     |
+| `useragent` | `string`         | `"tinybox/0.1"` | User-Agent header sent when requesting subscription schemes.                                          |
+| `hwid`      | `string \| null` | `null`          | Value passed in the `X-HWID` header when importing a subscription. If `null`, the header is not sent. |
 
-### subscriptions Section
+### `sing_box`
 
-| Parameter | Type         | Description                                                                                                                                                     |
-|-----------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| timeout   | int          | Timeout in seconds for fetch schemes from subscription url                                                                                                      |
-| useragent | string       | The user agent to be passed when requesting schemes.                                                                                                            |
-| hwid      | string\|null | If specified, tinybox will pass the specified value in the X-HWID header when importing a subscription. If not specified, the X-HWID header will not be passed. |
+Settings related to Sing-box binary and templates.
 
-### sing_box Section
+#### Binary
 
-#### Basic Settings
+| Parameter | Type     | Default      | Description                              |
+|-----------|----------|--------------|------------------------------------------|
+| `binary`  | `string` | `"sing-box"` | Path or name of the Sing-box executable. |
 
-| Parameter            | Type   | Description                                                                                 |
-|----------------------|--------|---------------------------------------------------------------------------------------------|
-| binary               | string | Name of the sing-box executable (must be available in $PATH).                               |
-| default_config_path  | string | Path to the main sing-box configuration file used by the systemd service.                   |
-| systemd_service_name | string | Name of the systemd service (default: sing-box) that tinybox controls (start/stop/restart). |
+#### Templates
 
-#### Configuration Templates (templates)
+| Parameter          | Type     | Default                                             | Description                                                                                                                                                                                                                 |
+|--------------------|----------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `outbound`         | `string` | `~/.config/tinybox/templates/outbound.json`         | Path to the outbound template file.                                                                                                                                                                                         |
+| `outbound_urltest` | `string` | `~/.config/tinybox/templates/outbound_urltest.json` | Path to the URLTest outbound template. Tinybox will create the `outbounds` field (if missing) and populate it with the required outbound tags. If this template is not provided, Tinybox will generate an invalid outbound. |
+| `config`           | `string` | `~/.config/tinybox/templates/config.json`           | Path to the main Sing-box configuration template. Existing outbounds in the template are preserved; new ones are appended.                                                                                                  |
 
-tinybox uses JSON template files to generate working sing-box configurations. The parameters below contain **paths to
-these template files**. When applying a scheme, the necessary fields are overwritten on top of the loaded template.
+#### `outbound_test`
 
-| Parameter        | Type   | Description                                                    |
-|------------------|--------|----------------------------------------------------------------|
-| outbound         | string | Path to the base template for a single outbound.               |
-| outbound_urltest | string | Path to the template for an outbound of type urltest.          |
-| config           | string | Path to the full template for the main sing-box configuration. |
+Configuration used when testing outbounds.
 
-#### Outbound Testing Settings (outbound_test)
+| Parameter               | Type      | Default                                                     | Description                                                                               |
+|-------------------------|-----------|-------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| `sing_box_config`       | `string`  | `~/.local/share/tinybox/outbound_test/sing-box_config.json` | Path where the temporary Sing-box config used for testing is saved.                       |
+| `max_parallel_requests` | `integer` | `3`                                                         | Maximum number of outbound tests that can run in parallel.                                |
+| `timeout`               | `integer` | `10`                                                        | Timeout (in seconds) for testing a group of outbounds limited by `max_parallel_requests`. |
 
-This block is responsible for automatic testing of proxy server performance and availability.
+##### Templates (inside `outbound_test`)
 
-**General parameters:**
+| Parameter  | Type     | Default                                     | Description                                                   |
+|------------|----------|---------------------------------------------|---------------------------------------------------------------|
+| `outbound` | `string` | `~/.config/tinybox/templates/outbound.json` | Path to the outbound template used in the test configuration. |
+| `config`   | `string` | `~/.config/tinybox/templates/config.json`   | Path to the config template used for testing.                 |
 
-- sing_box_config — path to the temporary configuration file created specifically for running tests.
-- max_parallel_requests — maximum number of parallel requests/tests.
-- timeout - Timeout for fetch ip and latency test
+##### `fetch_ip`
 
-**Test templates:**
+| Parameter        | Type     | Default                             | Description                                                                                                               |
+|------------------|----------|-------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| `geoip_database` | `string` | `~/.local/share/tinybox/geoip.mmdb` | Path to the MMDB database used for GeoIP lookups.                                                                         |
+| `url`            | `string` | `"https://ifconfig.me/ip"`          | URL used to obtain the current IP address. Any alternative URL must return the IP in the same format as `ifconfig.me/ip`. |
 
-The parameters below are **paths to template files** used during test configuration generation:
+##### `latency`
 
-- outbound — path to the outbound template.
-- config — path to the full sing-box configuration template for tests.
+| Parameter | Type     | Default                | Description                                                                                                                                 |
+|-----------|----------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| `url`     | `string` | `"https://google.com"` | Target URL used when measuring latency with the `proxy_get` method.                                                                         |
+| `method`  | `string` | `"proxy_get"`          | Latency testing method. Available values:<br>• `"proxy_get"` — sends a GET request through the outbound<br>• `"tcp_ping"` — simple TCP ping |
 
-**Real IP and Geolocation Determination (fetch_ip):**
+### `xray`
 
-| Parameter      | Type   | Description                                                                               |
-|----------------|--------|-------------------------------------------------------------------------------------------|
-| geoip_database | string | Path to the GeoIP2 .mmdb database (MaxMind), used to determine location by IP.            |
-| url            | string | HTTP endpoint that must return **only** the IP address in the response body (plain text). |
+Templates used when generating Xray configurations.
 
-**Latency Testing (latency):**
-
-| Parameter | Type   | Description                                                                                                                                                                                 |
-|-----------|--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| url       | string | Target URL for the test (used with the proxy_get method).                                                                                                                                   |
-| method    | string | Testing method. Supported values: • proxy_get — performs a GET request through the outbound to the specified URL. • tcp_ping — direct TCP ping to the IP address specified in the outbound. |
-
-### Recommendations
-
-- All paths may use \~ to represent the home directory.
-- Template files must contain valid JSON compatible with sing-box.
-- When generating a configuration, tinybox performs a deep merge of the template and scheme data.
-- For correct test operation, it is recommended to use stable and fast endpoints.
-
-This structure provides high flexibility for managing multiple subscriptions and sing-box schemes within a single
-utility.
-
-### Template Purpose
-
-`config.json`
-
-The main template for the complete sing-box configuration.
-It acts as the structural skeleton of the final config file. Generated outbound blocks and other dynamic elements are
-inserted into this template  
-Reference documentation: [Configuration Structure][sing-box-docs-config-link]
-
-`outbound.json`
-
-Template for a single outbound object.
-Used to generate individual outbound entries based on subscription data.  
-Reference documentation: [Outbound][sing-box-docs-outbound-link]
-
-`outbound_urltest.json`
-
-Template for an outbound group of type urltest.
-Used to create a group that automatically selects the best server based on connectivity testing.  
-Reference documentation: [URLTest outbound][sing-box-docs-urltest-outbound-link]
+| Parameter     | Type     | Default                                             | Description                                                                                            |
+|---------------|----------|-----------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| `outbound`    | `string` | `~/.config/tinybox/templates/xray/outbound.json`    | Path to the Xray outbound template.                                                                    |
+| `config`      | `string` | `~/.config/tinybox/templates/xray/config.json`      | Path to the main Xray configuration template. Existing outbounds are preserved; new ones are appended. |
+| `observatory` | `string` | `~/.config/tinybox/templates/xray/observatory.json` | Path to the Observatory template.                                                                      |
+| `balancer`    | `string` | `~/.config/tinybox/templates/xray/balancer.json`    | Path to the Balancer template.                                                                         |
 
 ## License
 
