@@ -45,7 +45,8 @@ final readonly class ConfigInstance implements ConfigInstancePort
             );
         }
 
-        $rawConfig = array_merge($rawConfig, $configOptions ?? []);
+
+        $rawConfig = array_replace_recursive($rawConfig, $configOptions ?? []);
 
         $this->config = $this->configFactory->create(
             $rawConfig,
