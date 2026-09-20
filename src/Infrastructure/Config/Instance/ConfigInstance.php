@@ -8,9 +8,9 @@ use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
-use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
 use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
-use App\Domain\Shared\ReporterEvent\Events\Shared\Config\ConfigFileReadFailedReporterEvent;
+use App\Domain\Shared\ReporterEvent\ReporterEventBuilder;
 use App\Domain\Shared\VO\Config\ConfigVO;
 use App\Infrastructure\Config\Factory\ConfigFactory;
 use App\Infrastructure\Config\Factory\DefaultConfigFactory;
@@ -23,15 +23,10 @@ final readonly class ConfigInstance implements ConfigInstancePort
         private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
         private ConfigFactory          $configFactory,
         private DefaultConfigFactory   $defaultConfigFactory,
-        private ReporterPort           $reporterPort,
+        private ReporterInstancePort   $reporterInstancePort,
         private NormalizePathPort      $normalizePathPort,
     )
     {
-    }
-
-    public function get(): ConfigVO
-    {
-        return $this->config;
     }
 
     public function set(?string $configPath, ?array $configOptions): void
@@ -45,7 +40,9 @@ final readonly class ConfigInstance implements ConfigInstancePort
         } catch (UnableToReadFileException|UnableToDecodeJsonException) {
             $rawConfig = [];
 
-            $this->reporterPort->notify(new ConfigFileReadFailedReporterEvent());
+            $this->reporterInstancePort->get()->notify(
+                ReporterEventBuilder::warning('Config file read failed, using default config')->normal()
+            );
         }
 
         $rawConfig = array_merge($rawConfig, $configOptions ?? []);
@@ -54,5 +51,10 @@ final readonly class ConfigInstance implements ConfigInstancePort
             $rawConfig,
             $this->defaultConfigFactory->create()
         );
+    }
+
+    public function get(): ConfigVO
+    {
+        return $this->config;
     }
 }

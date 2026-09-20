@@ -10,9 +10,9 @@ use Application\Kernel;
 
 require __DIR__ . '/vendor/autoload.php';
 
-Psl\Async\main(static function (): int {
-    Kernel::createApp()->run();
-
+Psl\Async\main(static function () use ($argv): int {
+    Kernel::createApp()->run($argv);
+    
     return 0;
 });
 

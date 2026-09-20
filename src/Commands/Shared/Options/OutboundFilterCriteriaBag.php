@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Commands\Shared\OptionGroup\Groups;
+namespace App\Commands\Shared\Options;
 
 use App\Application\Outbound\Filter\Contract\OutboundFilterCriteriaInterface;
 use Psl\Collection\VectorInterface;
 
 /**
- * Result of resolving one prefix-variant of {@see OutboundFilterOptionsGroup}.
- *
- * Maps 1-to-1 onto the two constructor arguments of
+ * Result of resolving one prefix-variant of the outbound-filter option
+ * block (see OutboundFilterOptionsTrait). Unchanged from the previous
+ * version — maps 1-to-1 onto the two constructor arguments of
  * {@see \App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO}
  * that a CLI command actually needs to fill in.
  */

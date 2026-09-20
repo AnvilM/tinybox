@@ -7,8 +7,9 @@ namespace Application;
 use Application\Bootstrappers\CommandsBootstrapper;
 use Application\Bootstrappers\ContainerBootstrapper;
 use Application\Bootstrappers\ProvidersBootstrapper;
-use Psr\Container\ContainerInterface;
-use Symfony\Component\Console\Application;
+use Application\Config\ApplicationConfig\ApplicationConfig;
+use Iva\Application;
+
 
 final readonly class Kernel
 {
@@ -18,7 +19,7 @@ final readonly class Kernel
      */
     public static function createApp(): Application
     {
-        $app = new Application();
+        $app = new Application(ApplicationConfig::appName);
 
         CommandsBootstrapper::registerCommands($app,
             ContainerBootstrapper::createContainer(
@@ -28,5 +29,5 @@ final readonly class Kernel
         return $app;
     }
 
-    
+
 }

@@ -10,11 +10,14 @@ use App\Domain\Shared\Ports\Http\HttpPort;
 use Closure;
 use Exception;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Pool;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use Psr\Http\Message\ResponseInterface;
+use Psl\Async\TimeoutCancellationToken;
+use Psl\DateTime\Duration;
+use Psl\HTTP\Message\FieldMap;
+use Throwable;
+use function Psl\URL\parse;
 
 final readonly class Http implements HttpPort
 {
@@ -55,20 +58,37 @@ final readonly class Http implements HttpPort
     }
 
 
-    public function get(float $timeout, string $url): ResponseInterface
+    public function get(float $timeout, string $url): \Psl\HTTP\Message\Response
     {
-        $headers = [
-            'User-Agent' => $this->configInstancePort->get()->subscriptionsConfig->useragent,
+
+        $headers = [];
+        $headers[] = [
+            'User-Agent', $this->configInstancePort->get()->subscriptionsConfig->useragent,
         ];
 
         if ($this->configInstancePort->get()->subscriptionsConfig->hwid != null) {
-            $headers['X-HWID'] = $this->configInstancePort->get()->subscriptionsConfig->hwid;
+            $headers[] = ['X-HWID', $this->configInstancePort->get()->subscriptionsConfig->hwid];
         }
 
+
+        $client = new \Psl\HTTP\Client\Client();
+
+        $request = new \Psl\HTTP\Message\Request(
+            'GET',
+            parse($url),
+            headers: FieldMap::from($headers),
+        );
+
         try {
-            return new Client(['timeout' => $timeout, 'headers' => $headers])->get($url);
-        } catch (GuzzleException $e) {
-            throw new HttpException("Unable to send request", $e->getMessage());
+            return $client->send(
+                $request,
+                cancellation: new TimeoutCancellationToken(
+                    Duration::seconds((int)$timeout)
+                ))
+                ->response;
+        } catch (Throwable) {
+            throw new HttpException();
         }
+
     }
 }

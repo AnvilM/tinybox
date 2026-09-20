@@ -6,9 +6,9 @@ namespace App\Infrastructure\IO\File;
 
 use App\Domain\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 use App\Domain\Shared\Ports\IO\File\ReadJsonFilePort;
-use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
-use App\Domain\Shared\ReporterEvent\Events\Shared\IO\File\FileReadingStartReporterEvent;
-use App\Domain\Shared\ReporterEvent\Events\Shared\IO\File\FileReadSuccessfullyReporterEvent;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
+use App\Domain\Shared\ReporterEvent\ReporterEventBuilder;
+use App\Domain\Shared\VO\ReporterEvent\ReporterEventAttachmentVO;
 
 final class ReadJsonFileNotify implements ReadJsonFileNotifyPort
 {
@@ -16,8 +16,8 @@ final class ReadJsonFileNotify implements ReadJsonFileNotifyPort
     private ?string $notifyReadSuccessfully = null;
 
     public function __construct(
-        private readonly ReadJsonFilePort $readJsonFilePort,
-        private readonly ReporterPort     $reporterPort,
+        private readonly ReadJsonFilePort     $readJsonFilePort,
+        private readonly ReporterInstancePort $reporterInstancePort,
     )
     {
     }
@@ -28,7 +28,11 @@ final class ReadJsonFileNotify implements ReadJsonFileNotifyPort
          * Notify start file reading
          */
         if ($this->notifyStartReading)
-            $this->reporterPort->notify(new FileReadingStartReporterEvent($this->notifyStartReading, $path));
+            $this->reporterInstancePort->get()->notify(
+                ReporterEventBuilder::step($this->notifyStartReading)->attachments(
+                    ReporterEventAttachmentVO::veryVerbose('Path: ' . $path)
+                )->verbose()
+            );
 
 
         /**
@@ -41,8 +45,11 @@ final class ReadJsonFileNotify implements ReadJsonFileNotifyPort
          * Notify file reading successfully
          */
         if ($this->notifyReadSuccessfully)
-            $this->reporterPort->notify(new FileReadSuccessfullyReporterEvent($this->notifyReadSuccessfully, $path));
-
+            $this->reporterInstancePort->get()->notify(
+                ReporterEventBuilder::success($this->notifyReadSuccessfully)->attachments(
+                    ReporterEventAttachmentVO::veryVerbose('Path: ' . $path)
+                )->verbose()
+            );
 
         return $fileContent;
     }

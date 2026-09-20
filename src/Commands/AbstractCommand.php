@@ -4,75 +4,44 @@ declare(strict_types=1);
 
 namespace App\Commands;
 
-use App\Commands\Shared\Interface\OptionGroup\OptionGroupInterface;
-use App\Commands\Shared\OptionGroup\Groups\BaseOptionsGroup;
-use App\Commands\Shared\OptionGroup\OptionGroupRegistry;
+use App\Commands\Shared\Options\BaseOptionsTrait;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
-use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
-use App\Domain\Shared\ReporterEvent\Events\Shared\FatalErrorReporterEvent;
-use App\Domain\Shared\VO\ReporterEvent\ReporterEventDebugMessagesVO;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use App\Domain\Shared\ReporterEvent\ReporterEventBuilder;
+use App\Infrastructure\Shared\IO\Reporter\ReporterInstance;
+use Iva\Command\Command;
+use Iva\ExitCode;
+use Iva\Input\Input;
+use Iva\Output\Output;
 use Throwable;
+
 
 abstract class AbstractCommand extends Command
 {
-    protected readonly OptionGroupRegistry $optionGroups;
+    use BaseOptionsTrait;
 
     public function __construct(
-        private readonly ReporterPort         $reporterPort,
+        private readonly ReporterInstance     $reporterInstancePort,
         protected readonly ConfigInstancePort $configInstancePort,
     )
     {
         parent::__construct();
-
-
-        /**
-         * Create options groups registry
-         */
-        $this->optionGroups = new OptionGroupRegistry($this);
-
-
-        /**
-         * Register base options group in options groups registry
-         */
-        $this->optionGroups->register(new BaseOptionsGroup());
-
-
-        /**
-         * Register command specific options groups in registry
-         */
-        foreach ($this->optionGroups() as $group) {
-            $this->optionGroups->register($group);
-        }
     }
 
-    /**
-     * Override in specific command with needed options groups
-     *
-     * @return OptionGroupInterface[] Options groups array
-     */
-    protected function optionGroups(): array
-    {
-        return [];
-    }
-
-
-    public function __invoke(InputInterface $input, OutputInterface $output): int
+    final public function execute(Input $input, Output $output): int
     {
         /**
-         * Set input for all registered options groups
+         * Create reporter instance
          */
-        $this->optionGroups->setInput($input);
-
+        $this->reporterInstancePort->set($output);
 
         /**
          * Create config
          */
-        $configOptions = $this->optionGroups->get(BaseOptionsGroup::class)->getConfigOptions();
-        $this->configInstancePort->set($this->optionGroups->get(BaseOptionsGroup::class)->getConfigPath(), $configOptions);
+        $this->configInstancePort->set(
+            $this->resolveConfigPath($input),
+            $this->resolveConfigOptions($input),
+        );
 
 
         /**
@@ -81,12 +50,21 @@ abstract class AbstractCommand extends Command
         try {
             return $this->handle($input, $output);
         } catch (CriticalException $e) {
-            $this->reporterPort->notify(new FatalErrorReporterEvent(
-                $e->getMessage(),
-                $e->debugMessage ? new ReporterEventDebugMessagesVO([$e->debugMessage]) : null
-            ));
+            if (trim($e->getMessage()) !== '') {
+                $this->reporterInstancePort->get()->notify(ReporterEventBuilder::error($e->getMessage())->normal());
+            }
 
-            return Command::FAILURE;
+            if (trim($e->getDebugMessage()) !== '') {
+                $this->reporterInstancePort->get()->notify(ReporterEventBuilder::error($e->getDebugMessage())->normal());
+            }
+
+
+            if ($e->events) {
+                foreach ($e->events as $event) {
+                    $this->reporterInstancePort->get()->notify($event);
+                }
+            }
+            return ExitCode::GeneralError->value;
         }
     }
 
@@ -94,5 +72,19 @@ abstract class AbstractCommand extends Command
      * @throws CriticalException
      * @throws Throwable
      */
-    protected abstract function handle(InputInterface $input, OutputInterface $output): int;
+    abstract protected function handle(Input $input, Output $output): int;
+
+    final protected function configure(): void
+    {
+        $this->configureBaseOptions();
+        $this->configureCommand();
+    }
+
+    /**
+     * Register this command's own name/description/aliases and its
+     * arguments/options here. Direct replacement for what used to be
+     * configure() before every command got the base options injected
+     * automatically by this class.
+     */
+    abstract protected function configureCommand(): void;
 }

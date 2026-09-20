@@ -64,7 +64,7 @@ readonly class OutboundMap
         /**
          * Check if outbound name already exists
          */
-        if ($this->containsOutbound($outbound)) throw new OutboundAlreadyExistsException();
+        if ($this->containsOutbound($outbound)) throw new OutboundAlreadyExistsException($outbound);
 
 
         /**

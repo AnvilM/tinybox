@@ -6,9 +6,9 @@ namespace App\Infrastructure\IO\File;
 
 use App\Domain\Shared\Ports\IO\File\SaveFileNotifyPort;
 use App\Domain\Shared\Ports\IO\File\SaveFilePort;
-use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
-use App\Domain\Shared\ReporterEvent\Events\Shared\IO\File\FileReadingStartReporterEvent;
-use App\Domain\Shared\ReporterEvent\Events\Shared\IO\File\FileReadSuccessfullyReporterEvent;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
+use App\Domain\Shared\ReporterEvent\ReporterEventBuilder;
+use App\Domain\Shared\VO\ReporterEvent\ReporterEventAttachmentVO;
 
 final class SaveFileNotify implements SaveFileNotifyPort
 {
@@ -16,8 +16,8 @@ final class SaveFileNotify implements SaveFileNotifyPort
     private ?string $notifySavedSuccessfully = null;
 
     public function __construct(
-        private readonly SaveFilePort $saveFilePort,
-        private readonly ReporterPort $reporterPort,
+        private readonly SaveFilePort         $saveFilePort,
+        private readonly ReporterInstancePort $reporterInstancePort,
     )
     {
     }
@@ -28,8 +28,11 @@ final class SaveFileNotify implements SaveFileNotifyPort
          * Notify start file saving
          */
         if ($this->notifyStartSaving)
-            $this->reporterPort->notify(new FileReadingStartReporterEvent($this->notifyStartSaving, $path));
-
+            $this->reporterInstancePort->get()->notify(
+                ReporterEventBuilder::step($this->notifyStartSaving)->attachments(
+                    ReporterEventAttachmentVO::veryVerbose('Path: ' . $path)
+                )->verbose()
+            );
 
         /**
          * Save file
@@ -41,7 +44,11 @@ final class SaveFileNotify implements SaveFileNotifyPort
          * Notify file saved successfully
          */
         if ($this->notifySavedSuccessfully)
-            $this->reporterPort->notify(new FileReadSuccessfullyReporterEvent($this->notifySavedSuccessfully, $path));
+            $this->reporterInstancePort->get()->notify(
+                ReporterEventBuilder::success($this->notifySavedSuccessfully)->attachments(
+                    ReporterEventAttachmentVO::veryVerbose('Path: ' . $path)
+                )->verbose()
+            );
     }
 
     public function notifyStartAndSuccess(string $startMessage, string $successMessage): self

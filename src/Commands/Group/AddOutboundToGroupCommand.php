@@ -7,38 +7,43 @@ namespace App\Commands\Group;
 use App\Application\Group\UseCase\AddOutboundToGroup\AddOutboundToGroupUseCase;
 use App\Commands\AbstractCommand;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
-use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
-use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
+use Iva\ExitCode;
+use Iva\Input\Argument;
+use Iva\Input\Input;
+use Iva\Output\Output;
 
-#[AsCommand(name: 'group:add', description: 'Add outbound to group or create new group with outbound', aliases: ['g:add'])]
 final class AddOutboundToGroupCommand extends AbstractCommand
 {
+    private Argument $groupNameArgument;
+    private Argument $outboundIdArgument;
+
     public function __construct(
-        ReporterPort                               $reporterPort,
+        ReporterInstancePort                       $reporterInstancePort,
         private readonly AddOutboundToGroupUseCase $addOutboundToGroupUseCase,
         ConfigInstancePort                         $configInstancePort,
     )
     {
-        parent::__construct($reporterPort, $configInstancePort);
+        parent::__construct($reporterInstancePort, $configInstancePort);
     }
 
-    protected function handle(InputInterface $input, OutputInterface $output): int
+    protected function configureCommand(): void
+    {
+        $this->setName('add');
+        $this->setDescription('Add outbound to group or create new group with outbound');
+
+        $this->groupNameArgument = $this->addArgument(Argument::string('groupName', 'Group name'));
+        // Iva coerces this to a real int for us — no more (int) casting in handle().
+        $this->outboundIdArgument = $this->addArgument(Argument::int('outboundId', 'Outbound id'));
+    }
+
+    protected function handle(Input $input, Output $output): int
     {
         $this->addOutboundToGroupUseCase->handle(
-            $input->getArgument('groupName'),
-            (int)$input->getArgument('outboundId')
+            $input->argument($this->groupNameArgument),
+            $input->argument($this->outboundIdArgument),
         );
 
-        return Command::SUCCESS;
-    }
-
-    protected function configure(): void
-    {
-        $this->addArgument('groupName', InputArgument::REQUIRED, 'Group name')
-            ->addArgument('outboundId', InputArgument::REQUIRED, 'Outbound id');
+        return ExitCode::Ok->value;
     }
 }

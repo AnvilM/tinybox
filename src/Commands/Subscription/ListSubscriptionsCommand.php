@@ -9,47 +9,72 @@ use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Commands\AbstractCommand;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
-use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
-use League\CLImate\CLImate;
-use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
+use Iva\ExitCode;
+use Iva\Input\Input;
+use Iva\Input\Option;
+use Iva\Output\Output;
 
-#[AsCommand(name: 'subscription:list', description: 'List subscriptions', aliases: ['sub:list'])]
 final class ListSubscriptionsCommand extends AbstractCommand
 {
+    private Option $json;
 
     public function __construct(
-        ReporterPort                                   $reporterPort,
+        ReporterInstancePort                           $reporterInstancePort,
         private readonly GetSubscriptionListRepository $getSubscriptionListRepository,
         ConfigInstancePort                             $configInstancePort,
     )
     {
-        parent::__construct($reporterPort, $configInstancePort);
+        parent::__construct($reporterInstancePort, $configInstancePort);
     }
 
-    protected function handle(InputInterface $input, OutputInterface $output): int
+    protected function configureCommand(): void
+    {
+        $this->setName('list');
+        $this->setDescription('List subscriptions');
+
+        $this->json = $this->addOption(Option::flag(
+            name: 'json',
+            shortcut: 'j',
+            description: 'JSON output',
+        ));
+    }
+
+    protected function handle(Input $input, Output $output): int
     {
         try {
             $subscriptionsMap = $this->getSubscriptionListRepository->getSubscriptionsList()->toNameUrlMap();
         } catch (UnableToGetListException $e) {
-            throw new CriticalException ("Unable to get subscriptions list: " . $e->getMessage(), $e->getDebugMessage());
+            throw new CriticalException("Unable to get subscriptions list" . (trim($e->getMessage()) != '' ? ": {$e->getMessage()}" : ''), $e->getDebugMessage());
         }
 
 
         if ($subscriptionsMap->isEmpty()) throw new CriticalException("No subscriptions found");
 
+        if ($this->isJson($input)) {
+            $array = [];
+            foreach ($subscriptionsMap as $name => $url) {
+                $array[] = ['name' => $name, 'url' => $url];
+            }
 
-        $table = [];
-        foreach ($subscriptionsMap as $name => $url) {
-            $table[] = [
-                'name' => $name,
-                'url' => $url,
-            ];
+            $output->write(json_encode($array, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+
+        } else {
+            $table = $output->table()->headers(['name', 'url']);
+
+            foreach ($subscriptionsMap as $name => $url) {
+                $table->row([$name, $url]);
+            }
+
+            $table->render();
         }
 
-        new CLImate()->table($table);
+        return ExitCode::Ok->value;
+    }
 
-        return self::SUCCESS;
+
+    private function isJson(Input $input): bool
+    {
+        return $input->flag($this->json);
     }
 }

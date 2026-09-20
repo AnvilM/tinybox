@@ -13,7 +13,7 @@ use App\Domain\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 use App\Domain\Shared\Ports\IO\File\ReadJsonFilePort;
 use App\Domain\Shared\Ports\IO\File\SaveFileNotifyPort;
 use App\Domain\Shared\Ports\IO\File\SaveFilePort;
-use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
 use App\Domain\Shared\Ports\OS\Directories\GetConfigsDirectoryPort;
 use App\Domain\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
 use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
@@ -32,7 +32,7 @@ use App\Infrastructure\Shared\Http\Http;
 use App\Infrastructure\Shared\IO\Directory\ScanDirectoryForFiles;
 use App\Infrastructure\Shared\IO\File\ReadFile;
 use App\Infrastructure\Shared\IO\File\SaveFile;
-use App\Infrastructure\Shared\IO\Reporter\Reporter;
+use App\Infrastructure\Shared\IO\Reporter\ReporterInstance;
 use App\Infrastructure\Shared\OS\Directories\GetConfigsDirectory;
 use App\Infrastructure\Shared\OS\Directories\GetDataHomeDirectory;
 use App\Infrastructure\Shared\OS\Path\NormalizePath;
@@ -48,7 +48,7 @@ final readonly class SharedProviders implements ProviderInterface
         return [
             ReadFilePort::class => autowire(ReadFile::class),
             HttpPort::class => autowire(Http::class),
-            ReporterPort::class => autowire(Reporter::class),
+            ReporterInstancePort::class => autowire(ReporterInstance::class),
             SaveFilePort::class => autowire(SaveFile::class),
             ConfigInstancePort::class => autowire(ConfigInstance::class),
             ReadJsonFilePort::class => autowire(ReadJsonFile::class),
