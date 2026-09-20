@@ -7,35 +7,39 @@ namespace App\Commands\Group;
 use App\Application\Group\UseCase\ApplyGroup\ApplyGroupUseCase;
 use App\Commands\AbstractCommand;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
-use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
-use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
+use Iva\ExitCode;
+use Iva\Input\Argument;
+use Iva\Input\Input;
+use Iva\Output\Output;
 
-#[AsCommand(name: 'group:apply', description: 'Apply group', aliases: ['g:apply'])]
 final class ApplySchemeGroupCommand extends AbstractCommand
 {
+    private Argument $groupNameArgument;
+
     public function __construct(
-        ReporterPort                       $reporterPort,
+        ReporterInstancePort               $reporterInstancePort,
         private readonly ApplyGroupUseCase $applyGroupUseCase,
         ConfigInstancePort                 $configInstancePort,
     )
     {
-        parent::__construct($reporterPort, $configInstancePort);
+        parent::__construct($reporterInstancePort, $configInstancePort);
     }
 
-    protected function handle(InputInterface $input, OutputInterface $output): int
+    protected function configureCommand(): void
+    {
+        $this->setName('apply');
+        $this->setDescription('Apply group');
+
+        $this->groupNameArgument = $this->addArgument(Argument::string('groupName', 'Group name'));
+    }
+
+    protected function handle(Input $input, Output $output): int
     {
         $this->applyGroupUseCase->handle(
-            $input->getArgument('groupName')
+            $input->argument($this->groupNameArgument)
         );
 
-        return self::SUCCESS;
-    }
-
-    protected function configure(): void
-    {
-        $this->addArgument('groupName', InputArgument::REQUIRED, 'Group name');
+        return ExitCode::Ok->value;
     }
 }

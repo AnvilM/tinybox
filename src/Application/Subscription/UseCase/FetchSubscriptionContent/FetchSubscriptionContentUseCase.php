@@ -49,8 +49,7 @@ final readonly class FetchSubscriptionContentUseCase
         try {
             $rawEncodedSubscriptionContent = $this->httpPort
                 ->get((float)$this->configInstancePort->get()->subscriptionsConfig->timeout, $subscriptionUrl->getUrl())
-                ->getBody()
-                ->getContents();
+                ->body?->readAll();
         } catch (RuntimeException) {
             throw new InvalidArgumentException("Unable to read response");
         } catch (HttpException) {
@@ -82,7 +81,7 @@ final readonly class FetchSubscriptionContentUseCase
         else if ($this->isSchemesFormat($rawSubscriptionContent))
             $subscriptionContentFormat = SubscriptionContentTypeDTO::SCHEMES;
 
-        else throw new UnsupportedSubscriptionContentFormatException("Unsupported subscription content format");
+        else throw new UnsupportedSubscriptionContentFormatException($rawSubscriptionContent);
 
 
         return new SubscriptionContentDTO(

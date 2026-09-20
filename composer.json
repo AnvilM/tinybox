@@ -24,14 +24,14 @@
   "require": {
     "php-di/php-di": "^7.1",
     "monolog/monolog": "^3.9",
-    "symfony/console": "^7.3",
     "opis/json-schema": "^2.6",
     "guzzlehttp/guzzle": "^7.0",
-    "league/climate": "^3.10",
     "ramsey/collection": "^2.1",
     "geoip2/geoip2": "^3.3",
     "ramsey/uuid": "^4.9",
-    "php-standard-library/php-standard-library": "^6.1"
+    "php-standard-library/php-standard-library": "^6.1",
+    "anvilm/iva": "^0.1",
+    "league/climate": "^3.12"
   },
   "scripts": {
     "test": "vendor/bin/phpunit",

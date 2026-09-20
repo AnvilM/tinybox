@@ -14,21 +14,23 @@ use App\Application\Subscription\UseCase\SaveFetchedSubscriptionSchemes\SaveFetc
 use App\Commands\AbstractCommand;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
-use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
 use InvalidArgumentException;
-use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
+use Iva\ExitCode;
+use Iva\Input\Argument;
+use Iva\Input\Input;
+use Iva\Input\Option;
+use Iva\Output\Output;
 
-#[AsCommand(name: 'subscription:update', description: 'Update subscription', aliases: ['sub:update'])]
 final class UpdateSubscriptionCommand extends AbstractCommand
 {
+    private Argument $nameArgument;
+    private Option $skipDuplicatesOption;
+
     public function __construct(
-        ReporterPort                                           $reporterPort,
+        ReporterInstancePort                                   $reporterInstancePort,
         ConfigInstancePort                                     $configInstancePort,
         private readonly GetSubscriptionListRepository         $getSubscriptionListRepository,
         private readonly FetchSubscriptionContentUseCase       $fetchSubscriptionContentUseCase,
@@ -37,10 +39,10 @@ final class UpdateSubscriptionCommand extends AbstractCommand
         private readonly RemoveSubscriptionRepository          $removeSubscriptionRepository,
     )
     {
-        parent::__construct($reporterPort, $configInstancePort);
+        parent::__construct($reporterInstancePort, $configInstancePort);
     }
 
-    protected function handle(InputInterface $input, OutputInterface $output): int
+    protected function handle(Input $input, Output $output): int
     {
         /**
          * Try to create subscription name
@@ -49,7 +51,7 @@ final class UpdateSubscriptionCommand extends AbstractCommand
             /**
              * Create subscription name
              */
-            $subscriptionName = new NonEmptyStringVO($input->getArgument('name'));
+            $subscriptionName = new NonEmptyStringVO($input->argument($this->nameArgument));
         } catch (InvalidArgumentException) {
             throw new CriticalException("Invalid subscription name provided");
         }
@@ -84,17 +86,20 @@ final class UpdateSubscriptionCommand extends AbstractCommand
          * If subscription content type is schemes list
          */
         if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::SCHEMES)
-            $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscription->getUrlVO(), $subscriptionContent->content, (bool)$input->getOption('skipDuplicates'));
+            $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscription->getUrlVO(), $subscriptionContent->content, $input->flag($this->skipDuplicatesOption));
         else if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::CONFIG) {
             $this->saveFetchedSubscriptionConfigUseCase->handle($subscriptionName, $subscription->getUrlVO(), $subscriptionContent->content);
         }
 
-        return self::SUCCESS;
+        return ExitCode::Ok->value;
     }
 
-    protected function configure(): void
+    protected function configureCommand(): void
     {
-        $this->addArgument('name', InputArgument::REQUIRED, 'Subscription name')
-            ->addOption('skipDuplicates', 's', InputOption::VALUE_NONE);
+        $this->setName('update');
+        $this->setDescription('Update subscription');
+
+        $this->nameArgument = $this->addArgument(Argument::string('name', 'Subscription name'));
+        $this->skipDuplicatesOption = $this->addOption(Option::flag('skipDuplicates', 's'));
     }
 }

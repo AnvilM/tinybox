@@ -7,35 +7,39 @@ namespace App\Commands\Group;
 use App\Application\Group\UseCase\GetGroupsList\GetGroupsListUseCase;
 use App\Commands\AbstractCommand;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
-use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
-use League\CLImate\CLImate;
-use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
+use Iva\ExitCode;
+use Iva\Input\Input;
+use Iva\Output\Output;
 
-#[AsCommand(name: 'group:list', description: 'List groups', aliases: ['g:list'])]
 final class ListSchemeGroupsCommand extends AbstractCommand
 {
     public function __construct(
-        ReporterPort                          $reporterPort,
+        ReporterInstancePort                  $reporterInstancePort,
         private readonly GetGroupsListUseCase $getGroupsListUseCase,
         ConfigInstancePort                    $configInstancePort,
     )
     {
-        parent::__construct($reporterPort, $configInstancePort);
+        parent::__construct($reporterInstancePort, $configInstancePort);
     }
 
-    protected function handle(InputInterface $input, OutputInterface $output): int
+    protected function configureCommand(): void
+    {
+        $this->setName('list');
+        $this->setDescription('List groups');
+    }
+
+    protected function handle(Input $input, Output $output): int
     {
         $schemeGroupNames = $this->getGroupsListUseCase->handle();
 
+        // Ported from League\CLImate: out('...') -> writeln(), green()->out(...) -> the built-in <success> style.
+        $output->writeln('    Group name');
 
-        new CLImate()->out('    Group name');
         foreach ($schemeGroupNames as $schemeGroupName) {
-            new CLImate()->green()->out('[+] ' . $schemeGroupName);
+            $output->writeln(sprintf('<success>[+] %s</success>', $schemeGroupName));
         }
 
-        return Command::SUCCESS;
+        return ExitCode::Ok->value;
     }
 }

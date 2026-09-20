@@ -29,13 +29,13 @@ final readonly class RawOutboundParser implements RawOutboundParserPort
         $rawSchemeString = trim($rawSchemeString);
 
         if ($rawSchemeString === '') {
-            throw new UnableToParseRawSchemeStringException('Invalid raw scheme string');
+            throw new UnableToParseRawSchemeStringException('Unable to parse raw scheme string. Scheme string cannot be empty.');
         }
 
         $parsed = parse_url($rawSchemeString);
 
         if ($parsed === false) {
-            throw new UnableToParseRawSchemeStringException("Unable to parse URL: $rawSchemeString");
+            throw new UnableToParseRawSchemeStringException("Unable to parse raw scheme string. Invalid schema: $rawSchemeString");
         }
 
         $queryParams = [];

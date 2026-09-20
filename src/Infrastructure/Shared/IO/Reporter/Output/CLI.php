@@ -4,64 +4,47 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Shared\IO\Reporter\Output;
 
-use Application\Config\ApplicationConfig\ApplicationConfig;
-use League\CLImate\CLImate;
+use App\Domain\Shared\VO\ReporterEvent\ReporterEventAttachmentVO;
+use Iva\Output\Formatter\Color;
+use Iva\Output\Formatter\Style;
+use Iva\Output\Output;
+use Iva\Output\Terminal\ColorSupport;
+use Iva\Output\Verbosity;
 
-final readonly class CLI
+final class CLI
 {
-    public function __construct(
-        private CLImate $CLImate
-    )
+    public function __construct(private Output $output)
     {
+        $this->output = $this->output->withColorSupport(ColorSupport::Ansi16);
+
+        $this->output->defineStyle('green', new Style(Color::parse('green')));
+        $this->output->defineStyle('yellow', new Style(Color::parse('yellow')));
+        $this->output->defineStyle('light_yellow', new Style(Color::parse('light_yellow')));
+        $this->output->defineStyle('red', new Style(Color::parse('red')));
+        $this->output->defineStyle('blue', new Style(Color::parse('blue')));
     }
 
-    /**
-     * Prints message to stderr
-     *
-     * @param string|null $message Message to print
-     * @param string|null $debugMessage Debug message to print
-     *
-     * @return CLI
-     */
-    public function err(?string $message = null, ?string $debugMessage = null): CLI
+    public function err($message, $messagw)
     {
-        if ($message) $this->CLImate->to('error')->out($message);
-
-        if (!ApplicationConfig::isDebug()) return $this;
-        if ($debugMessage) $this->CLImate->to('error')->out($debugMessage);
-
-        return $this;
+        $this->out($message, $messagw);
     }
 
     /**
      * Prints message to stdout
      *
-     * @param string|null $message Message to print
-     * @param string|null $debugMessage Debug message to print
+     * @param string $message Message to print
+     * @param Verbosity $verbosity Debug message to print
+     * @param ReporterEventAttachmentVO[] $attachments Reporter event attachments
      *
      * @return CLI
      */
-    public function out(?string $message = null, ?string $debugMessage = null): CLI
+    public function out(string $message, Verbosity $verbosity, array $attachments = []): CLI
     {
-        if ($message) $this->CLImate->out($message);
+        $this->output->writeln($message, minVerbosity: $verbosity);
 
-        if (!ApplicationConfig::isDebug()) return $this;
-        if ($debugMessage) $this->CLImate->out($debugMessage);
-
-        return $this;
-    }
-
-    /**
-     * Prints br
-     *
-     * @param int $count Count of br's
-     * @param string $to
-     *
-     * @return CLI
-     */
-    public function br(int $count = 1, string $to = 'out'): CLI
-    {
-        if ($count > 0) $this->CLImate->to($to)->br($count);
+        foreach ($attachments as $attachment) {
+            $this->output->writeln('    ' . $attachment->message, minVerbosity: Verbosity::tryFrom($attachment->verbosity->value));
+        }
 
         return $this;
     }

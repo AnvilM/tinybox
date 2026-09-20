@@ -6,57 +6,52 @@ namespace App\Infrastructure\Shared\IO\Reporter;
 
 use App\Domain\Shared\Ports\IO\Reporter\ReporterPort;
 use App\Domain\Shared\ReporterEvent\ReporterEventInterface;
-use App\Domain\Shared\VO\ReporterEvent\ReporterEventDebugMessagesVO;
 use App\Domain\Shared\VO\ReporterEvent\ReporterEventTypeVO;
 use App\Infrastructure\Shared\IO\Reporter\Output\CLI;
-use Application\Config\ApplicationConfig\ApplicationConfig;
+use Iva\Output\Output;
+use Iva\Output\Verbosity;
 
 final readonly class Reporter implements ReporterPort
 {
-    public function __construct(
-        private CLI $output,
-    )
+    private CLI $cli;
+
+    private function __construct(Output $output)
     {
+        $this->cli = new CLI($output);
     }
 
-    public function notify(ReporterEventInterface $reporterEvent): void
+
+    public static function fromOutput(Output $output): self
     {
-        if (ApplicationConfig::isSilent()) return;
+        return new self($output);
+    }
 
-        $formatedMessage = $reporterEvent->getType()->value . ' ';
+    public function notify(ReporterEventInterface ...$reporterEvents): void
+    {
 
-        if ($reporterEvent->getBreadcrumbsVO()) foreach ($reporterEvent->getBreadcrumbsVO() as $breadcrumb) {
-            $formatedMessage .= "[$breadcrumb] ";
-        }
+        foreach ($reporterEvents as $reporterEvent) {
+            $formatedMessage = $reporterEvent->getType()->value . ' ';
 
-        $formatedMessage .= $reporterEvent->getMessage();
+            $formatedMessage .= $reporterEvent->getMessage();
 
-        $formateDebugMessages = function (?ReporterEventDebugMessagesVO $debugMessagesVO): ?string {
-            if ($debugMessagesVO === null) return null;
-            $formatedDebugMessagesString = "";
+            $verbosity = Verbosity::tryFrom($reporterEvent->getVerbosity()->value);
 
-            foreach ($debugMessagesVO as $key => $debugMessage) {
-                $formatedDebugMessagesString .= $key === count($debugMessagesVO) - 1 ? "$debugMessage" : "$debugMessage\n";
+            switch ($reporterEvent->getType()) {
+                case ReporterEventTypeVO::Success:
+                    $this->cli->out("<green>$formatedMessage</green>", $verbosity, $reporterEvent->getAttachments());
+                    break;
+                case ReporterEventTypeVO::Skipped:
+                    $this->cli->out("<light_yellow>$formatedMessage</light_yellow>", $verbosity, $reporterEvent->getAttachments());
+                    break;
+                case ReporterEventTypeVO::Warning:
+                    $this->cli->out("<yellow>$formatedMessage</yellow>", $verbosity, $reporterEvent->getAttachments());
+                    break;
+                case ReporterEventTypeVO::Error:
+                    $this->cli->out("<red>$formatedMessage</red>", $verbosity, $reporterEvent->getAttachments());
+                    break;
+                case ReporterEventTypeVO::Step:
+                    $this->cli->out("<blue>$formatedMessage</blue>", $verbosity, $reporterEvent->getAttachments());
             }
-
-            return $formatedDebugMessagesString;
-        };
-
-        switch ($reporterEvent->getType()) {
-            case ReporterEventTypeVO::Success:
-                $this->output->out("<green>$formatedMessage</green>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
-                break;
-            case ReporterEventTypeVO::Skipped:
-                $this->output->err("<light_yellow>$formatedMessage</light_yellow>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
-                break;
-            case ReporterEventTypeVO::Warning:
-                $this->output->err("<yellow>$formatedMessage</yellow>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
-                break;
-            case ReporterEventTypeVO::Error:
-                $this->output->err("<red>$formatedMessage</red>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
-                break;
-            case ReporterEventTypeVO::Step:
-                $this->output->err("<blue>$formatedMessage</blue>", $formateDebugMessages($reporterEvent->getDebugMessage()) ?? '');
         }
     }
 

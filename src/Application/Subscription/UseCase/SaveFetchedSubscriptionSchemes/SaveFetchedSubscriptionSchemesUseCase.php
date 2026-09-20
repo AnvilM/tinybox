@@ -16,12 +16,17 @@ use App\Domain\Outbound\Collection\UniqueTagAndContentOutboundsMap;
 use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
+use App\Domain\Outbound\Exception\UnsupportedProtocolException;
+use App\Domain\Outbound\Exception\UnsupportedSecurityException;
+use App\Domain\Outbound\Exception\UnsupportedTransportException;
+use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
+use App\Domain\Shared\ReporterEvent\ReporterEventBuilder;
+use App\Domain\Shared\VO\ReporterEvent\ReporterEventAttachmentVO;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Entity\OutboundsSubscription;
 use App\Domain\Subscription\Exception\SubscriptionAlreadyExistsException;
 use App\Domain\Subscription\VO\SubscriptionURLVO;
 use InvalidArgumentException;
-use Throwable;
 
 final readonly class SaveFetchedSubscriptionSchemesUseCase
 {
@@ -29,7 +34,8 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
         private CreateOutboundFromSchemeUseCase $createOutboundFromSchemeUseCase,
         private AddOutboundRepository           $addOutboundRepository,
         private AddSubscriptionRepository       $addSubscriptionRepository,
-        private GetOutboundsListRepository      $getOutboundsListRepository
+        private GetOutboundsListRepository      $getOutboundsListRepository,
+        private ReporterInstancePort            $reporterInstancePort,
     )
     {
     }
@@ -70,11 +76,16 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
                 $outbounds->add(
                     $this->createOutboundFromSchemeUseCase->handle($schemeString)
                 );
-            } catch (UnableToParseRawSchemeStringException|InvalidArgumentException|OutboundAlreadyExistsException) {
-                continue;
-                //TODO: add reporter event
-            } catch (Throwable) {
-                continue;
+            } catch (UnableToParseRawSchemeStringException|UnsupportedProtocolException|UnsupportedSecurityException|UnsupportedTransportException|InvalidArgumentException $e) {
+                $this->reporterInstancePort->get()->notify(
+                    ReporterEventBuilder::warning("Unable to create outbound from scheme string" . ($e->getMessage() != '' ? (': ' . $e->getMessage()) : ''))
+                        ->attachments(ReporterEventAttachmentVO::debug('Scheme: ' . $schemeString))->normal(),
+                );
+            } catch (OutboundAlreadyExistsException $e) {
+                $this->reporterInstancePort->get()->notify(
+                    ReporterEventBuilder::warning("Duplicate: Outbound {$e->outbound->getTagString()} already exists in subscription")
+                        ->attachments(ReporterEventAttachmentVO::debug('Scheme: ' . $schemeString))->normal()
+                );
             }
         }
 
@@ -82,7 +93,7 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
         /**
          * Check if outbounds map is not empty
          */
-        if ($outbounds->getMap()->isEmpty()) throw new NoValidSchemesFoundException();
+        if ($outbounds->getMap()->isEmpty()) throw new NoValidSchemesFoundException('No valid schemes found');
 
 
         foreach ($outbounds->getOutbounds() as $outbound) {

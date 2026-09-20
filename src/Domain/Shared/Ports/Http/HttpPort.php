@@ -7,7 +7,7 @@ namespace App\Domain\Shared\Ports\Http;
 use App\Domain\Shared\Exception\HTTP\HttpException;
 use Closure;
 use Exception;
-use Psr\Http\Message\ResponseInterface;
+use Psl\HTTP\Message\Response;
 
 interface HttpPort
 {
@@ -35,9 +35,9 @@ interface HttpPort
      * @param float $timeout Timeout in seconds
      * @param string $url Url to send request
      *
-     * @return ResponseInterface Response
+     * @return Response Response
      *
      * @throws HttpException If unable to send request e.g. invalid url, or timeout
      */
-    public function get(float $timeout, string $url): ResponseInterface;
+    public function get(float $timeout, string $url): Response;
 }

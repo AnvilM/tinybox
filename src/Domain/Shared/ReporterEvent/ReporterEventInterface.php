@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\ReporterEvent;
 
-use App\Domain\Shared\VO\ReporterEvent\ReporterEventBreadcrumbsVO;
-use App\Domain\Shared\VO\ReporterEvent\ReporterEventDebugMessagesVO;
+use App\Domain\Shared\VO\ReporterEvent\ReporterEventAttachmentVO;
 use App\Domain\Shared\VO\ReporterEvent\ReporterEventTypeVO;
+use App\Domain\Shared\VO\ReporterEvent\ReporterEventVerbosity;
 
 interface ReporterEventInterface
 {
@@ -14,7 +14,10 @@ interface ReporterEventInterface
 
     public function getType(): ReporterEventTypeVO;
 
-    public function getDebugMessage(): ?ReporterEventDebugMessagesVO;
+    public function getVerbosity(): ReporterEventVerbosity;
 
-    public function getBreadcrumbsVO(): ?ReporterEventBreadcrumbsVO;
+    /**
+     * @return ReporterEventAttachmentVO[]
+     */
+    public function getAttachments(): array;
 }

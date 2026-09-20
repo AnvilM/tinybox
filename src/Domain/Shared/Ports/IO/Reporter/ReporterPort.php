@@ -8,5 +8,5 @@ use App\Domain\Shared\ReporterEvent\ReporterEventInterface;
 
 interface ReporterPort
 {
-    public function notify(ReporterEventInterface $reporterEvent): void;
+    public function notify(ReporterEventInterface ...$reporterEvent): void;
 }
