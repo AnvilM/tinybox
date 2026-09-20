@@ -13,6 +13,7 @@ use App\Application\Subscription\UseCase\FetchSubscriptionContent\FetchSubscript
 use App\Application\Subscription\UseCase\SaveFetchedSubscriptionConfig\SaveFetchedSubscriptionConfigUseCase;
 use App\Application\Subscription\UseCase\SaveFetchedSubscriptionSchemes\SaveFetchedSubscriptionSchemesUseCase;
 use App\Commands\AbstractCommand;
+use App\Commands\Shared\Options\DryRunOptionTrait;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
@@ -26,15 +27,20 @@ use Iva\Input\Argument;
 use Iva\Input\Input;
 use Iva\Input\Option;
 use Iva\Output\Output;
+use Iva\Output\Verbosity;
 use Throwable;
 use function Psl\Async\run;
 
 final class CreateSubscriptionCommand extends AbstractCommand
 {
+
+    use DryRunOptionTrait;
+
+
     private Argument $nameArgument;
     private Argument $urlArgument;
     private Option $skipDuplicatesOption;
-
+    
     public function __construct(
         ReporterInstancePort                                   $reporterInstancePort,
         ConfigInstancePort                                     $configInstancePort,
@@ -117,13 +123,21 @@ final class CreateSubscriptionCommand extends AbstractCommand
         $spinner->succeed("Subscription fetched successfully");
 
 
-        /**
-         * If subscription content type is schemes list
-         */
-        if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::SCHEMES)
-            $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscriptionUrl, $subscriptionContent->content, $input->flag($this->skipDuplicatesOption));
-        else if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::CONFIG) {
-            $this->saveFetchedSubscriptionConfigUseCase->handle($subscriptionName, $subscriptionUrl, $subscriptionContent->content);
+        if (!$this->isDryRun($input)) {
+            /**
+             * If subscription content type is schemes list
+             */
+            if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::SCHEMES)
+                $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscriptionUrl, $subscriptionContent->content, $input->flag($this->skipDuplicatesOption));
+
+            /**
+             * If subscription content type is config
+             */
+            else if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::CONFIG) {
+                $this->saveFetchedSubscriptionConfigUseCase->handle($subscriptionName, $subscriptionUrl, $subscriptionContent->content);
+            }
+        } else {
+            $output->writeln($subscriptionContent->content, Verbosity::Quiet);
         }
 
         return ExitCode::Ok->value;
@@ -138,6 +152,8 @@ final class CreateSubscriptionCommand extends AbstractCommand
         $this->nameArgument = $this->addArgument(Argument::string('name', 'Subscription name'));
         $this->urlArgument = $this->addArgument(Argument::string('url', 'Subscription URL'));
         $this->skipDuplicatesOption = $this->addOption(Option::flag('skipDuplicates', 's'));
+
+        $this->configureDryRunOption('Shows response with raw content, ignoring skipDuplicates flag.');
     }
 
 

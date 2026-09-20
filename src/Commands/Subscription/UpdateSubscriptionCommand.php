@@ -6,6 +6,7 @@ namespace App\Commands\Subscription;
 
 use App\Application\Repository\Subscription\GetSubscriptionListRepository;
 use App\Application\Repository\Subscription\RemoveSubscriptionRepository;
+use App\Application\Subscription\DTO\UseCase\FetchSubscriptionContent\SubscriptionContentDTO;
 use App\Application\Subscription\DTO\UseCase\FetchSubscriptionContent\SubscriptionContentTypeDTO;
 use App\Application\Subscription\Exception\UseCase\FetchSubscriptionContent\UnsupportedSubscriptionContentFormatException;
 use App\Application\Subscription\UseCase\FetchSubscriptionContent\FetchSubscriptionContentUseCase;
@@ -15,6 +16,7 @@ use App\Commands\AbstractCommand;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
+use App\Domain\Shared\ReporterEvent\ReporterEventBuilder;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Subscription\Exception\SubscriptionNotFoundException;
 use InvalidArgumentException;
@@ -23,6 +25,8 @@ use Iva\Input\Argument;
 use Iva\Input\Input;
 use Iva\Input\Option;
 use Iva\Output\Output;
+use Throwable;
+use function Psl\Async\run;
 
 final class UpdateSubscriptionCommand extends AbstractCommand
 {
@@ -67,14 +71,32 @@ final class UpdateSubscriptionCommand extends AbstractCommand
         }
 
         /**
+         * Create spinner
+         */
+        $spinner = $output->spinner('Fetching subscription...');
+        $spinner->start();
+
+        /**
          * Try to fetch subscription content
          */
         try {
-            $subscriptionContent = $this->fetchSubscriptionContentUseCase->handle($subscription->getUrlVO());
-        } catch (UnsupportedSubscriptionContentFormatException|InvalidArgumentException $e) {
-            throw new CriticalException($e->getMessage());
+            $fetchSubUseCase = $this->fetchSubscriptionContentUseCase;
+            $subscriptionUrl = $subscription->getUrlVO();
+            $subscriptionContent = run(static function () use ($subscriptionUrl, $fetchSubUseCase): SubscriptionContentDTO {
+                return $fetchSubUseCase->handle($subscriptionUrl);
+            })->await();
+        } catch (UnsupportedSubscriptionContentFormatException $error) {
+            $spinner->fail('Unsupported subscription content format');
+            throw CriticalException::fromEvents(
+                ReporterEventBuilder::error('Unsupported subscription content format')->normal(),
+                ReporterEventBuilder::error('Content: ' . $error->rawSubscriptionContent)->debug()
+            );
+        } catch (Throwable $error) {
+            $spinner->fail('Error while fetching subscription content');
+            throw new CriticalException('Error: ' . $error->getMessage());
         }
 
+        $spinner->succeed("Subscription fetched successfully");
 
         /**
          * Remove subscription
@@ -87,6 +109,10 @@ final class UpdateSubscriptionCommand extends AbstractCommand
          */
         if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::SCHEMES)
             $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscription->getUrlVO(), $subscriptionContent->content, $input->flag($this->skipDuplicatesOption));
+
+        /**
+         * If subscription content type is config
+         */
         else if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::CONFIG) {
             $this->saveFetchedSubscriptionConfigUseCase->handle($subscriptionName, $subscription->getUrlVO(), $subscriptionContent->content);
         }

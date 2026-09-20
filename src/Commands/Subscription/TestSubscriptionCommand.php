@@ -28,12 +28,7 @@ use Iva\Input\Option;
 use Iva\Output\Output;
 use Psl\Collection\MutableVector;
 
-/**
- * Ported from Symfony to Iva. Behaviour is unchanged, including the
- * League\CLImate table -> the table is now built through Iva's own
- * Output::table(), which streams straight to the terminal instead of
- * being built up as an array of associative rows first.
- */
+
 final class TestSubscriptionCommand extends AbstractCommand
 {
     use OutboundFilterOptionsTrait;

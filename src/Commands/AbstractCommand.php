@@ -30,6 +30,9 @@ abstract class AbstractCommand extends Command
 
     final public function execute(Input $input, Output $output): int
     {
+        /**
+         * Create reporter instance
+         */
         $this->reporterInstancePort->set($output);
 
         /**

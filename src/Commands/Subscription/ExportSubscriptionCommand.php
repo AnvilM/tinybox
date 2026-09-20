@@ -19,6 +19,7 @@ use App\Application\Shared\UseCase\SaveSingBoxConfig\SaveConfigUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
 use App\Commands\AbstractCommand;
 use App\Commands\Shared\Options\CoreOptionsTrait;
+use App\Commands\Shared\Options\DryRunOptionTrait;
 use App\Commands\Shared\Options\OutboundFilterOptionsTrait;
 use App\Commands\Shared\Options\OverridesOptionsTrait;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
@@ -32,18 +33,16 @@ use Iva\Input\Argument;
 use Iva\Input\Input;
 use Iva\Input\Option;
 use Iva\Output\Output;
+use Iva\Output\Verbosity;
 use Psl\Collection\MutableVector;
 
-/**
- * Ported from Symfony to Iva. Behaviour is unchanged; only how the option
- * blocks are wired up is different — see Shared/Options/*Trait.php for why
- * `use`-ing a trait replaced `optionGroups()` + `$this->optionGroups->get(...)`.
- */
+
 final class ExportSubscriptionCommand extends AbstractCommand
 {
     use OutboundFilterOptionsTrait;
     use CoreOptionsTrait;
     use OverridesOptionsTrait;
+    use DryRunOptionTrait;
 
     private const string URLTEST_FILTER_PREFIX = 'urltest';
 
@@ -87,6 +86,7 @@ final class ExportSubscriptionCommand extends AbstractCommand
         $this->configureOutboundFilterOptions(includeUrltestVariant: true, urltestPrefix: self::URLTEST_FILTER_PREFIX);
         $this->configureCoreOptions();
         $this->configureOverridesOptions();
+        $this->configureDryRunOption();
     }
 
     protected function handle(Input $input, Output $output): int
@@ -179,8 +179,9 @@ final class ExportSubscriptionCommand extends AbstractCommand
                 $singBoxConfigJSON .= $this->toSchemeStringOutboundMapper->map($outbound) . "\n";
             }
         }
-
-        $this->saveSingBoxConfigUseCase->handle(new SaveConfigDTO($singBoxConfigJSON));
+        if (!$this->isDryRun($input))
+            $this->saveSingBoxConfigUseCase->handle(new SaveConfigDTO($singBoxConfigJSON));
+        else $output->writeln($singBoxConfigJSON, Verbosity::Quiet);
 
         return ExitCode::Ok->value;
     }

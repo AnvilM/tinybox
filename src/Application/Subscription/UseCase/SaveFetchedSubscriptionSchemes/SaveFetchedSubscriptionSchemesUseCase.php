@@ -79,12 +79,12 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
             } catch (UnableToParseRawSchemeStringException|UnsupportedProtocolException|UnsupportedSecurityException|UnsupportedTransportException|InvalidArgumentException $e) {
                 $this->reporterInstancePort->get()->notify(
                     ReporterEventBuilder::warning("Unable to create outbound from scheme string" . ($e->getMessage() != '' ? (': ' . $e->getMessage()) : ''))
-                        ->attachments(ReporterEventAttachmentVO::debug('Scheme: ' . $schemeString))->normal(),
+                        ->attachments(ReporterEventAttachmentVO::veryVerbose('Scheme: ' . $schemeString))->normal(),
                 );
             } catch (OutboundAlreadyExistsException $e) {
                 $this->reporterInstancePort->get()->notify(
                     ReporterEventBuilder::warning("Duplicate: Outbound {$e->outbound->getTagString()} already exists in subscription")
-                        ->attachments(ReporterEventAttachmentVO::debug('Scheme: ' . $schemeString))->normal()
+                        ->attachments(ReporterEventAttachmentVO::veryVerbose('Scheme: ' . $schemeString))->normal()
                 );
             }
         }

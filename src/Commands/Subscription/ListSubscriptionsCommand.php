@@ -12,10 +12,13 @@ use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
 use Iva\ExitCode;
 use Iva\Input\Input;
+use Iva\Input\Option;
 use Iva\Output\Output;
 
 final class ListSubscriptionsCommand extends AbstractCommand
 {
+    private Option $json;
+
     public function __construct(
         ReporterInstancePort                           $reporterInstancePort,
         private readonly GetSubscriptionListRepository $getSubscriptionListRepository,
@@ -29,6 +32,12 @@ final class ListSubscriptionsCommand extends AbstractCommand
     {
         $this->setName('list');
         $this->setDescription('List subscriptions');
+
+        $this->json = $this->addOption(Option::flag(
+            name: 'json',
+            shortcut: 'j',
+            description: 'JSON output',
+        ));
     }
 
     protected function handle(Input $input, Output $output): int
@@ -36,23 +45,36 @@ final class ListSubscriptionsCommand extends AbstractCommand
         try {
             $subscriptionsMap = $this->getSubscriptionListRepository->getSubscriptionsList()->toNameUrlMap();
         } catch (UnableToGetListException $e) {
-            throw new CriticalException("Unable to get subscriptions list: " . $e->getMessage(), $e->getDebugMessage());
+            throw new CriticalException("Unable to get subscriptions list" . (trim($e->getMessage()) != '' ? ": {$e->getMessage()}" : ''), $e->getDebugMessage());
         }
 
 
         if ($subscriptionsMap->isEmpty()) throw new CriticalException("No subscriptions found");
 
+        if ($this->isJson($input)) {
+            $array = [];
+            foreach ($subscriptionsMap as $name => $url) {
+                $array[] = ['name' => $name, 'url' => $url];
+            }
 
-        // Ported from League\CLImate's table(array $rows) — Iva's Output::table() builds the same
-        // box-drawn table from explicit headers()/row() calls instead of associative-array rows.
-        $table = $output->table()->headers(['name', 'url']);
+            $output->write(json_encode($array, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
 
-        foreach ($subscriptionsMap as $name => $url) {
-            $table->row([$name, $url]);
+        } else {
+            $table = $output->table()->headers(['name', 'url']);
+
+            foreach ($subscriptionsMap as $name => $url) {
+                $table->row([$name, $url]);
+            }
+
+            $table->render();
         }
 
-        $table->render();
-
         return ExitCode::Ok->value;
+    }
+
+
+    private function isJson(Input $input): bool
+    {
+        return $input->flag($this->json);
     }
 }
