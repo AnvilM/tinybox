@@ -67,7 +67,7 @@ final readonly class RawOutboundParser implements RawOutboundParserPort
     }
 
     /**
-     * Приводит произвольное значение к непустой строке либо null.
+     * Converts an arbitrary value to a non-empty string or null.
      */
     private function sanitizeString(mixed $value): ?string
     {
@@ -94,7 +94,6 @@ final readonly class RawOutboundParser implements RawOutboundParserPort
             default => $tag,
         };
 
-        // base64_decode со strict=true вернёт false на некорректных данных
         if ($decoded === false) {
             return null;
         }
@@ -121,10 +120,7 @@ final readonly class RawOutboundParser implements RawOutboundParserPort
         return $port;
     }
 
-    /**
-     * Достаёт параметр из query-массива и гарантирует, что это либо
-     * непустая строка, либо null (даже если пришёл массив/что угодно ещё).
-     */
+    
     private function sanitizeQueryParam(array $queryParams, string $key): ?string
     {
         return $this->sanitizeString($queryParams[$key] ?? null);
