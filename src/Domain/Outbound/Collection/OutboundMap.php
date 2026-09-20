@@ -23,33 +23,17 @@ readonly class OutboundMap
      */
     protected MutableMap $outbounds;
 
-    public function __construct()
-    {
-        $this->outbounds = new MutableMap([]);
-    }
 
     /**
-     * Get outbounds map as mutable vector of outbounds map split by chunks with provided size
-     *
-     * @param int $size Chunk size
-     *
-     * @return MutableVector<OutboundMap> Mutable vector of outbounds map split by chunks
+     * @param Outbound[] $outbounds Outbounds
      */
-    public function getChunks(int $size): MutableVector
+    public function __construct(array $outbounds = [])
     {
-        $chunkedMapVector = $this->outbounds->chunk($size);
+        $this->outbounds = new MutableMap([]);
 
-        $chunkedOutboundsMapVector = new MutableVector([]);
-
-        foreach ($chunkedMapVector as $mapChunk) {
-            $outboundsMapChunk = new OutboundMap();
-            foreach ($mapChunk as $outbound) {
-                $outboundsMapChunk->add($outbound);
-            }
-            $chunkedOutboundsMapVector->add($outboundsMapChunk);
+        foreach ($outbounds as $outbound) {
+            $this->add($outbound);
         }
-
-        return $chunkedOutboundsMapVector;
     }
 
     /**
@@ -87,7 +71,6 @@ readonly class OutboundMap
         return $this->getDuplicate($outbound) !== null;
     }
 
-
     /**
      * Get duplicate of provided outbound
      *
@@ -118,6 +101,30 @@ readonly class OutboundMap
         }
 
         return $array;
+    }
+
+    /**
+     * Get outbounds map as mutable vector of outbounds map split by chunks with provided size
+     *
+     * @param int $size Chunk size
+     *
+     * @return MutableVector<OutboundMap> Mutable vector of outbounds map split by chunks
+     */
+    public function getChunks(int $size): MutableVector
+    {
+        $chunkedMapVector = $this->outbounds->chunk($size);
+
+        $chunkedOutboundsMapVector = new MutableVector([]);
+
+        foreach ($chunkedMapVector as $mapChunk) {
+            $outboundsMapChunk = new OutboundMap();
+            foreach ($mapChunk as $outbound) {
+                $outboundsMapChunk->add($outbound);
+            }
+            $chunkedOutboundsMapVector->add($outboundsMapChunk);
+        }
+
+        return $chunkedOutboundsMapVector;
     }
 
     /**

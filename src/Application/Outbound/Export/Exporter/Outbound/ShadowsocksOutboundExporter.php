@@ -52,13 +52,25 @@ final class ShadowsocksOutboundExporter implements NodeExporterInterface
             static fn(mixed $value): bool => $value !== null,
         );
 
-        return [
+        $config = [
             'tag' => $node->getTagString(),
             'protocol' => $node->getType()->value,
             'settings' => [
                 'servers' => [$server],
             ],
         ];
+
+        // Xray equivalent of sing-box "detour": route this outbound's traffic
+        // through another outbound (referenced by tag).
+        if ($node->getDetour() !== null) {
+            $config['streamSettings'] = [
+                'sockopt' => [
+                    'dialerProxy' => $node->getDetour()->getTagString(),
+                ],
+            ];
+        }
+
+        return $config;
     }
 
     /**
@@ -92,6 +104,7 @@ final class ShadowsocksOutboundExporter implements NodeExporterInterface
                 'server_port' => $node->getServerPortInt(),
                 'method' => $node->getUserinfo()->getMethod()->value,
                 'password' => $node->getUserinfo()->getPassword(),
+                'detour' => $node->getDetour()?->getTagString(),
                 ...$this->buildPluginFields($node->getPlugin(), 'plugin', 'plugin_opts'),
             ],
             static fn(mixed $value): bool => $value !== null,

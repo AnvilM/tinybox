@@ -20,7 +20,7 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
     private ?NonEmptyStringVO $flow;
     private ?SecurityVO $security;
     private ?TransportVO $transport;
-    private ?NonEmptyStringVO $detourTag;
+    private ?Outbound $detour;
 
 
     public function __construct(
@@ -47,9 +47,17 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
     /**
      * @inheritdoc
      */
+    public function getDetour(): ?Outbound
+    {
+        return $this->detour ?? null;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function setDetour(Outbound $detour): void
     {
-        $this->detourTag = $detour->getTag();
+        $this->detour = $detour;
     }
 
     /**
