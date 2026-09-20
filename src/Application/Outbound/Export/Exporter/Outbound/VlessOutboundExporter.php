@@ -88,6 +88,12 @@ final class VlessOutboundExporter implements NodeExporterInterface
             $streamSettings += $registry->export($node->getTransport(), CoreType::Xray);
         }
 
+        // Xray equivalent of sing-box "detour": route this outbound's traffic
+        // through another outbound (referenced by tag).
+        if ($node->getDetour() !== null) {
+            $streamSettings['sockopt']['dialerProxy'] = $node->getDetour()->getTagString();
+        }
+
         return $streamSettings;
     }
 
@@ -104,6 +110,7 @@ final class VlessOutboundExporter implements NodeExporterInterface
                 'server_port' => $node->getServerPortInt(),
                 'uuid' => $node->getUUIDString(),
                 'flow' => $node->getFlowString(),
+                'detour' => $node->getDetour()?->getTagString(),
             ],
             static fn(mixed $value): bool => $value !== null,
         );

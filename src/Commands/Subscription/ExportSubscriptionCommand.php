@@ -22,6 +22,7 @@ use App\Commands\Shared\Options\CoreOptionsTrait;
 use App\Commands\Shared\Options\DryRunOptionTrait;
 use App\Commands\Shared\Options\OutboundFilterOptionsTrait;
 use App\Commands\Shared\Options\OverridesOptionsTrait;
+use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -157,9 +158,13 @@ final class ExportSubscriptionCommand extends AbstractCommand
              */
             $detourOutbound = $input->option($this->detourOutboundOption);
 
+
             if ($detourOutbound !== null) try {
                 $subscriptionOutbounds = $this->setOutboundsDetourUseCase->handle(
-                    new SetOutboundsDetourDTO($subscriptionOutbounds, $subscriptionOutbounds->getWithTag($detourOutbound))
+                    new SetOutboundsDetourDTO(
+                        $subscriptionOutbounds,
+                        new UniqueTagOutboundsMap($subscriptionOutbounds->getOutbounds())->getWithTag($detourOutbound)
+                    )
                 );
             } catch (OutboundNotFoundException) {
                 throw new CriticalException("Outbound with tag '{$detourOutbound}' not found");
