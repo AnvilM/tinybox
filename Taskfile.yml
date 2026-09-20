@@ -1,21 +1,30 @@
 version: '3'
 
+set: [ errexit, nounset, pipefail ]
+
+
+vars:
+  APP_NAME: '{{.APP_NAME | default "app"}}'
+  VERSION: '{{.VERSION | default "dev"}}'
+  OUTPUT_DIR: '{{.OUTPUT_DIR | default "./build"}}'
+  BINARY: '{{.APP_NAME}}-{{.VERSION}}-linux-x86_64'
+
 tasks:
-
   build:
-    desc: Build docker image artifacts
-    requires:
-      vars: [ v ]
+    desc: Build a Linux x86_64 binary using Docker
+    silent: true
     cmds:
+      - echo "→ Building {{.BINARY}}..."
       - |
-        docker buildx build \
-          --platform linux/amd64 \
-          --output type=local,dest=./build,src=/out \
-          -f ./docker/build.Dockerfile \
-          --build-arg VERSION={{.v}} \
+        docker build \
+          --file docker/build.Dockerfile \
+          --target export \
+          --build-arg APP_NAME="{{.APP_NAME}}" \
+          --build-arg VERSION="{{.VERSION}}" \
+          --output "type=local,dest={{.OUTPUT_DIR}}" \
           .
-
-  clean:
-    desc: Remove build directory
-    cmds:
-      - rm -rf ./build
+      - chmod +x "{{.OUTPUT_DIR}}/{{.BINARY}}"
+      - |
+        echo ""
+        echo "✓ Done: {{.OUTPUT_DIR}}/{{.BINARY}}"
+        echo "  Size: $(du -sh "{{.OUTPUT_DIR}}/{{.BINARY}}" | cut -f1)"
