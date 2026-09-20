@@ -19,7 +19,7 @@ final readonly class Kernel
      */
     public static function createApp(): Application
     {
-        $app = new Application(ApplicationConfig::appName);
+        $app = new Application(ApplicationConfig::appName, ApplicationConfig::appVersion);
 
         CommandsBootstrapper::registerCommands($app,
             ContainerBootstrapper::createContainer(

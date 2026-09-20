@@ -9,6 +9,7 @@ use RuntimeException;
 final readonly class ApplicationConfig
 {
     public const string appName = "tinybox";
+    public const string appVersion = "0.2.0";
 
     public static function isDebug(): bool
     {
