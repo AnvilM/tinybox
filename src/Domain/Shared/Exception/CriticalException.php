@@ -15,7 +15,7 @@ class CriticalException extends CoreException
 
     public function __construct(string $message = "", public ?string $debugMessage = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, $this->debugMessage ?? "");
     }
 
     public static function fromEvents(ReporterEvent ...$events): static

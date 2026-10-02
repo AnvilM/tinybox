@@ -103,7 +103,6 @@ abstract readonly class Outbound implements Equable
         return $this->id->getValue();
     }
 
-
     /**
      * Get outbound id
      *
@@ -113,5 +112,14 @@ abstract readonly class Outbound implements Equable
     {
         return $this->id;
     }
+
+    /**
+     * Create a copy of the current outbound with overridden constructor arguments
+     *
+     * NOTE: Keys of $changes must match constructor parameter names. Detour is carried over if it was set.
+     *
+     * @param array<string, mixed> $changes Constructor arguments to override
+     */
+    protected abstract function cloneWith(array $changes): static;
 
 }

@@ -58,5 +58,31 @@ abstract readonly class SecurityVO implements Equable
 
     abstract public function getType(): SecurityTypeVO;
 
+    /**
+     * Create a copy with a new server name
+     *
+     * @param NonEmptyStringVO $serverName New server name
+     *
+     * @return static Copy with new server name
+     */
+    abstract public function withServerName(NonEmptyStringVO $serverName): static;
 
+    /**
+     * Create a copy with a new fingerprint
+     *
+     * @param NonEmptyStringVO|null $fingerprint New fingerprint
+     *
+     * @return static Copy with new fingerprint
+     */
+    abstract public function withFingerprint(?NonEmptyStringVO $fingerprint): static;
+
+
+    /**
+     * Create a copy of the current object with overridden constructor arguments
+     *
+     * NOTE: Keys of $changes must match constructor parameter names.
+     *
+     * @param array<string, mixed> $changes Constructor arguments to override
+     */
+    abstract protected function cloneWith(array $changes): static;
 }

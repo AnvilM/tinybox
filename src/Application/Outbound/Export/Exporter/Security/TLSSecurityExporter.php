@@ -35,6 +35,8 @@ final class TLSSecurityExporter implements NodeExporterInterface
                         'serverName' => $node->getServerName()->getValue(),
                         'fingerprint' => $node->getFingerprint()?->getValue(),
                         'alpn' => [$node->getAlpn()->getValue()],
+                        'allowInsecure' => $node->getInsecure() ? true : null,
+                        'verifyPeerCertByName' => $node->getVerifyPeerCertByName()?->getValue(),
                     ],
                     static fn(mixed $value): bool => $value !== null,
                 ),
@@ -44,6 +46,7 @@ final class TLSSecurityExporter implements NodeExporterInterface
                     'enabled' => true,
                     'server_name' => $node->getServerName()->getValue(),
                     'alpn' => [$node->getAlpn()->getValue()],
+                    'insecure' => $node->getInsecure() ? true : null,
                     'utls' => $node->getFingerprint() === null ? null : [
                         'enabled' => true,
                         'fingerprint' => $node->getFingerprint()->getValue(),

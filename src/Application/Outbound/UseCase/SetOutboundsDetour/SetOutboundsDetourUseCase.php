@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Outbound\UseCase\SetOutboundsDetour;
 
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
-use App\Domain\Interface\Subscription\DetourProvider;
+use App\Domain\Interface\Outbound\DetourProvider;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 

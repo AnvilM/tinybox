@@ -103,6 +103,17 @@ readonly class OutboundMap
         return $array;
     }
 
+
+    /**
+     * Creates new empty outbounds map
+     *
+     * @return static New empty outbounds map
+     */
+    public function createEmpty(): static
+    {
+        return new static();
+    }
+
     /**
      * Get outbounds map as mutable vector of outbounds map split by chunks with provided size
      *
