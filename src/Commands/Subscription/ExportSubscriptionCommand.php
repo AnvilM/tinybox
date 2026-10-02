@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
+use App\Application\Outbound\DTO\Override\OverrideOutboundDTO;
 use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
-use App\Application\Outbound\DTO\UseCase\OverrideOutbounds\OverrideOutboundDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
 use App\Application\Outbound\Filter\Criteria\OutboundCoreSupportCriteria;
 use App\Application\Outbound\Mapper\ToSchemeString\ToSchemeStringOutboundMapper;
+use App\Application\Outbound\Override\OverrideOutboundService;
 use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
-use App\Application\Outbound\UseCase\OverrideOutbounds\OverrideOutboundsUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Shared\DTO\UseCase\CreateConfig\CreateConfigDTO;
 use App\Application\Shared\DTO\UseCase\SaveConfig\SaveConfigDTO;
@@ -60,7 +60,7 @@ final class ExportSubscriptionCommand extends AbstractCommand
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
         private readonly CreateConfigUseCase            $createConfigUseCase,
         private readonly SaveConfigUseCase              $saveSingBoxConfigUseCase,
-        private readonly OverrideOutboundsUseCase       $overrideOutboundsUseCase,
+        private readonly OverrideOutboundService        $overrideOutboundService,
         private readonly ToSchemeStringOutboundMapper   $toSchemeStringOutboundMapper,
         ConfigInstancePort                              $configInstancePort,
     )
@@ -127,15 +127,20 @@ final class ExportSubscriptionCommand extends AbstractCommand
         ));
 
 
-        $subscriptionOutbounds = $this->overrideOutboundsUseCase->override(
-            new OverrideOutboundDTO(
-                $subscriptionOutbounds,
-                $this->resolveOverrideUUID($input),
-                $this->resolveOverrideSSPass($input),
-            )
+        if ($subscriptionOutbounds->isEmpty()) throw new CriticalException("No outbound calls matching the filter criteria were found");
+
+
+        /**
+         * Overrides
+         */
+        $subscriptionOutbounds = $this->overrideOutboundService->override(
+            $subscriptionOutbounds, $this->resolveOverrideTypes($input)
         );
 
-        if ($subscriptionOutbounds->isEmpty()) throw new CriticalException("No outbound calls matching the filter criteria were found");
+
+        /**
+         * Urltest filter
+         */
 
         if (!$exportAsScheme) {
             $urltestOutbounds = null;

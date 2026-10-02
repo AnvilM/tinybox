@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\Entity;
 
-use App\Domain\Interface\Subscription\DetourProvider;
+use App\Domain\Interface\Outbound\DetourProvider;
+use App\Domain\Interface\Outbound\SecurityProvider;
 use App\Domain\Outbound\VO\ProtocolVO;
 use App\Domain\Outbound\VO\Security\SecurityVO;
 use App\Domain\Outbound\VO\Transport\TransportVO;
@@ -12,7 +13,7 @@ use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use Override;
 
-final readonly class VlessOutbound extends Outbound implements DetourProvider
+final readonly class VlessOutbound extends Outbound implements DetourProvider, SecurityProvider
 {
     private NonEmptyStringVO $server;
     private PortVO $serverPort;
@@ -74,6 +75,37 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider
             $this->equalsNullable($this->detourTag ?? null, $other->detourTag ?? null) &&
             $this->equalsNullable($this->transport, $other->transport);
     }
+
+    public function withUUID(NonEmptyStringVO $uuid): static
+    {
+        return $this->cloneWith(['uuid' => $uuid]);
+    }
+
+    protected function cloneWith(array $changes): static
+    {
+        $copy = new self(...array_merge([
+            'tag' => $this->getTagString(),
+            'id' => $this->getId(),
+            'server' => $this->server,
+            'serverPort' => $this->serverPort,
+            'uuid' => $this->uuid,
+            'flow' => $this->flow,
+            'security' => $this->security,
+            'transport' => $this->transport,
+        ], $changes));
+
+        if (isset($this->detour)) {
+            $copy->setDetour($this->detour);
+        }
+
+        return $copy;
+    }
+
+    public function withSecurity(?SecurityVO $security): static
+    {
+        return $this->cloneWith(['security' => $security]);
+    }
+
 
     #[Override]
     public function getType(): ProtocolVO

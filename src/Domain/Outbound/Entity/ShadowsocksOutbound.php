@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\Entity;
 
-use App\Domain\Interface\Subscription\DetourProvider;
+use App\Domain\Interface\Outbound\DetourProvider;
 use App\Domain\Outbound\VO\ProtocolVO;
 use App\Domain\Outbound\VO\Shadowsocks\Plugin\ShadowsocksPluginVO;
 use App\Domain\Outbound\VO\Shadowsocks\Userinfo\ShadowsocksUserinfoVO;
@@ -72,6 +72,31 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
     public function getPlugin(): ?ShadowsocksPluginVO
     {
         return $this->plugin;
+    }
+
+    public function withPassword(NonEmptyStringVO $password): static
+    {
+        return $this->cloneWith([
+            'userinfo' => new ShadowsocksUserinfoVO($this->userinfo->getMethod(), $password),
+        ]);
+    }
+
+    protected function cloneWith(array $changes): static
+    {
+        $copy = new self(...array_merge([
+            'tag' => $this->getTagString(),
+            'id' => $this->getId(),
+            'server' => $this->server,
+            'serverPort' => $this->serverPort,
+            'userinfo' => $this->userinfo,
+            'plugin' => $this->plugin,
+        ], $changes));
+
+        if (isset($this->detour)) {
+            $copy->setDetour($this->detour);
+        }
+
+        return $copy;
     }
 
     #[Override]

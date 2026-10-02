@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Outbound\UseCase\OverrideOutbounds;
 
-use App\Application\Outbound\DTO\UseCase\OverrideOutbounds\OverrideOutboundDTO;
+use App\Application\Outbound\DTO\Override\OverrideOutboundDTO;
 use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Outbound\Entity\ShadowsocksOutbound;
 use App\Domain\Outbound\Entity\VlessOutbound;
@@ -27,7 +27,7 @@ final readonly class OverrideOutboundsUseCase
                 }
             );
         }
-        
+
         return $outbounds;
     }
 
