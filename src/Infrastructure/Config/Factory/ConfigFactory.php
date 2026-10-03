@@ -53,7 +53,6 @@ final readonly class ConfigFactory
                     $this->normalizePath($rawConfig['sing_box']['templates']['outbound_urltest'] ?? $defaultConfig->singBoxConfig->templates->outboundUrltest),
                     $this->normalizePath($rawConfig['sing_box']['templates']['config'] ?? $defaultConfig->singBoxConfig->templates->config),
                 ),
-                $rawConfig['sing_box']['systemd_service_name'] ?? $defaultConfig->singBoxConfig->systemdServiceName,
                 new OutboundTestSingBoxConfigVO(
                     new OutboundTestTemplatesSingBoxConfigVO(
                         $this->normalizePath($rawConfig['sing_box']['outbound_test']['templates']['outbound'] ?? $defaultConfig->singBoxConfig->outboundTest->templates->outbound),
