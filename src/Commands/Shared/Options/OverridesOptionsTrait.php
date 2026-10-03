@@ -69,7 +69,7 @@ trait OverridesOptionsTrait
         if ($this->resolveOverrideUUID($input)) $overrides[] = new OverrideVlessUUID($this->resolveOverrideUUID($input));
         if ($this->resolveOverrideTlsSni($input)) $overrides[] = new OverrideTLSSNI($this->resolveOverrideTlsSni($input));
         if ($this->resolveOverrideSSPass($input)) $overrides[] = new OverrideSSPass($this->resolveOverrideSSPass($input));
-        if ($this->resolveOverrideTlsInsecure($input)) $overrides[] = new OverrideTlsInsecure($this->resolveOverrideTlsInsecure($input));
+        if ($this->resolveOverrideTlsInsecure($input) !== null) $overrides[] = new OverrideTlsInsecure($this->resolveOverrideTlsInsecure($input));
 
         return new Vector($overrides);
     }
@@ -92,9 +92,9 @@ trait OverridesOptionsTrait
         return $value === null ? null : new NonEmptyStringVO($value);
     }
 
-    protected function resolveOverrideTlsInsecure(Input $input): bool
+    protected function resolveOverrideTlsInsecure(Input $input): ?bool
     {
         $value = $input->option($this->overrideTlsInsecureOption);
-        return $value === "true";
+        return $value === null ? null : $value === "true";
     }
 }

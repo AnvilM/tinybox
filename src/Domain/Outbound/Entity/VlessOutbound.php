@@ -72,7 +72,7 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider, S
             $this->uuid->equals($other->uuid) &&
             $this->equalsNullable($this->flow, $other->flow) &&
             $this->equalsNullable($this->security, $other->security) &&
-            $this->equalsNullable($this->detourTag ?? null, $other->detourTag ?? null) &&
+            $this->equalsNullable($this->detour ?? null, $other->detour ?? null) &&
             $this->equalsNullable($this->transport, $other->transport);
     }
 
