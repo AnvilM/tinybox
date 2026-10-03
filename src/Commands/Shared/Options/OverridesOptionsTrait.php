@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Commands\Shared\Options;
 
-use App\Application\Outbound\Override\OverrideType;
-use App\Application\Outbound\Override\OverrideTypes\OverrideTypeSSPass;
-use App\Application\Outbound\Override\OverrideTypes\OverrideTypeTlsInsecure;
-use App\Application\Outbound\Override\OverrideTypes\OverrideTypeTLSSNI;
-use App\Application\Outbound\Override\OverrideTypes\OverrideTypeVerifyPeerCertByNameFromSni;
-use App\Application\Outbound\Override\OverrideTypes\OverrideTypeVlessUUID;
+use App\Application\Outbound\Override\Override;
+use App\Application\Outbound\Override\Overrides\OverrideSSPass;
+use App\Application\Outbound\Override\Overrides\OverrideTlsInsecure;
+use App\Application\Outbound\Override\Overrides\OverrideTLSSNI;
+use App\Application\Outbound\Override\Overrides\OverrideVerifyPeerCertByNameFromSni;
+use App\Application\Outbound\Override\Overrides\OverrideVlessUUID;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use Iva\Input\Input;
 use Iva\Input\Option;
@@ -56,21 +56,20 @@ trait OverridesOptionsTrait
     }
 
     /**
-     * @return Vector<OverrideType>
+     * @return Vector<Override>
      */
     protected function resolveOverrideTypes(Input $input): Vector
     {
         $overrides = [];
 
-        // TODO: Fixme
         if ($input->flag($this->overrideTlsVerifyPeerCertByNameFromSniOption)) {
-            $overrides[] = new OverrideTypeVerifyPeerCertByNameFromSni(new NonEmptyStringVO("override"));
+            $overrides[] = new OverrideVerifyPeerCertByNameFromSni();
         }
 
-        if ($this->resolveOverrideUUID($input)) $overrides[] = new OverrideTypeVlessUUID($this->resolveOverrideUUID($input));
-        if ($this->resolveOverrideTlsSni($input)) $overrides[] = new OverrideTypeTLSSNI($this->resolveOverrideTlsSni($input));
-        if ($this->resolveOverrideSSPass($input)) $overrides[] = new OverrideTypeSSPASS($this->resolveOverrideSSPass($input));
-        if ($this->resolveOverrideTlsInsecure($input)) $overrides[] = new OverrideTypeTlsInsecure($this->resolveOverrideTlsInsecure($input));
+        if ($this->resolveOverrideUUID($input)) $overrides[] = new OverrideVlessUUID($this->resolveOverrideUUID($input));
+        if ($this->resolveOverrideTlsSni($input)) $overrides[] = new OverrideTLSSNI($this->resolveOverrideTlsSni($input));
+        if ($this->resolveOverrideSSPass($input)) $overrides[] = new OverrideSSPass($this->resolveOverrideSSPass($input));
+        if ($this->resolveOverrideTlsInsecure($input)) $overrides[] = new OverrideTlsInsecure($this->resolveOverrideTlsInsecure($input));
 
         return new Vector($overrides);
     }
@@ -93,9 +92,9 @@ trait OverridesOptionsTrait
         return $value === null ? null : new NonEmptyStringVO($value);
     }
 
-    protected function resolveOverrideTlsInsecure(Input $input): ?NonEmptyStringVO
+    protected function resolveOverrideTlsInsecure(Input $input): bool
     {
         $value = $input->option($this->overrideTlsInsecureOption);
-        return $value === null ? null : new NonEmptyStringVO($value);
+        return $value === "true";
     }
 }
