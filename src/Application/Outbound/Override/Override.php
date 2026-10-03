@@ -8,5 +8,5 @@ use App\Domain\Outbound\Entity\Outbound;
 
 abstract readonly class Override
 {
-    public abstract function override(Outbound $outbound, OverrideType $overrideType): Outbound;
+    public abstract function override(Outbound $outbound): Outbound;
 }

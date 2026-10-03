@@ -46,7 +46,7 @@ templates.
 ## Supported transport
 
 - WebSocket
-- XHTTP (sing-box only)
+- XHTTP (xray only)
 
 ## Supported security
 

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\VO\Shadowsocks\Plugin;
 
+use App\Domain\Interface\Shared\Equable;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 
-final readonly class ShadowsocksPluginVO
+final readonly class ShadowsocksPluginVO implements Equable
 {
 
     private ShadowsocksPlugin $plugin;
@@ -19,6 +20,12 @@ final readonly class ShadowsocksPluginVO
         $this->pluginOptions = $pluginOptions;
     }
 
+    public function equals(mixed $other): bool
+    {
+        return $other instanceof static &&
+            $other->getPlugin() === $this->getPlugin() &&
+            $other->getPluginOptions() === $this->getPluginOptions();
+    }
 
     /**
      * Get shadowsocks plugin
@@ -29,7 +36,6 @@ final readonly class ShadowsocksPluginVO
     {
         return $this->plugin;
     }
-
 
     /**
      * Get plugin options or null if empty

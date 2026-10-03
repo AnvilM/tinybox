@@ -47,7 +47,6 @@ final readonly class DefaultConfigFactory
                     $this->getConfigsDirectory->execute() . '/templates/urltest.json',
                     $this->getConfigsDirectory->execute() . '/templates/config.json',
                 ),
-                "sing-box",
                 new OutboundTestSingBoxConfigVO(
                     new OutboundTestTemplatesSingBoxConfigVO(
                         $this->getConfigsDirectory->execute() . '/templates/outbound.json',

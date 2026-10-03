@@ -13,7 +13,7 @@ final readonly class TLSSecurityVO extends SecurityVO
         NonEmptyStringVO          $serverName,
         ?NonEmptyStringVO         $fingerprint,
         private NonEmptyStringVO  $alpn,
-        private bool              $insecure = false,
+        private ?bool             $insecure = null,
         private ?NonEmptyStringVO $verifyPeerCertByName = null
     )
     {
@@ -24,7 +24,9 @@ final readonly class TLSSecurityVO extends SecurityVO
     public function equals(mixed $other): bool
     {
         return parent::equals($other) &&
-            $this->alpn->equals($other->alpn);
+            $this->alpn->equals($other->alpn) &&
+            $this->insecure === $other->insecure &&
+            $this->equalsNullable($this->verifyPeerCertByName, $other->verifyPeerCertByName);
     }
 
     public function getType(): SecurityTypeVO
@@ -65,12 +67,12 @@ final readonly class TLSSecurityVO extends SecurityVO
         return $this->cloneWith(['alpn' => $alpn]);
     }
 
-    public function getInsecure(): bool
+    public function getInsecure(): ?bool
     {
         return $this->insecure;
     }
 
-    public function withInsecure(bool $insecure = false): static
+    public function withInsecure(?bool $insecure = null): static
     {
         return $this->cloneWith(['insecure' => $insecure]);
     }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application\Outbound\Override\Overrides;
 
 use App\Application\Outbound\Override\Override;
-use App\Application\Outbound\Override\OverrideType;
 use App\Domain\Interface\Outbound\SecurityProvider;
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\VO\Security\TLSSecurityVO;
@@ -13,7 +12,11 @@ use App\Domain\Outbound\VO\Security\TLSSecurityVO;
 final readonly class OverrideTlsInsecure extends Override
 {
 
-    public function override(Outbound $outbound, OverrideType $overrideType): Outbound
+    public function __construct(private bool $value)
+    {
+    }
+
+    public function override(Outbound $outbound): Outbound
     {
         if (!($outbound instanceof SecurityProvider)) return $outbound;
 
@@ -22,7 +25,7 @@ final readonly class OverrideTlsInsecure extends Override
 
 
         return $outbound->withSecurity(
-            $security->withInsecure($overrideType->getValue()->getValue() === "true")
+            $security->withInsecure($this->value)
         );
     }
 }

@@ -62,16 +62,19 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
         return $other instanceof self &&
             $this->server->equals($other->server) &&
             $this->serverPort->equals($other->serverPort) &&
-            $this->userinfo->getMethod() === $other->userinfo->getMethod() &&
-            $this->userinfo->getPassword() === $other->userinfo->getPassword() &&
-            $this->plugin->getPlugin() === $other->plugin->getPlugin() &&
-            $this->plugin->getPluginOptions() === $other->plugin->getPluginOptions() &&
-            $this->equalsNullable($this->detourTag ?? null, $other->detourTag ?? null);
+            $this->equalsNullable($this->getPlugin(), $other->getPlugin()) &&
+            $this->equalsNullable($this->getUserinfo(), $other->getUserinfo()) &&
+            $this->equalsNullable($this->detour ?? null, $other->detour ?? null);
     }
 
     public function getPlugin(): ?ShadowsocksPluginVO
     {
         return $this->plugin;
+    }
+
+    public function getUserinfo(): ShadowsocksUserinfoVO
+    {
+        return $this->userinfo;
     }
 
     public function withPassword(NonEmptyStringVO $password): static
@@ -117,7 +120,6 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
         return $this->serverPort->getPort();
     }
 
-
     public function getServer(): NonEmptyStringVO
     {
         return $this->server;
@@ -126,10 +128,5 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
     public function getServerPort(): PortVO
     {
         return $this->serverPort;
-    }
-
-    public function getUserinfo(): ShadowsocksUserinfoVO
-    {
-        return $this->userinfo;
     }
 }
