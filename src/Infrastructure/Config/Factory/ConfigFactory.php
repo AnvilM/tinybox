@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Config\Factory;
 
+use App\Domain\Shared\Exception\Config\ConfigException;
 use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
 use App\Domain\Shared\VO\Config\Common\CommonConfigVO;
 use App\Domain\Shared\VO\Config\Common\DNS\DNSCommonConfigVO;
@@ -34,6 +35,8 @@ final readonly class ConfigFactory
      * @param ConfigVO $defaultConfig Default config used if some field in raw config not found
      *
      * @return ConfigVO Group value object
+     *
+     * @throws ConfigException
      */
     public function create(array $rawConfig, ConfigVO $defaultConfig): ConfigVO
     {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\Ports\Config;
 
+use App\Domain\Shared\Exception\Config\ConfigException;
 use App\Domain\Shared\VO\Config\ConfigVO;
 
 interface ConfigInstancePort
@@ -21,6 +22,8 @@ interface ConfigInstancePort
      *
      * @param ?string $configPath Path to config file
      * @param array|null $configOptions Config as array
+     *
+     * @throws ConfigException
      */
     public function set(?string $configPath, ?array $configOptions): void;
 }

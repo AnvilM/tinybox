@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Config\Factory;
 
+use App\Domain\Shared\Exception\Config\ConfigException;
 use App\Domain\Shared\Ports\OS\Directories\GetConfigsDirectoryPort;
 use App\Domain\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
 use App\Domain\Shared\VO\Config\Common\CommonConfigVO;
@@ -30,6 +31,9 @@ final readonly class DefaultConfigFactory
 
     }
 
+    /**
+     * @throws ConfigException
+     */
     public function create(): ConfigVO
     {
         return new ConfigVO(
