@@ -6,6 +6,8 @@ namespace App\Infrastructure\Config\Factory;
 
 use App\Domain\Shared\Ports\OS\Directories\GetConfigsDirectoryPort;
 use App\Domain\Shared\Ports\OS\Directories\GetDataHomeDirectoryPort;
+use App\Domain\Shared\VO\Config\Common\CommonConfigVO;
+use App\Domain\Shared\VO\Config\Common\DNS\DNSCommonConfigVO;
 use App\Domain\Shared\VO\Config\ConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\FetchIp\FetchIpOutboundTestSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\LatencyTestMethod;
@@ -71,6 +73,15 @@ final readonly class DefaultConfigFactory
                     $this->getConfigsDirectory->execute() . '/templates/xray/observatory.json',
                     $this->getConfigsDirectory->execute() . '/templates/xray/balancer.json',
                     $this->getConfigsDirectory->execute() . '/templates/xray/config.json',
+                )
+            ),
+            new CommonConfigVO(
+                new DNSCommonConfigVO(
+                    10,
+                    [
+                        'https://8.8.8.8/resolve',
+                        'https://1.1.1.1/dns-query'
+                    ]
                 )
             )
         );

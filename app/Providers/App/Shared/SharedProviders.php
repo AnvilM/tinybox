@@ -6,6 +6,7 @@ namespace Application\Providers\App\Shared;
 
 use App\Application\Outbound\Ports\Parser\RawOutboundParserPort;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
+use App\Domain\Shared\Ports\DNS\DnsResolverPort;
 use App\Domain\Shared\Ports\Http\HttpPort;
 use App\Domain\Shared\Ports\IO\Directory\ScanDirectoryForFilesPort;
 use App\Domain\Shared\Ports\IO\File\ReadFilePort;
@@ -28,6 +29,7 @@ use App\Infrastructure\IO\File\SaveFileNotify;
 use App\Infrastructure\Outbound\Parser\RawOutboundParser\RawOutboundParser;
 use App\Infrastructure\OutboundTest\OutboundCountyCode\OutboundCountyCode;
 use App\Infrastructure\OutboundTest\OutboundLatency\OutboundLatency;
+use App\Infrastructure\Shared\DNS\DnsResolver;
 use App\Infrastructure\Shared\Http\Http;
 use App\Infrastructure\Shared\IO\Directory\ScanDirectoryForFiles;
 use App\Infrastructure\Shared\IO\File\ReadFile;
@@ -63,6 +65,7 @@ final readonly class SharedProviders implements ProviderInterface
             RawOutboundParserPort::class => autowire(RawOutboundParser::class),
             StringEncodingDetectorPort::class => autowire(StringEncodingDetector::class),
             UUIDPort::class => autowire(UUID::class),
+            DnsResolverPort::class => autowire(DnsResolver::class),
         ];
     }
 }

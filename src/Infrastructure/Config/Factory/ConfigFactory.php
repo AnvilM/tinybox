@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Infrastructure\Config\Factory;
 
 use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
+use App\Domain\Shared\VO\Config\Common\CommonConfigVO;
+use App\Domain\Shared\VO\Config\Common\DNS\DNSCommonConfigVO;
 use App\Domain\Shared\VO\Config\ConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\FetchIp\FetchIpOutboundTestSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\LatencyTestMethod;
@@ -78,6 +80,12 @@ final readonly class ConfigFactory
                     $this->normalizePath($rawConfig['xray']['templates']['observatory'] ?? $defaultConfig->xrayConfig->templates->observatory),
                     $this->normalizePath($rawConfig['xray']['templates']['balancer'] ?? $defaultConfig->xrayConfig->templates->balancer),
                     $this->normalizePath($rawConfig['xray']['templates']['config'] ?? $defaultConfig->xrayConfig->templates->config),
+                )
+            ),
+            new CommonConfigVO(
+                new DNSCommonConfigVO(
+                    $rawConfig['common']['dns']['resolve_timeout'] ?? $defaultConfig->commonConfig->dnsCommonConfig->resolveTimeout,
+                    $rawConfig['common']['dns']['endpoints'] ?? $defaultConfig->commonConfig->dnsCommonConfig->endpoints,
                 )
             )
         );
