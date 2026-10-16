@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shared\VO\Config;
 
+use App\Domain\Shared\VO\Config\Common\CommonConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\SingBoxConfigVO;
 use App\Domain\Shared\VO\Config\Subscriptions\SubscriptionsConfigVO;
 use App\Domain\Shared\VO\Config\Xray\XrayConfigVO;
@@ -18,6 +19,7 @@ final readonly  class ConfigVO
         public SubscriptionsConfigVO $subscriptionsConfig,
         public SingBoxConfigVO       $singBoxConfig,
         public XrayConfigVO          $xrayConfig,
+        public CommonConfigVO        $commonConfig,
     )
     {
     }

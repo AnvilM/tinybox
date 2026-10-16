@@ -5,90 +5,47 @@ declare(strict_types=1);
 namespace App\Infrastructure\Shared\Http;
 
 use App\Domain\Shared\Exception\HTTP\HttpException;
-use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\Http\HttpPort;
-use Closure;
-use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\Pool;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Response;
 use Psl\Async\TimeoutCancellationToken;
 use Psl\DateTime\Duration;
+use Psl\HTTP\Client\Client;
 use Psl\HTTP\Message\FieldMap;
+use Psl\HTTP\Message\Request;
+use Psl\HTTP\Message\Response;
 use Throwable;
 use function Psl\URL\parse;
 
-final readonly class Http implements HttpPort
+final class Http implements HttpPort
 {
-    public function __construct(
-        private ConfigInstancePort $configInstancePort,
-    )
+    private Client $client;
+
+    public function __construct()
     {
+        $this->client = new Client();
     }
 
-    public function getMultipleAsync(float $timeout, array $urls, ?Closure $fulfilled = null, ?Closure $rejected = null): void
+    public function get(float $timeout, string $url, array $headers = []): Response
     {
-        /**
-         * Create HTTP client
-         */
-        $client = new Client(['timeout' => $timeout]);
-
-
-        /**
-         * Map array of ["requestName" => "url"] to ["requestName" => Request]
-         */
-        $requests = array_map(function ($url) {
-            return new Request('GET', $url);
-        }, $urls);
-
-
-        /**
-         * Create pool of request and start requests
-         */
-        new Pool($client, $requests, [
-            'concurrency' => count($urls),
-            'fulfilled' => function (Response $response, $subscriptionName) use ($fulfilled) {
-                if ($fulfilled !== null) $fulfilled($response->getBody()->getContents(), $subscriptionName);
-            },
-            'rejected' => function (Exception $exception, $name) use ($rejected) {
-                if ($rejected !== null) $rejected($exception, $name);
-            },
-        ])->promise()->wait();
-    }
-
-
-    public function get(float $timeout, string $url): \Psl\HTTP\Message\Response
-    {
-
-        $headers = [];
-        $headers[] = [
-            'User-Agent', $this->configInstancePort->get()->subscriptionsConfig->useragent,
-        ];
-
-        if ($this->configInstancePort->get()->subscriptionsConfig->hwid != null) {
-            $headers[] = ['X-HWID', $this->configInstancePort->get()->subscriptionsConfig->hwid];
+        $fields = [];
+        foreach ($headers as $name => $value) {
+            $fields[] = [$name, $value];
         }
 
-
-        $client = new \Psl\HTTP\Client\Client();
-
-        $request = new \Psl\HTTP\Message\Request(
+        $request = new Request(
             'GET',
             parse($url),
-            headers: FieldMap::from($headers),
+            headers: FieldMap::from($fields),
         );
 
         try {
-            return $client->send(
+            return $this->client->send(
                 $request,
                 cancellation: new TimeoutCancellationToken(
-                    Duration::seconds((int)$timeout)
-                ))
-                ->response;
-        } catch (Throwable) {
-            throw new HttpException();
+                    Duration::seconds((int)$timeout),
+                ),
+            )->response;
+        } catch (Throwable $e) {
+            throw new HttpException(previous: $e);
         }
-
     }
 }

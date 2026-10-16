@@ -6,6 +6,7 @@ namespace App\Domain\Outbound\Entity;
 
 use App\Domain\Interface\Outbound\DetourProvider;
 use App\Domain\Interface\Outbound\SecurityProvider;
+use App\Domain\Interface\Outbound\ServerProvider;
 use App\Domain\Outbound\VO\ProtocolVO;
 use App\Domain\Outbound\VO\Security\SecurityVO;
 use App\Domain\Outbound\VO\Transport\TransportVO;
@@ -13,7 +14,7 @@ use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use Override;
 
-final readonly class VlessOutbound extends Outbound implements DetourProvider, SecurityProvider
+final readonly class VlessOutbound extends Outbound implements DetourProvider, SecurityProvider, ServerProvider
 {
     private NonEmptyStringVO $server;
     private PortVO $serverPort;
@@ -158,5 +159,10 @@ final readonly class VlessOutbound extends Outbound implements DetourProvider, S
     public function getFlow(): ?NonEmptyStringVO
     {
         return $this->flow;
+    }
+
+    public function withServer(NonEmptyStringVO $server): static
+    {
+        return $this->cloneWith(['server' => $server]);
     }
 }

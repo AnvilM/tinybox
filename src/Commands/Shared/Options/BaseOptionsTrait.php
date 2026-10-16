@@ -4,28 +4,12 @@ declare(strict_types=1);
 
 namespace App\Commands\Shared\Options;
 
+use InvalidArgumentException;
 use Iva\Input\Input;
 use Iva\Input\Option;
+use JsonException;
 
-/**
- * The block of options every command gets "for free": --debug/-d,
- * --configPath/-c and --configOption/-o. This is the direct port of the
- * previous BaseOptionsGroup.
- *
- * Why a trait and not an object registered on a registry (as the old
- * OptionGroupInterface/OptionGroupRegistry pair did): Iva\Command\Command::
- * addOption() is `protected`, on purpose — only code that runs "as" the
- * Command (the class itself, a subclass, or a trait mixed into it) may
- * register an option. A plain helper object handed the Command instance
- * from outside (the old `configure(Command $command)` contract) simply
- * cannot call it anymore. A trait is the idiomatic way to keep a block of
- * options reusable across unrelated commands while still respecting that:
- * its methods execute in the context of whichever class uses it, exactly
- * as if the code had been copy-pasted into that class.
- *
- * Mixed into AbstractCommand, so no leaf command has to use this trait
- * itself or declare these options again.
- */
+
 trait BaseOptionsTrait
 {
     private Option $debugOption;
@@ -43,10 +27,9 @@ trait BaseOptionsTrait
         $this->configOptionOption = $this->addOption(Option::strings(
             name: 'configOption',
             shortcut: 'o',
-            description: 'Specific config option. e.g. -o subscriptions.timeout=10 -o sing_box.outbound_test.max_parallel_requests=20',
+            description: 'Specific config option. e.g. -o subscriptions.timeout=10 -o sing_box.outbound_test.max_parallel_requests=20 -o \'common.dns.endpoints=["https://1.1.1.1/dns-query"]\'',
         ));
     }
-
 
     protected function resolveConfigPath(Input $input): ?string
     {
@@ -72,31 +55,54 @@ trait BaseOptionsTrait
         $result = [];
 
         foreach ($items as $item) {
-            [$path, $value] = explode('=', $item, 2);
+            if (!str_contains($item, '=')) {
+                throw new InvalidArgumentException(
+                    sprintf('Invalid config option "%s": expected "path=value".', $item)
+                );
+            }
+
+            [$path, $rawValue] = explode('=', $item, 2);
 
             $keys = explode('.', $path);
-
-            $value = match (true) {
-                $value === 'true' => true,
-                $value === 'false' => false,
-                $value === 'null' => null,
-                is_numeric($value) => str_contains($value, '.') ? (float)$value : (int)$value,
-                strlen($value) >= 2 && $value[0] === '"' && $value[-1] === '"' =>
-                substr($value, 1, -1),
-                default => $value,
-            };
+            $value = $this->castConfigValue($rawValue, $item);
 
             $current = &$result;
-
             foreach ($keys as $key) {
+                // A scalar sitting on the way is overwritten (last option wins).
+                if (!is_array($current)) {
+                    $current = [];
+                }
                 $current = &$current[$key];
             }
 
             $current = $value;
-
             unset($current);
         }
 
         return $result;
+    }
+
+    private function castConfigValue(string $value, string $item): mixed
+    {
+        // Inline JSON: arrays / objects
+        if ($value !== '' && ($value[0] === '[' || $value[0] === '{')) {
+            try {
+                return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException $e) {
+                throw new InvalidArgumentException(
+                    sprintf('Invalid JSON in config option "%s": %s', $item, $e->getMessage()),
+                    previous: $e,
+                );
+            }
+        }
+
+        return match (true) {
+            $value === 'true' => true,
+            $value === 'false' => false,
+            $value === 'null' => null,
+            is_numeric($value) => str_contains($value, '.') ? (float)$value : (int)$value,
+            strlen($value) >= 2 && $value[0] === '"' && $value[-1] === '"' => substr($value, 1, -1),
+            default => $value,
+        };
     }
 }

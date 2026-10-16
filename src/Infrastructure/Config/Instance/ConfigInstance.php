@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Config\Instance;
 
+use App\Domain\Shared\Exception\Config\ConfigException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -29,6 +30,9 @@ final readonly class ConfigInstance implements ConfigInstancePort
     {
     }
 
+    /**
+     * @throws ConfigException
+     */
     public function set(?string $configPath, ?array $configOptions): void
     {
         try {

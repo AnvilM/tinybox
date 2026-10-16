@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Outbound\Entity;
 
 use App\Domain\Interface\Outbound\DetourProvider;
+use App\Domain\Interface\Outbound\ServerProvider;
 use App\Domain\Outbound\VO\ProtocolVO;
 use App\Domain\Outbound\VO\Shadowsocks\Plugin\ShadowsocksPluginVO;
 use App\Domain\Outbound\VO\Shadowsocks\Userinfo\ShadowsocksUserinfoVO;
@@ -12,7 +13,7 @@ use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 use App\Domain\Shared\VO\Shared\PortVO;
 use Override;
 
-final readonly class ShadowsocksOutbound extends Outbound implements DetourProvider
+final readonly class ShadowsocksOutbound extends Outbound implements DetourProvider, ServerProvider
 {
     private NonEmptyStringVO $server;
     private PortVO $serverPort;
@@ -128,5 +129,10 @@ final readonly class ShadowsocksOutbound extends Outbound implements DetourProvi
     public function getServerPort(): PortVO
     {
         return $this->serverPort;
+    }
+
+    public function withServer(NonEmptyStringVO $server): static
+    {
+        return $this->cloneWith(['server' => $server]);
     }
 }

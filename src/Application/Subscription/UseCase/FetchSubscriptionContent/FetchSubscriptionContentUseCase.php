@@ -43,12 +43,19 @@ final readonly class FetchSubscriptionContentUseCase
      */
     public function handle(SubscriptionURLVO $subscriptionUrl): SubscriptionContentDTO
     {
+        $config = $this->configInstancePort->get()->subscriptionsConfig;
+
+        $headers = ['User-Agent' => $config->useragent];
+        if ($config->hwid != null) {
+            $headers['X-HWID'] = $config->hwid;
+        }
+
         /**
          * Try to load outbounds
          */
         try {
             $rawEncodedSubscriptionContent = $this->httpPort
-                ->get((float)$this->configInstancePort->get()->subscriptionsConfig->timeout, $subscriptionUrl->getUrl())
+                ->get((float)$config->timeout, $subscriptionUrl->getUrl(), $headers)
                 ->body?->readAll();
         } catch (RuntimeException) {
             throw new InvalidArgumentException("Unable to read response");

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use App\Commands\Shared\Options\BaseOptionsTrait;
+use App\Domain\Shared\Exception\Config\ConfigException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\ReporterEvent\ReporterEventBuilder;
@@ -35,13 +36,19 @@ abstract class AbstractCommand extends Command
          */
         $this->reporterInstancePort->set($output);
 
-        /**
-         * Create config
-         */
-        $this->configInstancePort->set(
-            $this->resolveConfigPath($input),
-            $this->resolveConfigOptions($input),
-        );
+        try {
+            /**
+             * Create config
+             */
+            $this->configInstancePort->set(
+                $this->resolveConfigPath($input),
+                $this->resolveConfigOptions($input),
+            );
+        } catch (ConfigException $e) {
+            $this->reporterInstancePort->get()->notify(ReporterEventBuilder::error("Invalid config: " . $e->getMessage())->normal());
+
+            return ExitCode::GeneralError->value;
+        }
 
 
         /**

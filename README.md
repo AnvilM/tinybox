@@ -81,6 +81,15 @@ If the configuration file is missing or some parameters are not specified, defau
   "groups_list": "~/.local/share/tinybox/groups.json",
   "outbounds_list": "~/.local/share/tinybox/outbounds.json",
   "config_save_path": "/etc/sing-box/config.json",
+  "common": {
+    "dns": {
+      "resolve_timeout": 10,
+      "endpoints": [
+        "https://8.8.8.8/resolve",
+        "https://1.1.1.1/dns-query"
+      ]
+    }
+  },
   "subscriptions": {
     "timeout": 10,
     "useragent": "tinybox/0.1",
@@ -138,6 +147,19 @@ generating Sing-box / Xray configurations.
 | `groups_list`        | `string` | `~/.local/share/tinybox/groups.json`        | Path to the file that stores groups.                          |
 | `outbounds_list`     | `string` | `~/.local/share/tinybox/outbounds.json`     | Path to the file that stores all outbounds.                   |
 | `config_save_path`   | `string` | `/etc/sing-box/config.json`                 | Path where the final Sing-box or Xray configuration is saved. |
+
+### `common`
+
+Common settings shared across Tinybox features.
+
+#### `dns`
+
+Controls how domain names are resolved.
+
+| Parameter         | Type       | Default                                                    | Description                                                                                                                                                                                                                                  |
+|-------------------|------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `resolve_timeout` | `integer`  | `10`                                                       | Timeout in seconds to wait for a response from a DNS resolver when resolving each individual domain.                                                                                                                                         |
+| `endpoints`       | `string[]` | `["https://8.8.8.8/resolve", "https://1.1.1.1/dns-query"]` | List of DoH endpoint URLs used to resolve domains. Endpoints are queried in order, from first to last: if an endpoint does not return an answer, the next one is tried; once an answer is received, the remaining endpoints are not queried. |
 
 ### `subscriptions`
 
@@ -244,4 +266,3 @@ The project is distributed under the MIT License. For details, refer to the [LIC
 [php-version-link]: https://github.com/AnvilM/tinybox/
 
 [php-version-shield]: https://img.shields.io/badge/PHP-8.4-blue?logo=php&labelColor=black&style=flat-square
-
