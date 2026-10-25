@@ -69,9 +69,26 @@ op     := '=' | '!=' | '~' | '!~'
 | `prop !~ pattern`       | the value does not match the pattern                                     |
 | `a & b`, `a \| b`, `!a` | AND, OR, NOT; `( … )` groups. Priority: `!` > `&` > `\|`                 |
 
-Properties: `type` (`vless`, `shadowsocks`, alias `ss`) and `tag`. Property names are case-insensitive.
+Properties (names are case-insensitive):
+
+| Property      | Value                                                        | Applies to                         | Example                          |
+|---------------|--------------------------------------------------------------|------------------------------------|----------------------------------|
+| `type`        | `vless`, `shadowsocks` (alias `ss`)                          | all                                | `type=vless,ss`                  |
+| `tag`         | any string                                                   | all                                | `tag~RU-*`                       |
+| `server`      | server host (domain or IP)                                   | all                                | `server~*.example.com`           |
+| `port`        | integer 1-65535, only `=` and `!=`                           | all                                | `port=443,8443`                  |
+| `security`    | `reality`, `tls`                                             | vless with security                | `security=reality`               |
+| `sni`         | server name of the security                                  | vless with security                | `sni~*.google.com`               |
+| `fingerprint` | fingerprint of the security                                  | vless with a fingerprint           | `fingerprint=chrome`             |
+| `transport`   | `http`, `ws`, `quic`, `grpc`, `httpupgrade`, `xhttp`         | vless with transport               | `transport=ws,xhttp`             |
+| `flow`        | flow                                                         | vless with a flow                  | `flow=xtls-rprx-vision`          |
+| `method`      | encryption method, e.g. `aes-256-gcm`                        | shadowsocks                        | `method~2022-*`                  |
+| `plugin`      | `obfs-local`, `v2ray-plugin`                                 | shadowsocks with a plugin          | `plugin=v2ray-plugin`            |
+
+`type` additionally accepts the alias `ss`.
+
 Values may be quoted with `'…'` or `"…"` (escapes: `\'`, `\"`, `\\`). An outbound without a value for a property never
-matches `=` and `~`. Glob patterns do not expand type aliases (`type~ss` does not match `shadowsocks`).
+matches `=` and `~`, so `!=` and `!~` do match it (`security!=tls` also selects shadowsocks and vless without security). Glob patterns do not expand type aliases (`type~ss` does not match `shadowsocks`).
 
 Wrap expressions containing shell special characters (`| & ! ( ) * ?`) in single quotes.
 

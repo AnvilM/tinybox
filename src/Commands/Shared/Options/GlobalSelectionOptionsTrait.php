@@ -28,7 +28,7 @@ trait GlobalSelectionOptionsTrait
             name: 'select',
             description: 'Keep only outbounds matching the expression, repeatable (combined with AND). '
                 . 'Syntax: property (=|!=|~|!~) value[,value], combined with & | ! and parentheses; '
-                . 'properties: type, tag; ~ is a glob (* and ?). '
+                . 'properties: type, tag, server, port, security, sni, fingerprint, transport, flow, method, plugin; ~ is a glob (* and ?, strings only). '
                 . "Example: --select 'type=vless,ss & tag!~RU-*' (quote it in the shell)",
         ));
 

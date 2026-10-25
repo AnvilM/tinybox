@@ -24,13 +24,31 @@ final readonly class PropertyRegistry
     private array $properties;
 
     public function __construct(
-        TypeProperty $type,
-        TagProperty  $tag,
+        TypeProperty        $type,
+        TagProperty         $tag,
+        ServerProperty      $server,
+        PortProperty        $port,
+        SecurityProperty    $security,
+        SniProperty         $sni,
+        FingerprintProperty $fingerprint,
+        TransportProperty   $transport,
+        FlowProperty        $flow,
+        MethodProperty      $method,
+        PluginProperty      $plugin,
     )
     {
         $this->properties = [
             $type->name() => $type,
             $tag->name() => $tag,
+            $server->name() => $server,
+            $port->name() => $port,
+            $security->name() => $security,
+            $sni->name() => $sni,
+            $fingerprint->name() => $fingerprint,
+            $transport->name() => $transport,
+            $flow->name() => $flow,
+            $method->name() => $method,
+            $plugin->name() => $plugin,
         ];
     }
 
