@@ -10,6 +10,8 @@ enum ProtocolVO: string
 
     case Shadowsocks = "shadowsocks";
 
+    case Urltest = 'urltest';
+
 
     public static function tryFromAlias(int|string $value): ?ProtocolVO
     {

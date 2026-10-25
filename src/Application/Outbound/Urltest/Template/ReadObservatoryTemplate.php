@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Shared\UseCase\CreateConfig\FIle;
+namespace App\Application\Outbound\Urltest\Template;
 
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\File\ReadJsonFileNotifyPort;
 
-final readonly class ReadBalancerTemplate
+final readonly class ReadObservatoryTemplate
 {
     public function __construct(
         private ReadJsonFileNotifyPort $readJsonFileNotifyPort,
@@ -20,9 +20,9 @@ final readonly class ReadBalancerTemplate
 
 
     /**
-     * Read xray balancer template file
+     * Read xray observatory template file
      *
-     * @return array Xray balancer template as JSON decoded array
+     * @return array Observatory template as JSON decoded array
      *
      * @throws UnableToReadFileException If unable to read file
      * @throws UnableToDecodeJsonException If unable to decode JSON
@@ -31,8 +31,8 @@ final readonly class ReadBalancerTemplate
     public function read(): array
     {
         return $this->readJsonFileNotifyPort->notifyStartAndSuccess(
-            "Reading xray balancer template file...",
-            "Xray balancer template file successfully read"
-        )->read($this->configInstancePort->get()->xrayConfig->templates->balancer);
+            "Reading xray observatory template file...",
+            "Xray observatory template file successfully read"
+        )->read($this->configInstancePort->get()->xrayConfig->templates->observatory);
     }
 }

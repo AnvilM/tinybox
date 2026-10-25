@@ -73,7 +73,7 @@ Properties (names are case-insensitive):
 
 | Property      | Value                                                        | Applies to                         | Example                          |
 |---------------|--------------------------------------------------------------|------------------------------------|----------------------------------|
-| `type`        | `vless`, `shadowsocks` (alias `ss`)                          | all                                | `type=vless,ss`                  |
+| `type`        | `vless`, `shadowsocks` (alias `ss`), `urltest`               | all                                | `type=vless,ss`                  |
 | `tag`         | any string                                                   | all                                | `tag~RU-*`                       |
 | `server`      | server host (domain or IP)                                   | all                                | `server~*.example.com`           |
 | `port`        | integer 1-65535, only `=` and `!=`                           | all                                | `port=443,8443`                  |
@@ -85,7 +85,7 @@ Properties (names are case-insensitive):
 | `method`      | encryption method, e.g. `aes-256-gcm`                        | shadowsocks                        | `method~2022-*`                  |
 | `plugin`      | `obfs-local`, `v2ray-plugin`                                 | shadowsocks with a plugin          | `plugin=v2ray-plugin`            |
 
-`type` additionally accepts the alias `ss`.
+`type` additionally accepts the alias `ss`. The value `urltest` only makes sense inside `--urltest` expressions: the global selection (`--select`, `--exclude`) runs before urltests are created, so it never sees them.
 
 Values may be quoted with `'…'` or `"…"` (escapes: `\'`, `\"`, `\\`). An outbound without a value for a property never
 matches `=` and `~`, so `!=` and `!~` do match it (`security!=tls` also selects shadowsocks and vless without security). Glob patterns do not expand type aliases (`type~ss` does not match `shadowsocks`).
@@ -119,6 +119,10 @@ tinybox export sub --exclude tag=test
 The `export` command can add any number of urltest groups to the config (sing-box: one urltest outbound per group;
 xray: one balancer per group and a single observatory). One `--urltest` flag creates one group.
 
+A urltest is an outbound like any other: it has a tag and the type `urltest`, and it can be selected by an expression
+(`type=urltest`, `tag=auto`, `tag~fast-*`). Its parameters are read from the templates once, when the urltest is created,
+and are stored in the urltest itself.
+
 | Flag                         | Meaning                                                                     |
 |------------------------------|-----------------------------------------------------------------------------|
 | `--urltest SPEC`, `-u SPEC`  | `export` only. Repeatable. Add a urltest group described by `SPEC`.         |
@@ -130,14 +134,30 @@ SPEC := TAG ':' EXPR
 - `SPEC` is split by the **first** colon: everything before it is the tag, everything after it is the expression
   (colons inside the expression are allowed: `auto:tag~srv:*`). The colon is required.
 - `TAG` is trimmed. An empty tag (`:type=vless`) means "not specified".
-- `EXPR` uses the same language as `--select`. An empty expression (`auto:`) takes every outbound that passed the global selection.
+- `EXPR` uses the same language as `--select`. An empty expression (`auto:`) takes every outbound of the group's pool
+  (see below), including the urltests created before it.
 - A group is built from the outbounds that already passed the global selection (`--select`, `--exclude`) and overrides.
   To exclude something inside a group, negate it in the expression: `auto:!(tag=test)`.
 - Groups are placed in the config in the order of the flags. Urltest is not added with `--scheme`.
 - Without `--urltest` flags no urltest is added.
 
 All urltest groups share one template (`outbound_urltest` for sing-box, the observatory and balancer templates for xray).
-Urltest parameters (`url`, `interval`, `tolerance`, ...) are set only there.
+Urltest parameters (`url`, `interval`, `tolerance`, ...) are set only there. They are read once when the urltests are
+created and stored in each urltest. The outbound template (`outbound`) is not applied to urltests.
+
+### Nested urltests
+
+| Core     | Pool of group N                                                   |
+|----------|-------------------------------------------------------------------|
+| sing-box | regular outbounds + urltests of the groups 1…N-1                  |
+| xray     | regular outbounds only (a balancer cannot be a member of another) |
+
+- sing-box: a group can include a urltest created by an earlier flag. The order of the `--urltest` flags matters.
+  An empty expression (`b:`) takes the whole pool, including earlier urltests; an expression with negation
+  (`type!=ss`) also catches them.
+- A group cannot include itself: it selects only from the urltests created before it.
+- xray: nesting is not supported, `type=urltest` and urltest tags in expressions select nothing
+  (an empty result is the usual "matched no outbounds" error).
 
 ### Tags
 
@@ -170,6 +190,12 @@ tinybox export sub --exclude tag=test -u 'fast:tag~fast-*' -u 'proxy:type=vless 
 
 # xray: two balancers
 tinybox export sub --xray -u 'a:type=vless' -u 'b:type=ss'
+
+# nesting (sing-box): 'auto' consists of vless outbounds and of the urltest 'fast'
+tinybox export sub -u 'fast:tag~fast-*' -u 'auto:type=vless | tag=fast'
+
+# nesting by type (sing-box): 'all' consists of the urltests 'a' and 'b'
+tinybox export sub -u 'a:type=vless' -u 'b:type=ss' -u 'all:type=urltest'
 ```
 
 Wrap expressions containing shell special characters (`| & ! ( ) * ?`) in single quotes, and the whole `SPEC` as well.
@@ -188,9 +214,84 @@ Wrap expressions containing shell special characters (`| & ! ( ) * ?`) in single
 | `--urltestSelect EXPR`                                                  | `--urltest ':EXPR'`                         |
 | `--urltestExclude EXPR`                                                 | `--urltest ':!(EXPR)'`                      |
 | `--urltestSelect A --urltestExclude B`                                  | `--urltest ':A & !(B)'`                     |
+| `--detourOutbound TAG`                                                  | `--detour 'TAG:'` / `-d 'TAG:'`             |
 
 Selection by country (`--countryCode`, `--excludeCountryCode`, `--*OnlyAvailable`, `--countryOutboundIpFallback`) has been
 removed and is temporarily unavailable.
+
+## Detour
+
+The `export` and `test` commands can set a detour (the outbound the traffic goes through) to the outbounds chosen by an
+expression. Different outbounds can get different detours: one `--detour` flag is one rule.
+
+| Flag                          | Meaning                                                                        |
+|-------------------------------|--------------------------------------------------------------------------------|
+| `--detour SPEC`, `-d SPEC`    | `export` and `test`. Repeatable. Set a detour by the rule described by `SPEC`. |
+
+```
+SPEC       := DETOUR_TAG ':' EXPR
+DETOUR_TAG := tag of an existing outbound (not empty), as is or in quotes '...' / "..."
+EXPR       := expression of the selection language; empty - all outbounds
+```
+
+- If the first non-space character of `SPEC` is a quote, `DETOUR_TAG` is the quoted string (escapes: `\'`, `\"`, `\\`),
+  then optional spaces and a **required** colon. Everything after the colon is the expression.
+- Otherwise `SPEC` is split by the **first** colon: everything before it is `DETOUR_TAG`, everything after it is the
+  expression (colons inside the expression are allowed).
+- Quotes are needed for tags that contain a colon: `-d "'RU: 1':type=vless"`.
+- `DETOUR_TAG` cannot be empty. `EXPR` uses the same language as `--select`.
+
+### Rules
+
+- The target is found by tag among the final set of outbounds: in `export` these are the regular outbounds and the
+  urltests (sing-box: a urltest can be the target), in `test` the outbounds after the global selection.
+- The subjects are chosen by the expression from the same set. Only vless and shadowsocks get a detour; the rest
+  (urltests) are skipped. Urltest members keep the detour they got as ordinary outbounds.
+- An outbound never gets itself as the detour.
+- The first rule wins (in the order of the flags): an outbound that already has a detour is skipped by the next rules.
+  So "specific rules, then a general one" works: `-d 'a:tag~RU-*' -d 'b:'`.
+- A rule that matched no outbounds is an error. The check is made before the skips, so a general rule whose outbounds
+  all got a detour from earlier rules is not an error.
+- xray: a urltest cannot be the target (`dialerProxy` accepts only an outbound, not a balancer).
+- Loops are not checked.
+- `--scheme` exports outbounds without detour and urltest.
+- `test` checks outbounds in chunks: if the target gets into a different chunk than its subject, the target is absent
+  in the test config of that chunk.
+- Without `--detour` flags no detour is set.
+
+### Errors
+
+| Situation                                          | Error                                                                                              |
+|----------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| No colon, empty tag, unclosed quote                | `Detour rule must have the form DETOUR_TAG:EXPRESSION, got '...'`                                  |
+| No outbound with the tag `DETOUR_TAG`              | `Outbound with tag '...' not found (detour rule '...'). Try to remove selection flags`             |
+| The expression matched no outbounds                | `Detour rule '...' matched no outbounds`                                                           |
+| xray, the target is a urltest                      | `Detour outbound '...' is a urltest and cannot be used as detour in xray`                          |
+| Invalid expression                                 | the same syntax errors as for `--select`, with a caret                                             |
+
+### Examples
+
+```bash
+# set the detour 'proxy-1' to all vless, ss stay as they are
+tinybox export sub -d 'proxy-1:type=vless'
+
+# different detours for different groups
+tinybox export sub -d 'proxy-1:tag~RU-*' -d 'proxy-2:tag~DE-*'
+
+# a specific rule, then a general one: 'proxy-3' for all the rest
+tinybox export sub -d 'proxy-1:tag~RU-*' -d 'proxy-3:'
+
+# a tag with a colon
+tinybox export sub -d "'RU: 1':type=vless"
+
+# detour to a urltest (sing-box)
+tinybox export sub -u 'auto:type=vless' -d 'auto:type=ss'
+
+# check latency through a detour
+tinybox test sub -d 'proxy-1:'
+```
+
+Wrap expressions containing shell special characters (`| & ! ( ) * ?`) in single quotes, and the whole `SPEC` as well.
 
 ## Supported protocols
 
@@ -340,7 +441,7 @@ Settings related to Sing-box binary and templates.
 | Parameter          | Type     | Default                                             | Description                                                                                                                                                                                                                 |
 |--------------------|----------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `outbound`         | `string` | `~/.config/tinybox/templates/outbound.json`         | Path to the outbound template file.                                                                                                                                                                                         |
-| `outbound_urltest` | `string` | `~/.config/tinybox/templates/outbound_urltest.json` | Path to the URLTest outbound template, common to all urltest groups. For each group Tinybox sets the `tag` (the group tag from `--urltest`, otherwise the `tag` field of this template, otherwise `urltest`) and creates the `outbounds` field (if missing), populating it with the tags of the group members. If this template is not provided, Tinybox will generate an invalid outbound. |
+| `outbound_urltest` | `string` | `~/.config/tinybox/templates/outbound_urltest.json` | Path to the URLTest outbound template, common to all urltest groups. It is read once when the urltests are created and its parameters are stored in each urltest. For each group Tinybox sets the `tag` (the group tag from `--urltest`, otherwise the `tag` field of this template, otherwise `urltest`) and creates the `outbounds` field (if missing), populating it with the tags of the group members (which can be other urltests). Keys with an empty string or an empty array value (except `outbounds`) are not written to the config. If this template is not provided, Tinybox will generate an invalid outbound. |
 | `config`           | `string` | `~/.config/tinybox/templates/config.json`           | Path to the main Sing-box configuration template. Existing outbounds in the template are preserved; new ones are appended.                                                                                                  |
 
 #### `outbound_test`
@@ -382,8 +483,8 @@ Templates used when generating Xray configurations.
 |---------------|----------|-----------------------------------------------------|--------------------------------------------------------------------------------------------------------|
 | `outbound`    | `string` | `~/.config/tinybox/templates/xray/outbound.json`    | Path to the Xray outbound template.                                                                    |
 | `config`      | `string` | `~/.config/tinybox/templates/xray/config.json`      | Path to the main Xray configuration template. Existing outbounds are preserved; new ones are appended. |
-| `observatory` | `string` | `~/.config/tinybox/templates/xray/observatory.json` | Path to the Observatory template.                                                                      |
-| `balancer`    | `string` | `~/.config/tinybox/templates/xray/balancer.json`    | Path to the Balancer template.                                                                         |
+| `observatory` | `string` | `~/.config/tinybox/templates/xray/observatory.json` | Path to the Observatory template (read once when the urltests are created).                          |
+| `balancer`    | `string` | `~/.config/tinybox/templates/xray/balancer.json`    | Path to the Balancer template (read once when the urltests are created).                             |
 
 ## License
 

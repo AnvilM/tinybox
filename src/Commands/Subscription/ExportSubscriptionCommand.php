@@ -4,31 +4,32 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
+use App\Application\Outbound\Detour\DetourSpecParser;
+use App\Application\Outbound\DTO\UseCase\ApplyDetours\ApplyDetoursDTO;
+use App\Application\Outbound\DTO\UseCase\BuildUrltestOutbounds\BuildUrltestOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\SelectOutbounds\SelectOutboundsDTO;
-use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
 use App\Application\Outbound\Export\Specification\OutboundCoreSupportSpecification;
 use App\Application\Outbound\Mapper\ToSchemeString\ToSchemeStringOutboundMapper;
 use App\Application\Outbound\Override\OverrideOutboundService;
 use App\Application\Outbound\Selection\SelectorComposer;
 use App\Application\Outbound\Selection\Syntax\SelectorParser;
+use App\Application\Outbound\Urltest\UrltestGroupSpecParser;
+use App\Application\Outbound\UseCase\ApplyDetours\ApplyDetoursUseCase;
+use App\Application\Outbound\UseCase\BuildUrltestOutbounds\BuildUrltestOutboundsUseCase;
 use App\Application\Outbound\UseCase\SelectOutbounds\SelectOutboundsUseCase;
-use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Shared\DTO\UseCase\CreateConfig\CreateConfigDTO;
 use App\Application\Shared\DTO\UseCase\SaveConfig\SaveConfigDTO;
 use App\Application\Shared\UseCase\CreateConfig\CreateConfigUseCase;
 use App\Application\Shared\UseCase\SaveSingBoxConfig\SaveConfigUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
-use App\Application\Urltest\DTO\UseCase\BuildUrltestGroups\BuildUrltestGroupsDTO;
-use App\Application\Urltest\Group\UrltestGroupSpecParser;
-use App\Application\Urltest\UseCase\BuildUrltestGroups\BuildUrltestGroupsUseCase;
 use App\Commands\AbstractCommand;
 use App\Commands\Shared\Options\CoreOptionsTrait;
+use App\Commands\Shared\Options\DetourOptionsTrait;
 use App\Commands\Shared\Options\DryRunOptionTrait;
 use App\Commands\Shared\Options\GlobalSelectionOptionsTrait;
 use App\Commands\Shared\Options\OverridesOptionsTrait;
 use App\Commands\Shared\Options\UrltestOptionsTrait;
-use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
-use App\Domain\Outbound\Exception\OutboundNotFoundException;
+use App\Domain\Outbound\Collection\OutboundMap;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
@@ -50,9 +51,9 @@ final class ExportSubscriptionCommand extends AbstractCommand
     use OverridesOptionsTrait;
     use DryRunOptionTrait;
     use UrltestOptionsTrait;
+    use DetourOptionsTrait;
 
     private Argument $nameArgument;
-    private Option $detourOutboundOption;
     private Option $schemeOption;
     private Option $configOption;
 
@@ -63,8 +64,9 @@ final class ExportSubscriptionCommand extends AbstractCommand
         private readonly SelectorParser                 $selectorParser,
         private readonly SelectorComposer               $selectorComposer,
         private readonly UrltestGroupSpecParser         $urltestGroupSpecParser,
-        private readonly BuildUrltestGroupsUseCase      $buildUrltestGroupsUseCase,
-        private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
+        private readonly BuildUrltestOutboundsUseCase   $buildUrltestOutboundsUseCase,
+        private readonly DetourSpecParser               $detourSpecParser,
+        private readonly ApplyDetoursUseCase            $applyDetoursUseCase,
         private readonly CreateConfigUseCase            $createConfigUseCase,
         private readonly SaveConfigUseCase              $saveSingBoxConfigUseCase,
         private readonly OverrideOutboundService        $overrideOutboundService,
@@ -81,17 +83,13 @@ final class ExportSubscriptionCommand extends AbstractCommand
         $this->setDescription('Export subscription outbounds');
 
         $this->nameArgument = $this->addArgument(Argument::string('name', 'Subscription name'));
-        $this->detourOutboundOption = $this->addOption(Option::string(
-            name: 'detourOutbound',
-            description: 'Use the specified outbound as detour for all other outbounds',
-            valueRequired: false,
-        ));
         $this->schemeOption = $this->addOption(Option::flag('scheme', description: 'Export subscription outbounds as schemes'));
         // Registered but unused in handle(), same as in the previous version.
         $this->configOption = $this->addOption(Option::flag('config', description: 'Export subscription outbounds as config'));
 
         $this->configureGlobalSelectionOptions();
         $this->configureUrltestOptions();
+        $this->configureDetourOptions();
         $this->configureCoreOptions();
         $this->configureOverridesOptions();
         $this->configureDryRunOption();
@@ -147,40 +145,36 @@ final class ExportSubscriptionCommand extends AbstractCommand
          */
 
         if (!$exportAsScheme) {
-            $urltestGroups = new Vector([]);
+            $urltestOutbounds = new OutboundMap();
 
             $definitions = $this->resolveUrltestDefinitions($input, $this->urltestGroupSpecParser);
 
             if (!$definitions->isEmpty()) {
-                $urltestGroups = $this->buildUrltestGroupsUseCase->handle(
-                    new BuildUrltestGroupsDTO($subscriptionOutbounds, $definitions)
+                $urltestOutbounds = $this->buildUrltestOutboundsUseCase->handle(
+                    new BuildUrltestOutboundsDTO($subscriptionOutbounds, $definitions, $this->resolveConfigType($input)->toCoreType())
                 );
             }
 
             /**
-             * Set detour outbound
+             * Regular outbounds + urltest outbounds
              */
-            $detourOutbound = $input->option($this->detourOutboundOption);
+            $configOutbounds = (clone $subscriptionOutbounds)->merge($urltestOutbounds);
 
 
-            if ($detourOutbound !== null) try {
-                $subscriptionOutbounds = $this->setOutboundsDetourUseCase->handle(
-                    new SetOutboundsDetourDTO(
-                        $subscriptionOutbounds,
-                        new UniqueTagOutboundsMap($subscriptionOutbounds->getOutbounds())->getWithTag($detourOutbound)
-                    )
+            /**
+             * Detours
+             */
+            $detourDefinitions = $this->resolveDetourDefinitions($input, $this->detourSpecParser);
+
+            if (!$detourDefinitions->isEmpty()) {
+                $this->applyDetoursUseCase->handle(
+                    new ApplyDetoursDTO($configOutbounds, $detourDefinitions, $this->resolveConfigType($input)->toCoreType())
                 );
-            } catch (OutboundNotFoundException) {
-                throw new CriticalException("Outbound with tag '{$detourOutbound}' not found");
             }
 
 
             $singBoxConfigJSON = $this->createConfigUseCase->handle(
-                new CreateConfigDTO(
-                    $subscriptionOutbounds,
-                    $this->resolveConfigType($input),
-                    $urltestGroups
-                )
+                new CreateConfigDTO($configOutbounds, $this->resolveConfigType($input))
             );
         } else {
             $singBoxConfigJSON = "";

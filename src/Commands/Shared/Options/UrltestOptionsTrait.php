@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Commands\Shared\Options;
 
 use App\Application\Outbound\Selection\Exception\SelectionException;
-use App\Application\Urltest\Exception\InvalidUrltestGroupException;
-use App\Application\Urltest\Group\UrltestGroupDefinition;
-use App\Application\Urltest\Group\UrltestGroupSpecParser;
+use App\Application\Outbound\Exception\Urltest\InvalidUrltestGroupException;
+use App\Application\Outbound\Urltest\UrltestGroupDefinition;
+use App\Application\Outbound\Urltest\UrltestGroupSpecParser;
 use Iva\Input\Input;
 use Iva\Input\Option;
 use Psl\Collection\Vector;

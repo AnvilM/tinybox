@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Urltest\Exception;
+namespace App\Application\Outbound\Exception\Detour;
 
 use App\Domain\Shared\Exception\CriticalException;
 
-final class EmptyUrltestGroupException extends CriticalException
+final class EmptyDetourRuleException extends CriticalException
 {
     public function __construct(string $source)
     {
         parent::__construct(
-            sprintf("Urltest group '%s' matched no outbounds", $source),
+            sprintf("Detour rule '%s' matched no outbounds", $source),
         );
     }
 }

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Urltest\Group;
+namespace App\Application\Outbound\Urltest;
 
 use App\Application\Outbound\Selection\Exception\SelectionException;
 use App\Application\Outbound\Selection\Syntax\SelectorParser;
-use App\Application\Urltest\Exception\InvalidUrltestGroupException;
+use App\Application\Outbound\Exception\Urltest\InvalidUrltestGroupException;
 
 /**
  * Parses urltest group SPEC string: TAG:EXPRESSION

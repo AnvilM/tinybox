@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Urltest\Exception;
+namespace App\Application\Outbound\Exception\Urltest;
 
 use App\Domain\Shared\Exception\CriticalException;
 
