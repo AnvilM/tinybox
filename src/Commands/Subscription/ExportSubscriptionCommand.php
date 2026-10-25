@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Commands\Subscription;
 
 use App\Application\Outbound\DTO\Override\OverrideOutboundDTO;
-use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
+use App\Application\Outbound\DTO\UseCase\SelectOutbounds\SelectOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
-use App\Application\Outbound\Filter\Criteria\OutboundCoreSupportCriteria;
+use App\Application\Outbound\Export\Specification\OutboundCoreSupportSpecification;
 use App\Application\Outbound\Mapper\ToSchemeString\ToSchemeStringOutboundMapper;
 use App\Application\Outbound\Override\OverrideOutboundService;
-use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
+use App\Application\Outbound\Selection\Syntax\SelectorParser;
+use App\Application\Outbound\UseCase\SelectOutbounds\SelectOutboundsUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Shared\DTO\UseCase\CreateConfig\CreateConfigDTO;
 use App\Application\Shared\DTO\UseCase\SaveConfig\SaveConfigDTO;
@@ -20,8 +21,8 @@ use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscription
 use App\Commands\AbstractCommand;
 use App\Commands\Shared\Options\CoreOptionsTrait;
 use App\Commands\Shared\Options\DryRunOptionTrait;
-use App\Commands\Shared\Options\OutboundFilterOptionsTrait;
 use App\Commands\Shared\Options\OverridesOptionsTrait;
+use App\Commands\Shared\Options\SelectionOptionsTrait;
 use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
@@ -35,12 +36,12 @@ use Iva\Input\Input;
 use Iva\Input\Option;
 use Iva\Output\Output;
 use Iva\Output\Verbosity;
-use Psl\Collection\MutableVector;
+use Psl\Collection\Vector;
 
 
 final class ExportSubscriptionCommand extends AbstractCommand
 {
-    use OutboundFilterOptionsTrait;
+    use SelectionOptionsTrait;
     use CoreOptionsTrait;
     use OverridesOptionsTrait;
     use DryRunOptionTrait;
@@ -56,7 +57,8 @@ final class ExportSubscriptionCommand extends AbstractCommand
     public function __construct(
         ReporterInstancePort                            $reporterInstancePort,
         private readonly GetSubscriptionWithNameUseCase $getSubscriptionWithNameUseCase,
-        private readonly FilterOutboundsUseCase         $filterOutboundsUseCase,
+        private readonly SelectOutboundsUseCase         $selectOutboundsUseCase,
+        private readonly SelectorParser                 $selectorParser,
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
         private readonly CreateConfigUseCase            $createConfigUseCase,
         private readonly SaveConfigUseCase              $saveSingBoxConfigUseCase,
@@ -84,7 +86,7 @@ final class ExportSubscriptionCommand extends AbstractCommand
         // Registered but unused in handle(), same as in the previous version.
         $this->configOption = $this->addOption(Option::flag('config', description: 'Export subscription outbounds as config'));
 
-        $this->configureOutboundFilterOptions(includeUrltestVariant: true, urltestPrefix: self::URLTEST_FILTER_PREFIX);
+        $this->configureSelectionOptions(includeUrltestVariant: true, urltestPrefix: self::URLTEST_FILTER_PREFIX);
         $this->configureCoreOptions();
         $this->configureOverridesOptions();
         $this->configureDryRunOption();
@@ -109,25 +111,22 @@ final class ExportSubscriptionCommand extends AbstractCommand
         $subscriptionOutbounds = $subscription->getOutbounds();
 
         /**
-         * Filter outbounds (main config group)
+         * Select outbounds (main config group)
          */
-        $mainFilters = $this->resolveOutboundFilterCriteria($input);
-
         $exportAsScheme = $input->flag($this->schemeOption);
 
-        $criteria = $exportAsScheme ? $mainFilters->criteria : new MutableVector($mainFilters->criteria->toArray())
-            ->add(new OutboundCoreSupportCriteria(
-                $this->resolveConfigType($input)->toCoreType()
-            ));
+        $constraints = $exportAsScheme
+            ? new Vector([])
+            : new Vector([new OutboundCoreSupportSpecification($this->resolveConfigType($input)->toCoreType())]);
 
-        $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
+        $subscriptionOutbounds = $this->selectOutboundsUseCase->handle(new SelectOutboundsDTO(
             $subscriptionOutbounds,
-            criteria: $criteria,
-            ignoreOutbounds: $mainFilters->ignoreOutbounds,
+            selector: $this->resolveSelector($input, $this->selectorParser),
+            constraints: $constraints,
         ));
 
 
-        if ($subscriptionOutbounds->isEmpty()) throw new CriticalException("No outbound calls matching the filter criteria were found");
+        if ($subscriptionOutbounds->isEmpty()) throw new CriticalException("No outbound calls matching the selection were found");
 
 
         /**
@@ -139,7 +138,7 @@ final class ExportSubscriptionCommand extends AbstractCommand
 
 
         /**
-         * Urltest filter
+         * Urltest selection
          */
 
         if (!$exportAsScheme) {
@@ -147,13 +146,12 @@ final class ExportSubscriptionCommand extends AbstractCommand
             if ($input->flag($this->urltestOption)) {
                 $urltestOutbounds = clone $subscriptionOutbounds;
 
-                $urltestFilters = $this->resolveOutboundFilterCriteria($input, self::URLTEST_FILTER_PREFIX);
+                $urltestSelector = $this->resolveSelector($input, $this->selectorParser, self::URLTEST_FILTER_PREFIX);
 
-                if (!$urltestFilters->isEmpty()) {
-                    $urltestOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
+                if ($urltestSelector !== null) {
+                    $urltestOutbounds = $this->selectOutboundsUseCase->handle(new SelectOutboundsDTO(
                         $urltestOutbounds,
-                        criteria: $urltestFilters->criteria,
-                        ignoreOutbounds: $urltestFilters->ignoreOutbounds,
+                        selector: $urltestSelector,
                     ));
                 }
             }

@@ -35,8 +35,83 @@ templates.
 - **Other Features**
     - HWID spoofing
     - Vless UUID and Shadowsocks password spoofing
-    - Filtering outbounds
+    - Selecting outbounds with expressions
     - Multiple methods for outbounds testing
+
+## Outbound selection
+
+The `export` and `test` commands choose outbounds with a single expression language, passed only through the CLI.
+
+| Flag                              | Meaning                                                                    |
+|-----------------------------------|----------------------------------------------------------------------------|
+| `--select EXPR`                   | Repeatable. Keep only outbounds matching `EXPR`. Several flags are ANDed.  |
+| `--exclude EXPR`, `-e EXPR`       | Repeatable. Remove outbounds matching `EXPR`. Several flags are ORed.      |
+| `--urltestSelect EXPR`            | `export` only. Same as `--select`, for the urltest outbounds.              |
+| `--urltestExclude EXPR`           | `export` only. Same as `--exclude`, for the urltest outbounds.             |
+
+The result is `select₁ & … & selectₙ & !(exclude₁ | … | excludeₘ)`. Without flags every outbound is selected.
+Outbounds that the chosen core cannot run are always dropped; an expression cannot bring them back.
+
+### Expressions
+
+```
+or     := and  ( '|' and )*
+and    := unary ( '&' unary )*
+unary  := '!' unary | '(' or ')' | cond
+cond   := property op value ( ',' value )*
+op     := '=' | '!=' | '~' | '!~'
+```
+
+| Construct               | Meaning                                                                  |
+|-------------------------|--------------------------------------------------------------------------|
+| `prop = a,b`            | the value equals `a` or `b`                                              |
+| `prop != a,b`           | the value equals neither `a` nor `b`                                     |
+| `prop ~ pattern`        | the value matches a glob pattern (`*` - any sequence, `?` - one char)    |
+| `prop !~ pattern`       | the value does not match the pattern                                     |
+| `a & b`, `a \| b`, `!a` | AND, OR, NOT; `( … )` groups. Priority: `!` > `&` > `\|`                 |
+
+Properties: `type` (`vless`, `shadowsocks`, alias `ss`) and `tag`. Property names are case-insensitive.
+Values may be quoted with `'…'` or `"…"` (escapes: `\'`, `\"`, `\\`). An outbound without a value for a property never
+matches `=` and `~`. Glob patterns do not expand type aliases (`type~ss` does not match `shadowsocks`).
+
+Wrap expressions containing shell special characters (`| & ! ( ) * ?`) in single quotes.
+
+### Examples
+
+```bash
+# only vless
+tinybox export sub --select type=vless
+
+# vless and shadowsocks, without tags starting with RU-
+tinybox export sub --select type=vless,ss --exclude 'tag~RU-*'
+
+# exclude by tag
+tinybox export sub -e tag=test -e tag=old
+
+# vless OR a specific tag
+tinybox export sub --select 'type=vless | tag=my-vps'
+
+# exclude ss, but keep a specific server
+tinybox export sub --exclude 'type=ss & tag!=my-vps'
+
+# urltest only from vless, everything except test globally
+tinybox export sub --exclude tag=test --urltest --urltestSelect type=vless
+```
+
+### What changed
+
+| Before                                                                  | Now                                         |
+|-------------------------------------------------------------------------|---------------------------------------------|
+| `--outboundType vless`                                                  | `--select type=vless`                       |
+| `--excludeOutboundType ss`                                              | `--exclude type=ss`                         |
+| `--excludeOutbound a b`, `-e a`                                         | `--exclude tag=a,b`, `-e tag=a`             |
+| `--outboundType vless --outboundTypeExcept my-vps`                      | `--select 'type=vless \| tag=my-vps'`       |
+| `--excludeOutboundType ss --excludeOutboundTypeExcept my-vps`           | `--exclude 'type=ss & tag!=my-vps'`         |
+| `--exceptOutbound my-vps`                                               | removed, write the condition explicitly     |
+| `--urltest*` filter flags                                               | `--urltestSelect`, `--urltestExclude`       |
+
+Selection by country (`--countryCode`, `--excludeCountryCode`, `--*OnlyAvailable`, `--countryOutboundIpFallback`) has been
+removed and is temporarily unavailable.
 
 ## Supported protocols
 

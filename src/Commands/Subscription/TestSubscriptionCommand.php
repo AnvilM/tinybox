@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace App\Commands\Subscription;
 
 use App\Application\Outbound\DTO\Export\CoreType;
-use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\OutboundsLatency\OutboundsLatencyDTO;
+use App\Application\Outbound\DTO\UseCase\SelectOutbounds\SelectOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
-use App\Application\Outbound\Filter\Criteria\OutboundCoreSupportCriteria;
-use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
+use App\Application\Outbound\Export\Specification\OutboundCoreSupportSpecification;
+use App\Application\Outbound\Selection\Syntax\SelectorParser;
 use App\Application\Outbound\UseCase\OutboundsLatency\OutboundsLatencyUseCase;
+use App\Application\Outbound\UseCase\SelectOutbounds\SelectOutboundsUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
 use App\Commands\AbstractCommand;
-use App\Commands\Shared\Options\OutboundFilterOptionsTrait;
+use App\Commands\Shared\Options\SelectionOptionsTrait;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -26,12 +27,12 @@ use Iva\Input\Argument;
 use Iva\Input\Input;
 use Iva\Input\Option;
 use Iva\Output\Output;
-use Psl\Collection\MutableVector;
+use Psl\Collection\Vector;
 
 
 final class TestSubscriptionCommand extends AbstractCommand
 {
-    use OutboundFilterOptionsTrait;
+    use SelectionOptionsTrait;
 
     private Argument $nameArgument;
     private Argument $methodArgument;
@@ -41,7 +42,8 @@ final class TestSubscriptionCommand extends AbstractCommand
         ReporterInstancePort                            $reporterInstancePort,
         private readonly GetSubscriptionWithNameUseCase $getSubscriptionWithNameUseCase,
         private readonly OutboundsLatencyUseCase        $outboundsLatencyUseCase,
-        private readonly FilterOutboundsUseCase         $filterOutboundsUseCase,
+        private readonly SelectOutboundsUseCase         $selectOutboundsUseCase,
+        private readonly SelectorParser                 $selectorParser,
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
         ConfigInstancePort                              $configInstancePort,
     )
@@ -66,7 +68,7 @@ final class TestSubscriptionCommand extends AbstractCommand
             valueRequired: false,
         ));
 
-        $this->configureOutboundFilterOptions();
+        $this->configureSelectionOptions();
     }
 
     protected function handle(Input $input, Output $output): int
@@ -88,20 +90,14 @@ final class TestSubscriptionCommand extends AbstractCommand
 
 
         /**
-         * Filter outbounds
+         * Select outbounds, keeping only the sing-box compatible ones
          */
-        $filters = $this->resolveOutboundFilterCriteria($input);
+        $selector = $this->resolveSelector($input, $this->selectorParser);
 
-        /**
-         * Filter non sing-box outbounds
-         */
-        $criteria = new MutableVector($filters->criteria->toArray())
-            ->add(new OutboundCoreSupportCriteria(CoreType::SingBox));
-
-        $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
+        $subscriptionOutbounds = $this->selectOutboundsUseCase->handle(new SelectOutboundsDTO(
             $subscriptionOutbounds,
-            criteria: $criteria,
-            ignoreOutbounds: $filters->ignoreOutbounds,
+            selector: $selector,
+            constraints: new Vector([new OutboundCoreSupportSpecification(CoreType::SingBox)]),
         ));
 
 
@@ -115,7 +111,7 @@ final class TestSubscriptionCommand extends AbstractCommand
                 $subscriptionOutbounds, $subscriptionOutbounds->getWithTag($detourOutbound)
             ));
         } catch (OutboundNotFoundException) {
-            throw new CriticalException("Outbound with tag '{$detourOutbound}' not found. Try to remove filters");
+            throw new CriticalException("Outbound with tag '{$detourOutbound}' not found. Try to remove selection flags");
         }
 
 
