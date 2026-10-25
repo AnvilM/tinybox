@@ -41,13 +41,12 @@ templates.
 ## Outbound selection
 
 The `export` and `test` commands choose outbounds with a single expression language, passed only through the CLI.
+The `--select` and `--exclude` flags are the global selection: they choose the outbounds that go into the final config.
 
 | Flag                              | Meaning                                                                    |
 |-----------------------------------|----------------------------------------------------------------------------|
 | `--select EXPR`                   | Repeatable. Keep only outbounds matching `EXPR`. Several flags are ANDed.  |
 | `--exclude EXPR`, `-e EXPR`       | Repeatable. Remove outbounds matching `EXPR`. Several flags are ORed.      |
-| `--urltestSelect EXPR`            | `export` only. Same as `--select`, for the urltest outbounds.              |
-| `--urltestExclude EXPR`           | `export` only. Same as `--exclude`, for the urltest outbounds.             |
 
 The result is `select₁ & … & selectₙ & !(exclude₁ | … | excludeₘ)`. Without flags every outbound is selected.
 Outbounds that the chosen core cannot run are always dropped; an expression cannot bring them back.
@@ -94,9 +93,69 @@ tinybox export sub --select 'type=vless | tag=my-vps'
 # exclude ss, but keep a specific server
 tinybox export sub --exclude 'type=ss & tag!=my-vps'
 
-# urltest only from vless, everything except test globally
-tinybox export sub --exclude tag=test --urltest --urltestSelect type=vless
+# everything except test
+tinybox export sub --exclude tag=test
 ```
+
+## Urltest groups
+
+The `export` command can add any number of urltest groups to the config (sing-box: one urltest outbound per group;
+xray: one balancer per group and a single observatory). One `--urltest` flag creates one group.
+
+| Flag                         | Meaning                                                                     |
+|------------------------------|-----------------------------------------------------------------------------|
+| `--urltest SPEC`, `-u SPEC`  | `export` only. Repeatable. Add a urltest group described by `SPEC`.         |
+
+```
+SPEC := TAG ':' EXPR
+```
+
+- `SPEC` is split by the **first** colon: everything before it is the tag, everything after it is the expression
+  (colons inside the expression are allowed: `auto:tag~srv:*`). The colon is required.
+- `TAG` is trimmed. An empty tag (`:type=vless`) means "not specified".
+- `EXPR` uses the same language as `--select`. An empty expression (`auto:`) takes every outbound that passed the global selection.
+- A group is built from the outbounds that already passed the global selection (`--select`, `--exclude`) and overrides.
+  To exclude something inside a group, negate it in the expression: `auto:!(tag=test)`.
+- Groups are placed in the config in the order of the flags. Urltest is not added with `--scheme`.
+- Without `--urltest` flags no urltest is added.
+
+All urltest groups share one template (`outbound_urltest` for sing-box, the observatory and balancer templates for xray).
+Urltest parameters (`url`, `interval`, `tolerance`, ...) are set only there.
+
+### Tags
+
+The tag of a group is, in order of priority: the tag from `SPEC`, the `tag` field of the template, `urltest`.
+When there is more than one group, give each of them its own tag.
+
+### Errors
+
+| Situation                                                       | Error                                                                    |
+|-----------------------------------------------------------------|--------------------------------------------------------------------------|
+| `SPEC` has no colon                                             | `Urltest group must have the form TAG:EXPRESSION, got '...'`             |
+| No outbound got into a group                                    | `Urltest group '...' matched no outbounds`                               |
+| Two urltests get the same tag, or a tag equals an outbound's tag | `Urltest tag '...' is used more than once. Specify a unique tag: ...`   |
+| Invalid expression                                              | the same syntax errors as for `--select`, with a caret                   |
+
+### Examples
+
+```bash
+# one urltest from everything, tag from the template (or 'urltest')
+tinybox export sub --urltest ':'
+
+# one urltest with the tag 'auto' from everything
+tinybox export sub -u 'auto:'
+
+# two urltests: vless and ss separately
+tinybox export sub -u 'auto-vless:type=vless' -u 'auto-ss:type=ss'
+
+# everything except test globally, urltest 'fast' from fast-* tags, 'proxy' from vless without RU-
+tinybox export sub --exclude tag=test -u 'fast:tag~fast-*' -u 'proxy:type=vless & tag!~RU-*'
+
+# xray: two balancers
+tinybox export sub --xray -u 'a:type=vless' -u 'b:type=ss'
+```
+
+Wrap expressions containing shell special characters (`| & ! ( ) * ?`) in single quotes, and the whole `SPEC` as well.
 
 ### What changed
 
@@ -108,7 +167,10 @@ tinybox export sub --exclude tag=test --urltest --urltestSelect type=vless
 | `--outboundType vless --outboundTypeExcept my-vps`                      | `--select 'type=vless \| tag=my-vps'`       |
 | `--excludeOutboundType ss --excludeOutboundTypeExcept my-vps`           | `--exclude 'type=ss & tag!=my-vps'`         |
 | `--exceptOutbound my-vps`                                               | removed, write the condition explicitly     |
-| `--urltest*` filter flags                                               | `--urltestSelect`, `--urltestExclude`       |
+| `--urltest` / `-u` (a flag, one urltest from everything)                | `--urltest ':'` / `-u ':'`                  |
+| `--urltestSelect EXPR`                                                  | `--urltest ':EXPR'`                         |
+| `--urltestExclude EXPR`                                                 | `--urltest ':!(EXPR)'`                      |
+| `--urltestSelect A --urltestExclude B`                                  | `--urltest ':A & !(B)'`                     |
 
 Selection by country (`--countryCode`, `--excludeCountryCode`, `--*OnlyAvailable`, `--countryOutboundIpFallback`) has been
 removed and is temporarily unavailable.
@@ -261,7 +323,7 @@ Settings related to Sing-box binary and templates.
 | Parameter          | Type     | Default                                             | Description                                                                                                                                                                                                                 |
 |--------------------|----------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `outbound`         | `string` | `~/.config/tinybox/templates/outbound.json`         | Path to the outbound template file.                                                                                                                                                                                         |
-| `outbound_urltest` | `string` | `~/.config/tinybox/templates/outbound_urltest.json` | Path to the URLTest outbound template. Tinybox will create the `outbounds` field (if missing) and populate it with the required outbound tags. If this template is not provided, Tinybox will generate an invalid outbound. |
+| `outbound_urltest` | `string` | `~/.config/tinybox/templates/outbound_urltest.json` | Path to the URLTest outbound template, common to all urltest groups. For each group Tinybox sets the `tag` (the group tag from `--urltest`, otherwise the `tag` field of this template, otherwise `urltest`) and creates the `outbounds` field (if missing), populating it with the tags of the group members. If this template is not provided, Tinybox will generate an invalid outbound. |
 | `config`           | `string` | `~/.config/tinybox/templates/config.json`           | Path to the main Sing-box configuration template. Existing outbounds in the template are preserved; new ones are appended.                                                                                                  |
 
 #### `outbound_test`

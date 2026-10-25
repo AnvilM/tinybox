@@ -9,13 +9,14 @@ use App\Application\Outbound\DTO\UseCase\OutboundsLatency\OutboundsLatencyDTO;
 use App\Application\Outbound\DTO\UseCase\SelectOutbounds\SelectOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
 use App\Application\Outbound\Export\Specification\OutboundCoreSupportSpecification;
+use App\Application\Outbound\Selection\SelectorComposer;
 use App\Application\Outbound\Selection\Syntax\SelectorParser;
 use App\Application\Outbound\UseCase\OutboundsLatency\OutboundsLatencyUseCase;
 use App\Application\Outbound\UseCase\SelectOutbounds\SelectOutboundsUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
 use App\Commands\AbstractCommand;
-use App\Commands\Shared\Options\SelectionOptionsTrait;
+use App\Commands\Shared\Options\GlobalSelectionOptionsTrait;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
@@ -32,7 +33,7 @@ use Psl\Collection\Vector;
 
 final class TestSubscriptionCommand extends AbstractCommand
 {
-    use SelectionOptionsTrait;
+    use GlobalSelectionOptionsTrait;
 
     private Argument $nameArgument;
     private Argument $methodArgument;
@@ -44,6 +45,7 @@ final class TestSubscriptionCommand extends AbstractCommand
         private readonly OutboundsLatencyUseCase        $outboundsLatencyUseCase,
         private readonly SelectOutboundsUseCase         $selectOutboundsUseCase,
         private readonly SelectorParser                 $selectorParser,
+        private readonly SelectorComposer               $selectorComposer,
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
         ConfigInstancePort                              $configInstancePort,
     )
@@ -68,7 +70,7 @@ final class TestSubscriptionCommand extends AbstractCommand
             valueRequired: false,
         ));
 
-        $this->configureSelectionOptions();
+        $this->configureGlobalSelectionOptions();
     }
 
     protected function handle(Input $input, Output $output): int
@@ -92,7 +94,7 @@ final class TestSubscriptionCommand extends AbstractCommand
         /**
          * Select outbounds, keeping only the sing-box compatible ones
          */
-        $selector = $this->resolveSelector($input, $this->selectorParser);
+        $selector = $this->resolveGlobalSelector($input, $this->selectorParser, $this->selectorComposer);
 
         $subscriptionOutbounds = $this->selectOutboundsUseCase->handle(new SelectOutboundsDTO(
             $subscriptionOutbounds,

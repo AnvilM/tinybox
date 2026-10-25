@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
-use App\Application\Outbound\DTO\Override\OverrideOutboundDTO;
 use App\Application\Outbound\DTO\UseCase\SelectOutbounds\SelectOutboundsDTO;
 use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
 use App\Application\Outbound\Export\Specification\OutboundCoreSupportSpecification;
 use App\Application\Outbound\Mapper\ToSchemeString\ToSchemeStringOutboundMapper;
 use App\Application\Outbound\Override\OverrideOutboundService;
+use App\Application\Outbound\Selection\SelectorComposer;
 use App\Application\Outbound\Selection\Syntax\SelectorParser;
 use App\Application\Outbound\UseCase\SelectOutbounds\SelectOutboundsUseCase;
 use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
@@ -18,11 +18,15 @@ use App\Application\Shared\DTO\UseCase\SaveConfig\SaveConfigDTO;
 use App\Application\Shared\UseCase\CreateConfig\CreateConfigUseCase;
 use App\Application\Shared\UseCase\SaveSingBoxConfig\SaveConfigUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
+use App\Application\Urltest\DTO\UseCase\BuildUrltestGroups\BuildUrltestGroupsDTO;
+use App\Application\Urltest\Group\UrltestGroupSpecParser;
+use App\Application\Urltest\UseCase\BuildUrltestGroups\BuildUrltestGroupsUseCase;
 use App\Commands\AbstractCommand;
 use App\Commands\Shared\Options\CoreOptionsTrait;
 use App\Commands\Shared\Options\DryRunOptionTrait;
+use App\Commands\Shared\Options\GlobalSelectionOptionsTrait;
 use App\Commands\Shared\Options\OverridesOptionsTrait;
-use App\Commands\Shared\Options\SelectionOptionsTrait;
+use App\Commands\Shared\Options\UrltestOptionsTrait;
 use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
 use App\Domain\Shared\Exception\CriticalException;
@@ -41,15 +45,13 @@ use Psl\Collection\Vector;
 
 final class ExportSubscriptionCommand extends AbstractCommand
 {
-    use SelectionOptionsTrait;
+    use GlobalSelectionOptionsTrait;
     use CoreOptionsTrait;
     use OverridesOptionsTrait;
     use DryRunOptionTrait;
-
-    private const string URLTEST_FILTER_PREFIX = 'urltest';
+    use UrltestOptionsTrait;
 
     private Argument $nameArgument;
-    private Option $urltestOption;
     private Option $detourOutboundOption;
     private Option $schemeOption;
     private Option $configOption;
@@ -59,6 +61,9 @@ final class ExportSubscriptionCommand extends AbstractCommand
         private readonly GetSubscriptionWithNameUseCase $getSubscriptionWithNameUseCase,
         private readonly SelectOutboundsUseCase         $selectOutboundsUseCase,
         private readonly SelectorParser                 $selectorParser,
+        private readonly SelectorComposer               $selectorComposer,
+        private readonly UrltestGroupSpecParser         $urltestGroupSpecParser,
+        private readonly BuildUrltestGroupsUseCase      $buildUrltestGroupsUseCase,
         private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
         private readonly CreateConfigUseCase            $createConfigUseCase,
         private readonly SaveConfigUseCase              $saveSingBoxConfigUseCase,
@@ -76,7 +81,6 @@ final class ExportSubscriptionCommand extends AbstractCommand
         $this->setDescription('Export subscription outbounds');
 
         $this->nameArgument = $this->addArgument(Argument::string('name', 'Subscription name'));
-        $this->urltestOption = $this->addOption(Option::flag('urltest', 'u', 'Add urltest outbound to config'));
         $this->detourOutboundOption = $this->addOption(Option::string(
             name: 'detourOutbound',
             description: 'Use the specified outbound as detour for all other outbounds',
@@ -86,7 +90,8 @@ final class ExportSubscriptionCommand extends AbstractCommand
         // Registered but unused in handle(), same as in the previous version.
         $this->configOption = $this->addOption(Option::flag('config', description: 'Export subscription outbounds as config'));
 
-        $this->configureSelectionOptions(includeUrltestVariant: true, urltestPrefix: self::URLTEST_FILTER_PREFIX);
+        $this->configureGlobalSelectionOptions();
+        $this->configureUrltestOptions();
         $this->configureCoreOptions();
         $this->configureOverridesOptions();
         $this->configureDryRunOption();
@@ -121,7 +126,7 @@ final class ExportSubscriptionCommand extends AbstractCommand
 
         $subscriptionOutbounds = $this->selectOutboundsUseCase->handle(new SelectOutboundsDTO(
             $subscriptionOutbounds,
-            selector: $this->resolveSelector($input, $this->selectorParser),
+            selector: $this->resolveGlobalSelector($input, $this->selectorParser, $this->selectorComposer),
             constraints: $constraints,
         ));
 
@@ -142,18 +147,14 @@ final class ExportSubscriptionCommand extends AbstractCommand
          */
 
         if (!$exportAsScheme) {
-            $urltestOutbounds = null;
-            if ($input->flag($this->urltestOption)) {
-                $urltestOutbounds = clone $subscriptionOutbounds;
+            $urltestGroups = new Vector([]);
 
-                $urltestSelector = $this->resolveSelector($input, $this->selectorParser, self::URLTEST_FILTER_PREFIX);
+            $definitions = $this->resolveUrltestDefinitions($input, $this->urltestGroupSpecParser);
 
-                if ($urltestSelector !== null) {
-                    $urltestOutbounds = $this->selectOutboundsUseCase->handle(new SelectOutboundsDTO(
-                        $urltestOutbounds,
-                        selector: $urltestSelector,
-                    ));
-                }
+            if (!$definitions->isEmpty()) {
+                $urltestGroups = $this->buildUrltestGroupsUseCase->handle(
+                    new BuildUrltestGroupsDTO($subscriptionOutbounds, $definitions)
+                );
             }
 
             /**
@@ -178,7 +179,7 @@ final class ExportSubscriptionCommand extends AbstractCommand
                 new CreateConfigDTO(
                     $subscriptionOutbounds,
                     $this->resolveConfigType($input),
-                    $urltestOutbounds
+                    $urltestGroups
                 )
             );
         } else {
