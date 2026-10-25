@@ -44,6 +44,6 @@ final readonly class ShadowsocksPluginVO implements Equable
      */
     public function getPluginOptions(): ?string
     {
-        return $this->pluginOptions->getValue();
+        return $this->pluginOptions?->getValue();
     }
 }
