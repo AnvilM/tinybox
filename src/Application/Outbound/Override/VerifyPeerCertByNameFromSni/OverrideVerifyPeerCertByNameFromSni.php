@@ -18,6 +18,18 @@ final readonly class OverrideVerifyPeerCertByNameFromSni extends Override
         return OverrideTypeVerifyPeerCertByNameFromSni::class;
     }
 
+    public function name(): string
+    {
+        return 'tls-verify-name-from-sni';
+    }
+
+    public function createType(?string $value): OverrideType
+    {
+        $this->rejectValue($value);
+
+        return new OverrideTypeVerifyPeerCertByNameFromSni();
+    }
+
     /** @param OverrideTypeVerifyPeerCertByNameFromSni $type */
     protected function apply(OutboundMap $outboundMap, OverrideType $type): OutboundMap
     {

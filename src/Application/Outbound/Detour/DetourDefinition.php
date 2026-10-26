@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Outbound\Detour;
 
+use App\Application\Outbound\Pipeline\PipelineStep;
 use App\Application\Outbound\Selection\Node\SelectorNode;
 
 /**
  * What the user asked for: parsed CLI data, before any selection happened.
  */
-final readonly class DetourDefinition
+final readonly class DetourDefinition implements PipelineStep
 {
     /**
      * @param string $targetTag Tag of the detour outbound, not empty

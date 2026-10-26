@@ -7,6 +7,7 @@ namespace App\Application\Outbound\Detour;
 use App\Application\Outbound\Exception\Detour\InvalidDetourSpecException;
 use App\Application\Outbound\Selection\Exception\SelectionException;
 use App\Application\Outbound\Selection\Syntax\SelectorParser;
+use App\Application\Outbound\Spec\QuotedStringReader;
 
 /**
  * Parses detour SPEC string: DETOUR_TAG:EXPRESSION
@@ -37,7 +38,7 @@ final readonly class DetourSpecParser
         $first = $trimmed[0] ?? '';
 
         if ($first === "'" || $first === '"') {
-            [$tag, $expression] = $this->splitQuoted($spec, $trimmed, $first);
+            [$tag, $expression] = $this->splitQuoted($spec, $trimmed);
         } else {
             $separatorPosition = strpos($spec, ':');
 
@@ -67,42 +68,15 @@ final readonly class DetourSpecParser
      *
      * @throws InvalidDetourSpecException
      */
-    private function splitQuoted(string $spec, string $trimmed, string $quote): array
+    private function splitQuoted(string $spec, string $trimmed): array
     {
-        $length = strlen($trimmed);
-        $offset = 1;
-        $tag = '';
-        $closed = false;
+        $read = QuotedStringReader::read($trimmed, 0);
 
-        while ($offset < $length) {
-            $char = $trimmed[$offset];
-
-            if ($char === $quote) {
-                $closed = true;
-                $offset++;
-                break;
-            }
-
-            if ($char === '\\') {
-                $escaped = $trimmed[$offset + 1] ?? null;
-
-                if ($escaped !== "'" && $escaped !== '"' && $escaped !== '\\') {
-                    throw new InvalidDetourSpecException($spec);
-                }
-
-                $tag .= $escaped;
-                $offset += 2;
-
-                continue;
-            }
-
-            $tag .= $char;
-            $offset++;
-        }
-
-        if (!$closed) {
+        if ($read === null) {
             throw new InvalidDetourSpecException($spec);
         }
+
+        [$tag, $offset] = $read;
 
         $rest = ltrim(substr($trimmed, $offset));
 

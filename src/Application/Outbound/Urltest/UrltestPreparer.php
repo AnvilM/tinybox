@@ -2,30 +2,28 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Outbound\UseCase\BuildUrltestOutbounds;
+namespace App\Application\Outbound\Urltest;
 
 use App\Application\Outbound\DTO\Export\CoreType;
-use App\Application\Outbound\DTO\UseCase\BuildUrltestOutbounds\BuildUrltestOutboundsDTO;
-use App\Application\Outbound\DTO\UseCase\SelectOutbounds\SelectOutboundsDTO;
 use App\Application\Outbound\Exception\Urltest\DuplicateUrltestTagException;
-use App\Application\Outbound\Exception\Urltest\EmptyUrltestGroupException;
-use App\Application\Outbound\Selection\Exception\SelectionException;
 use App\Application\Outbound\Urltest\Template\ReadBalancerTemplate;
 use App\Application\Outbound\Urltest\Template\ReadObservatoryTemplate;
 use App\Application\Outbound\Urltest\Template\ReadUrltestTemplate;
-use App\Application\Outbound\Urltest\UrltestTagResolver;
-use App\Application\Outbound\UseCase\SelectOutbounds\SelectOutboundsUseCase;
 use App\Domain\Outbound\Collection\OutboundMap;
-use App\Domain\Outbound\Factory\UrltestOutboundFactory;
 use App\Domain\Outbound\VO\Urltest\UrltestParametersVO;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
+use Psl\Collection\Vector;
 
-final readonly class BuildUrltestOutboundsUseCase
+/**
+ * Everything about urltest groups that has to be done once, before the pipeline steps are executed:
+ * read the templates and resolve (and check) the tags of all groups.
+ *
+ * No selection is done here, so the result does not depend on the order of the steps.
+ */
+final readonly class UrltestPreparer
 {
     public function __construct(
-        private SelectOutboundsUseCase  $selectOutboundsUseCase,
-        private UrltestOutboundFactory  $urltestOutboundFactory,
         private UrltestTagResolver      $urltestTagResolver,
         private ReadUrltestTemplate     $readUrltestTemplate,
         private ReadObservatoryTemplate $readObservatoryTemplate,
@@ -35,30 +33,24 @@ final readonly class BuildUrltestOutboundsUseCase
     }
 
     /**
-     * Create urltest outbounds by definitions
+     * @param list<UrltestGroupDefinition> $definitions In the order of flags
+     * @param OutboundMap $initialOutbounds Set before the pipeline (to detect tag collisions)
      *
-     * NOTE: For sing-box every next group can select the previously created urltests (nesting).
-     * For xray the pool does not grow: balancer can not be a member of another balancer.
+     * @return list<PreparedUrltestGroup> In the order of $definitions
      *
-     * @return OutboundMap Only urltest outbounds, in the order of definitions
-     *
-     * @throws SelectionException
-     * @throws EmptyUrltestGroupException If no outbound got into a group
      * @throws DuplicateUrltestTagException
      */
-    public function handle(BuildUrltestOutboundsDTO $dto): OutboundMap
+    public function prepare(array $definitions, CoreType $core, OutboundMap $initialOutbounds): array
     {
-        $result = new OutboundMap();
-
-        if ($dto->definitions->isEmpty()) {
-            return $result;
+        if ($definitions === []) {
+            return [];
         }
 
 
         /**
          * Read templates once (only for the core the config is created for)
          */
-        if ($dto->core === CoreType::SingBox) {
+        if ($core === CoreType::SingBox) {
             $singBoxTemplate = $this->loadSingBoxTemplate();
             $balancerTemplate = [];
             $observatoryTemplate = [];
@@ -76,32 +68,15 @@ final readonly class BuildUrltestOutboundsUseCase
 
         $parameters = new UrltestParametersVO($singBoxTemplate, $balancerTemplate, $observatoryTemplate);
 
-        $tags = $this->urltestTagResolver->resolve($dto->definitions, $templateTag, $dto->outboundsMap);
+        $tags = $this->urltestTagResolver->resolve(new Vector($definitions), $templateTag, $initialOutbounds);
 
+        $prepared = [];
 
-        $pool = clone $dto->outboundsMap;
-
-        foreach ($dto->definitions as $index => $definition) {
-            $members = $definition->selector === null
-                ? clone $pool
-                : $this->selectOutboundsUseCase->handle(
-                    new SelectOutboundsDTO($pool, selector: $definition->selector)
-                );
-
-            if ($members->isEmpty()) {
-                throw new EmptyUrltestGroupException($definition->source);
-            }
-
-            $urltest = $this->urltestOutboundFactory->create($tags[$index], $members, $parameters);
-
-            $result->add($urltest);
-
-            if ($dto->core === CoreType::SingBox) {
-                $pool->add($urltest);
-            }
+        foreach ($definitions as $index => $definition) {
+            $prepared[] = new PreparedUrltestGroup($definition, $tags[$index], $parameters);
         }
 
-        return $result;
+        return $prepared;
     }
 
     /**

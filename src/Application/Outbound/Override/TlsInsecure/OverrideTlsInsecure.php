@@ -18,6 +18,16 @@ final readonly class OverrideTlsInsecure extends Override
         return OverrideTypeTlsInsecure::class;
     }
 
+    public function name(): string
+    {
+        return 'tls-insecure';
+    }
+
+    public function createType(?string $value): OverrideType
+    {
+        return new OverrideTypeTlsInsecure($this->parseBool($value));
+    }
+
     /** @param OverrideTypeTlsInsecure $type */
     protected function apply(OutboundMap $outboundMap, OverrideType $type): OutboundMap
     {

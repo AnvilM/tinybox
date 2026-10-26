@@ -8,7 +8,7 @@ use App\Application\Outbound\Override\Override;
 use App\Application\Outbound\Override\OverrideType;
 use App\Domain\Interface\Outbound\ServerProvider;
 use App\Domain\Outbound\Collection\OutboundMap;
-use App\Domain\Shared\Ports\Dns\DnsResolverPort;
+use App\Domain\Shared\Ports\DNS\DnsResolverPort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
 use App\Domain\Shared\ReporterEvent\ReporterEventBuilder;
 use App\Domain\Shared\VO\ReporterEvent\ReporterEventAttachmentVO;
@@ -27,6 +27,18 @@ final readonly class OverrideResolveOutboundDNS extends Override
     public function getTypeClass(): string
     {
         return OverrideTypeResolveOutboundDNS::class;
+    }
+
+    public function name(): string
+    {
+        return 'resolve-dns';
+    }
+
+    public function createType(?string $value): OverrideType
+    {
+        $this->rejectValue($value);
+
+        return new OverrideTypeResolveOutboundDNS();
     }
 
     /** @param OverrideTypeResolveOutboundDNS $type */

@@ -18,6 +18,16 @@ final readonly class OverrideTLSSNI extends Override
         return OverrideTypeTLSSNI::class;
     }
 
+    public function name(): string
+    {
+        return 'tls-sni';
+    }
+
+    public function createType(?string $value): OverrideType
+    {
+        return new OverrideTypeTLSSNI($this->requireValue($value));
+    }
+
     /** @param OverrideTypeTLSSNI $type */
     protected function apply(OutboundMap $outboundMap, OverrideType $type): OutboundMap
     {

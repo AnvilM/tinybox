@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Outbound\Urltest;
 
+use App\Application\Outbound\Pipeline\PipelineStep;
 use App\Application\Outbound\Selection\Node\SelectorNode;
 
 /**
  * What the user asked for: parsed CLI data, before any selection happened.
  */
-final readonly class UrltestGroupDefinition
+final readonly class UrltestGroupDefinition implements PipelineStep
 {
     /**
      * @param string|null $tag Urltest tag, null - not specified by the user

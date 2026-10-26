@@ -13,8 +13,9 @@ use Override;
 /**
  * Urltest: an outbound that picks the fastest of its members.
  *
- * Members are the same objects as in the main outbounds map (by reference),
- * so everything set on a member (e.g. detour) is visible through the urltest.
+ * Members are references to the outbounds of the pipeline set. Override replaces an outbound
+ * with a copy, so a reference can point to an outdated copy: only the tag is read through it
+ * (it never changes). The content of an outbound is read only from the set of the pipeline.
  */
 final readonly class UrltestOutbound extends Outbound
 {

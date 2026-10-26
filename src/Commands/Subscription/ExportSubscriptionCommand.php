@@ -5,17 +5,15 @@ declare(strict_types=1);
 namespace App\Commands\Subscription;
 
 use App\Application\Outbound\Detour\DetourSpecParser;
-use App\Application\Outbound\DTO\UseCase\ApplyDetours\ApplyDetoursDTO;
-use App\Application\Outbound\DTO\UseCase\BuildUrltestOutbounds\BuildUrltestOutboundsDTO;
+use App\Application\Outbound\DTO\UseCase\RunOutboundPipeline\RunOutboundPipelineDTO;
 use App\Application\Outbound\DTO\UseCase\SelectOutbounds\SelectOutboundsDTO;
 use App\Application\Outbound\Export\Specification\OutboundCoreSupportSpecification;
 use App\Application\Outbound\Mapper\ToSchemeString\ToSchemeStringOutboundMapper;
-use App\Application\Outbound\Override\OverrideOutboundService;
+use App\Application\Outbound\Override\OverrideSpecParser;
 use App\Application\Outbound\Selection\SelectorComposer;
 use App\Application\Outbound\Selection\Syntax\SelectorParser;
 use App\Application\Outbound\Urltest\UrltestGroupSpecParser;
-use App\Application\Outbound\UseCase\ApplyDetours\ApplyDetoursUseCase;
-use App\Application\Outbound\UseCase\BuildUrltestOutbounds\BuildUrltestOutboundsUseCase;
+use App\Application\Outbound\UseCase\RunOutboundPipeline\RunOutboundPipelineUseCase;
 use App\Application\Outbound\UseCase\SelectOutbounds\SelectOutboundsUseCase;
 use App\Application\Shared\DTO\UseCase\CreateConfig\CreateConfigDTO;
 use App\Application\Shared\DTO\UseCase\SaveConfig\SaveConfigDTO;
@@ -24,12 +22,10 @@ use App\Application\Shared\UseCase\SaveSingBoxConfig\SaveConfigUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
 use App\Commands\AbstractCommand;
 use App\Commands\Shared\Options\CoreOptionsTrait;
-use App\Commands\Shared\Options\DetourOptionsTrait;
 use App\Commands\Shared\Options\DryRunOptionTrait;
 use App\Commands\Shared\Options\GlobalSelectionOptionsTrait;
-use App\Commands\Shared\Options\OverridesOptionsTrait;
-use App\Commands\Shared\Options\UrltestOptionsTrait;
-use App\Domain\Outbound\Collection\OutboundMap;
+use App\Commands\Shared\Options\Pipeline\PipelineFlagOrder;
+use App\Commands\Shared\Options\PipelineOptionsTrait;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
@@ -48,10 +44,8 @@ final class ExportSubscriptionCommand extends AbstractCommand
 {
     use GlobalSelectionOptionsTrait;
     use CoreOptionsTrait;
-    use OverridesOptionsTrait;
     use DryRunOptionTrait;
-    use UrltestOptionsTrait;
-    use DetourOptionsTrait;
+    use PipelineOptionsTrait;
 
     private Argument $nameArgument;
     private Option $schemeOption;
@@ -63,13 +57,13 @@ final class ExportSubscriptionCommand extends AbstractCommand
         private readonly SelectOutboundsUseCase         $selectOutboundsUseCase,
         private readonly SelectorParser                 $selectorParser,
         private readonly SelectorComposer               $selectorComposer,
+        private readonly OverrideSpecParser             $overrideSpecParser,
         private readonly UrltestGroupSpecParser         $urltestGroupSpecParser,
-        private readonly BuildUrltestOutboundsUseCase   $buildUrltestOutboundsUseCase,
         private readonly DetourSpecParser               $detourSpecParser,
-        private readonly ApplyDetoursUseCase            $applyDetoursUseCase,
+        private readonly PipelineFlagOrder              $pipelineFlagOrder,
+        private readonly RunOutboundPipelineUseCase     $runOutboundPipelineUseCase,
         private readonly CreateConfigUseCase            $createConfigUseCase,
         private readonly SaveConfigUseCase              $saveSingBoxConfigUseCase,
-        private readonly OverrideOutboundService        $overrideOutboundService,
         private readonly ToSchemeStringOutboundMapper   $toSchemeStringOutboundMapper,
         ConfigInstancePort                              $configInstancePort,
     )
@@ -88,10 +82,8 @@ final class ExportSubscriptionCommand extends AbstractCommand
         $this->configOption = $this->addOption(Option::flag('config', description: 'Export subscription outbounds as config'));
 
         $this->configureGlobalSelectionOptions();
-        $this->configureUrltestOptions();
-        $this->configureDetourOptions();
+        $this->configurePipelineOptions();
         $this->configureCoreOptions();
-        $this->configureOverridesOptions();
         $this->configureDryRunOption();
     }
 
@@ -113,10 +105,21 @@ final class ExportSubscriptionCommand extends AbstractCommand
 
         $subscriptionOutbounds = $subscription->getOutbounds();
 
+        $exportAsScheme = $input->flag($this->schemeOption);
+
+
+        /**
+         * Parse every flag first: syntax errors must appear before any selection, DNS or file work
+         */
+        $steps = $this->resolvePipelineSteps(
+            $input, $this->pipelineFlagOrder, $this->overrideSpecParser, $this->urltestGroupSpecParser, $this->detourSpecParser,
+            overridesOnly: $exportAsScheme,
+        );
+
+
         /**
          * Select outbounds (main config group)
          */
-        $exportAsScheme = $input->flag($this->schemeOption);
 
         $constraints = $exportAsScheme
             ? new Vector([])
@@ -133,52 +136,22 @@ final class ExportSubscriptionCommand extends AbstractCommand
 
 
         /**
-         * Overrides
+         * Ordered pipeline: override / urltest / detour in the order of flags
          */
-        $subscriptionOutbounds = $this->overrideOutboundService->override(
-            $subscriptionOutbounds, $this->resolveOverrideTypes($input)
-        );
+        $outbounds = $steps->isEmpty()
+            ? $subscriptionOutbounds
+            : $this->runOutboundPipelineUseCase->handle(new RunOutboundPipelineDTO(
+                $subscriptionOutbounds, $steps, $this->resolveConfigType($input)->toCoreType()
+            ));
 
-
-        /**
-         * Urltest selection
-         */
 
         if (!$exportAsScheme) {
-            $urltestOutbounds = new OutboundMap();
-
-            $definitions = $this->resolveUrltestDefinitions($input, $this->urltestGroupSpecParser);
-
-            if (!$definitions->isEmpty()) {
-                $urltestOutbounds = $this->buildUrltestOutboundsUseCase->handle(
-                    new BuildUrltestOutboundsDTO($subscriptionOutbounds, $definitions, $this->resolveConfigType($input)->toCoreType())
-                );
-            }
-
-            /**
-             * Regular outbounds + urltest outbounds
-             */
-            $configOutbounds = (clone $subscriptionOutbounds)->merge($urltestOutbounds);
-
-
-            /**
-             * Detours
-             */
-            $detourDefinitions = $this->resolveDetourDefinitions($input, $this->detourSpecParser);
-
-            if (!$detourDefinitions->isEmpty()) {
-                $this->applyDetoursUseCase->handle(
-                    new ApplyDetoursDTO($configOutbounds, $detourDefinitions, $this->resolveConfigType($input)->toCoreType())
-                );
-            }
-
-
             $singBoxConfigJSON = $this->createConfigUseCase->handle(
-                new CreateConfigDTO($configOutbounds, $this->resolveConfigType($input))
+                new CreateConfigDTO($outbounds, $this->resolveConfigType($input))
             );
         } else {
             $singBoxConfigJSON = "";
-            foreach ($subscriptionOutbounds->getOutbounds() as $outbound) {
+            foreach ($outbounds->getOutbounds() as $outbound) {
                 $singBoxConfigJSON .= $this->toSchemeStringOutboundMapper->map($outbound) . "\n";
             }
         }
