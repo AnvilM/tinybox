@@ -17,6 +17,16 @@ final readonly class OverrideSSPass extends Override
         return OverrideTypeSSPass::class;
     }
 
+    public function name(): string
+    {
+        return 'ss-pass';
+    }
+
+    public function createType(?string $value): OverrideType
+    {
+        return new OverrideTypeSSPass($this->requireValue($value));
+    }
+
     /** @param OverrideTypeSSPass $type */
     protected function apply(OutboundMap $outboundMap, OverrideType $type): OutboundMap
     {

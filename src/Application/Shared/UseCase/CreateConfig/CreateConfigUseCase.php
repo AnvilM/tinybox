@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\UseCase\CreateConfig;
 
+use App\Application\Outbound\DTO\Export\CoreType;
 use App\Application\Outbound\Exception\Export\IncompatibleOutboundException;
 use App\Application\Outbound\Exception\Export\UnsupportedByCoreException;
 use App\Application\Outbound\Export\ExporterRegistryFactory;
 use App\Application\Repository\Outbound\GetOutboundsListRepository;
 use App\Application\Shared\DTO\UseCase\CreateConfig\ConfigType;
 use App\Application\Shared\DTO\UseCase\CreateConfig\CreateConfigDTO;
-use App\Application\Shared\UseCase\CreateConfig\FIle\ReadBalancerTemplate;
 use App\Application\Shared\UseCase\CreateConfig\FIle\ReadConfigTemplate;
-use App\Application\Shared\UseCase\CreateConfig\FIle\ReadObservatoryTemplate;
 use App\Application\Shared\UseCase\CreateConfig\FIle\ReadOutboundTemplate;
-use App\Application\Shared\UseCase\CreateConfig\FIle\ReadUrltestTemplate;
+use App\Domain\Outbound\Entity\UrltestOutbound;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Exception\File\UnableToReadFileException;
 use App\Domain\Shared\Exception\Json\UnableToDecodeJsonException;
@@ -26,9 +25,6 @@ final readonly class CreateConfigUseCase
     public function __construct(
         private ReadOutboundTemplate       $readOutboundTemplate,
         private ReadConfigTemplate         $readConfigTemplate,
-        private ReadUrltestTemplate        $readUrltestTemplate,
-        private ReadObservatoryTemplate    $readObservatoryTemplate,
-        private ReadBalancerTemplate       $readBalancerTemplate,
         private GetOutboundsListRepository $outboundRepository,
     )
     {
@@ -70,9 +66,24 @@ final readonly class CreateConfigUseCase
 
 
         /**
+         * Split the map into regular outbounds and urltest outbounds
+         */
+        $outbounds = [];
+        $urltests = [];
+
+        foreach ($createConfigDTO->outboundsMap->getOutbounds() as $outbound) {
+            if ($outbound instanceof UrltestOutbound) {
+                $urltests[] = $outbound;
+            } else {
+                $outbounds[] = $outbound;
+            }
+        }
+
+
+        /**
          * Add outbounds to sing-box config template
          */
-        foreach ($createConfigDTO->outboundsMap->getOutbounds() as $outbound) {
+        foreach ($outbounds as $outbound) {
             /**
              * Add outbound to sing-box config outbounds array
              */
@@ -89,65 +100,13 @@ final readonly class CreateConfigUseCase
 
 
         /**
-         * Add urltest outbound to sing-box config outbounds array
+         * Add urltest outbounds
          */
-
-        if ($createConfigDTO->urltestOutbounds && $createConfigDTO->configType === ConfigType::SingBox) {
-
-            /**
-             * Try to read urltest outbound template
-             */
-            try {
-                $urltestOutboundTemplate = $this->readUrltestTemplate->read();
-            } catch (UnableToReadFileException|UnableToDecodeJsonException) {
-                $urltestOutboundTemplate = [];
-                //TODO: add reporter event
-            }
-
-
-            $urltestOutboundTemplateOutbounds = $urltestOutboundTemplate['outbounds'] ?? [];
-            $urltestOutboundTemplate['outbounds'] = array_merge($urltestOutboundTemplateOutbounds, $createConfigDTO->urltestOutbounds->getTagsString()->toArray());
-
-            $configTemplate['outbounds'][] = $urltestOutboundTemplate;
-        }
-
-
-        /**
-         * Add observatory and balancer to xray config
-         */
-
-        if ($createConfigDTO->urltestOutbounds && $createConfigDTO->configType === ConfigType::Xray) {
-            /**
-             * Try to read observatory template
-             */
-            try {
-                $observatoryTemplate = $this->readObservatoryTemplate->read();
-            } catch (UnableToReadFileException|UnableToDecodeJsonException) {
-                $observatoryTemplate = [];
-                //TODO: add reporter event
-            }
-
-            $observatoryTemplateOutbounds = $observatoryTemplate['subjectSelector'] ?? [];
-            $observatoryTemplate['subjectSelector'] = array_merge($observatoryTemplateOutbounds, $createConfigDTO->urltestOutbounds->getTagsString()->toArray());
-
-            $configTemplate['observatory'] = $observatoryTemplate;
-
-
-            /**
-             * Try to read balancer template
-             */
-            try {
-                $balancerTemplate = $this->readBalancerTemplate->read();
-            } catch (UnableToReadFileException|UnableToDecodeJsonException) {
-                $balancerTemplate = [];
-                //TODO: add reporter event
-            }
-
-
-            $balancerTemplateOutbounds = $balancerTemplate['selector'] ?? [];
-            $balancerTemplate['selector'] = array_merge($balancerTemplateOutbounds, $createConfigDTO->urltestOutbounds->getTagsString()->toArray());
-
-            $configTemplate['routing']['balancers'][] = $balancerTemplate;
+        if ($urltests !== []) {
+            match ($createConfigDTO->configType) {
+                ConfigType::SingBox => $this->addSingBoxUrltests($configTemplate, $urltests),
+                ConfigType::Xray => $this->addXrayUrltests($configTemplate, $urltests),
+            };
         }
 
 
@@ -164,4 +123,63 @@ final readonly class CreateConfigUseCase
 
         return $singBoxConfig;
     }
-}   
+
+    /**
+     * Add urltest outbounds to sing-box config
+     *
+     * NOTE: outbound template is not applied to urltest: its keys are meant for regular outbounds.
+     *
+     * @param array<string, mixed> $configTemplate
+     * @param UrltestOutbound[] $urltests
+     */
+    private function addSingBoxUrltests(array &$configTemplate, array $urltests): void
+    {
+        foreach ($urltests as $urltest) {
+            try {
+                $configTemplate['outbounds'][] = ExporterRegistryFactory::createDefaultExporter()->export($urltest, CoreType::SingBox);
+            } catch (IncompatibleOutboundException|UnsupportedByCoreException) {
+                continue;
+                //TODO: add reporter event
+            }
+        }
+    }
+
+    /**
+     * Add one balancer per urltest and one common observatory to xray config
+     *
+     * @param array<string, mixed> $configTemplate
+     * @param UrltestOutbound[] $urltests
+     */
+    private function addXrayUrltests(array &$configTemplate, array $urltests): void
+    {
+        /**
+         * One balancer per urltest
+         */
+        $allMembersTags = [];
+
+        foreach ($urltests as $urltest) {
+            $membersTags = $urltest->getMembers()->getTagsString()->toArray();
+            $allMembersTags = array_merge($allMembersTags, $membersTags);
+
+            $balancer = $urltest->getParameters()->getXrayBalancer();
+
+            $balancer['tag'] = $urltest->getTagString();
+            $balancer['selector'] = array_merge($balancer['selector'] ?? [], $membersTags);
+
+            $configTemplate['routing']['balancers'][] = $balancer;
+        }
+
+
+        /**
+         * Observatory is common (read once, so it is the same in every urltest):
+         * template selectors and members of all urltests
+         */
+        $observatory = $urltests[0]->getParameters()->getXrayObservatory();
+
+        $observatory['subjectSelector'] = array_values(array_unique(
+            array_merge($observatory['subjectSelector'] ?? [], $allMembersTags)
+        ));
+
+        $configTemplate['observatory'] = $observatory;
+    }
+}

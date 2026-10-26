@@ -8,7 +8,6 @@ use App\Domain\Interface\Outbound\OutboundSpecificationInterface;
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
 use App\Domain\Outbound\Exception\OutboundNotFoundException;
-use App\Domain\Outbound\Specification\OutboundTagSpecification;
 use Psl\Collection\MutableMap;
 use Psl\Collection\MutableVector;
 use Psl\Collection\Vector;
@@ -243,18 +242,6 @@ readonly class OutboundMap
     public function getOutbounds(): array
     {
         return $this->outbounds->toArray();
-    }
-
-    /**
-     * Returns a new collection containing only items matching the given tags.
-     *
-     * @param VectorInterface $tags Tags used to filter the collection
-     *
-     * @return OutboundMap Filtered collection
-     */
-    public function withTags(VectorInterface $tags): OutboundMap
-    {
-        return $this->filter(new Vector([new OutboundTagSpecification($tags)]));
     }
 
     /**

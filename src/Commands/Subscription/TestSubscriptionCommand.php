@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace App\Commands\Subscription;
 
+use App\Application\Outbound\Detour\DetourSpecParser;
 use App\Application\Outbound\DTO\Export\CoreType;
-use App\Application\Outbound\DTO\UseCase\FilterOutbounds\FilterOutboundsDTO;
+use App\Application\Outbound\DTO\UseCase\ApplyDetours\ApplyDetoursDTO;
 use App\Application\Outbound\DTO\UseCase\OutboundsLatency\OutboundsLatencyDTO;
-use App\Application\Outbound\DTO\UseCase\SetOutboundsDetour\SetOutboundsDetourDTO;
-use App\Application\Outbound\Filter\Criteria\OutboundCoreSupportCriteria;
-use App\Application\Outbound\UseCase\FilterOutbounds\FilterOutboundsUseCase;
+use App\Application\Outbound\DTO\UseCase\SelectOutbounds\SelectOutboundsDTO;
+use App\Application\Outbound\Export\Specification\OutboundCoreSupportSpecification;
+use App\Application\Outbound\Selection\SelectorComposer;
+use App\Application\Outbound\Selection\Syntax\SelectorParser;
+use App\Application\Outbound\UseCase\ApplyDetours\ApplyDetoursUseCase;
 use App\Application\Outbound\UseCase\OutboundsLatency\OutboundsLatencyUseCase;
-use App\Application\Outbound\UseCase\SetOutboundsDetour\SetOutboundsDetourUseCase;
+use App\Application\Outbound\UseCase\SelectOutbounds\SelectOutboundsUseCase;
 use App\Application\Subscription\UseCase\GetSubscriptionWithName\GetSubscriptionWithNameUseCase;
 use App\Commands\AbstractCommand;
-use App\Commands\Shared\Options\OutboundFilterOptionsTrait;
-use App\Domain\Outbound\Exception\OutboundNotFoundException;
+use App\Commands\Shared\Options\DetourOptionsTrait;
+use App\Commands\Shared\Options\GlobalSelectionOptionsTrait;
 use App\Domain\Shared\Exception\CriticalException;
 use App\Domain\Shared\Ports\Config\ConfigInstancePort;
 use App\Domain\Shared\Ports\IO\Reporter\ReporterInstancePort;
@@ -24,25 +27,27 @@ use App\Domain\Subscription\Entity\OutboundsSubscription;
 use Iva\ExitCode;
 use Iva\Input\Argument;
 use Iva\Input\Input;
-use Iva\Input\Option;
 use Iva\Output\Output;
-use Psl\Collection\MutableVector;
+use Psl\Collection\Vector;
 
 
 final class TestSubscriptionCommand extends AbstractCommand
 {
-    use OutboundFilterOptionsTrait;
+    use GlobalSelectionOptionsTrait;
+    use DetourOptionsTrait;
 
     private Argument $nameArgument;
     private Argument $methodArgument;
-    private Option $detourOutboundOption;
 
     public function __construct(
         ReporterInstancePort                            $reporterInstancePort,
         private readonly GetSubscriptionWithNameUseCase $getSubscriptionWithNameUseCase,
         private readonly OutboundsLatencyUseCase        $outboundsLatencyUseCase,
-        private readonly FilterOutboundsUseCase         $filterOutboundsUseCase,
-        private readonly SetOutboundsDetourUseCase      $setOutboundsDetourUseCase,
+        private readonly SelectOutboundsUseCase         $selectOutboundsUseCase,
+        private readonly SelectorParser                 $selectorParser,
+        private readonly SelectorComposer               $selectorComposer,
+        private readonly DetourSpecParser               $detourSpecParser,
+        private readonly ApplyDetoursUseCase            $applyDetoursUseCase,
         ConfigInstancePort                              $configInstancePort,
     )
     {
@@ -60,13 +65,8 @@ final class TestSubscriptionCommand extends AbstractCommand
             description: 'Test method e.g. proxy_get or tcp_ping. If not provided, will be used method form config',
             optional: true,
         ));
-        $this->detourOutboundOption = $this->addOption(Option::string(
-            name: 'detourOutbound',
-            description: 'Use the specified outbound as detour for all other outbounds',
-            valueRequired: false,
-        ));
-
-        $this->configureOutboundFilterOptions();
+        $this->configureGlobalSelectionOptions();
+        $this->configureDetourOptions();
     }
 
     protected function handle(Input $input, Output $output): int
@@ -88,34 +88,26 @@ final class TestSubscriptionCommand extends AbstractCommand
 
 
         /**
-         * Filter outbounds
+         * Select outbounds, keeping only the sing-box compatible ones
          */
-        $filters = $this->resolveOutboundFilterCriteria($input);
+        $selector = $this->resolveGlobalSelector($input, $this->selectorParser, $this->selectorComposer);
 
-        /**
-         * Filter non sing-box outbounds
-         */
-        $criteria = new MutableVector($filters->criteria->toArray())
-            ->add(new OutboundCoreSupportCriteria(CoreType::SingBox));
-
-        $subscriptionOutbounds = $this->filterOutboundsUseCase->handle(new FilterOutboundsDTO(
+        $subscriptionOutbounds = $this->selectOutboundsUseCase->handle(new SelectOutboundsDTO(
             $subscriptionOutbounds,
-            criteria: $criteria,
-            ignoreOutbounds: $filters->ignoreOutbounds,
+            selector: $selector,
+            constraints: new Vector([new OutboundCoreSupportSpecification(CoreType::SingBox)]),
         ));
 
 
         /**
-         * Set detour outbound
+         * Detours
          */
-        $detourOutbound = $input->option($this->detourOutboundOption);
+        $detourDefinitions = $this->resolveDetourDefinitions($input, $this->detourSpecParser);
 
-        if ($detourOutbound !== null) try {
-            $subscriptionOutbounds = $this->setOutboundsDetourUseCase->handle(new SetOutboundsDetourDTO(
-                $subscriptionOutbounds, $subscriptionOutbounds->getWithTag($detourOutbound)
-            ));
-        } catch (OutboundNotFoundException) {
-            throw new CriticalException("Outbound with tag '{$detourOutbound}' not found. Try to remove filters");
+        if (!$detourDefinitions->isEmpty()) {
+            $this->applyDetoursUseCase->handle(
+                new ApplyDetoursDTO($subscriptionOutbounds, $detourDefinitions, CoreType::SingBox)
+            );
         }
 
 

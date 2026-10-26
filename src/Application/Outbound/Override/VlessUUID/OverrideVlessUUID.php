@@ -17,6 +17,16 @@ final readonly class OverrideVlessUUID extends Override
         return OverrideTypeVlessUUID::class;
     }
 
+    public function name(): string
+    {
+        return 'vless-uuid';
+    }
+
+    public function createType(?string $value): OverrideType
+    {
+        return new OverrideTypeVlessUUID($this->requireValue($value));
+    }
+
     /** @param OverrideTypeVlessUUID $type */
     protected function apply(OutboundMap $outboundMap, OverrideType $type): OutboundMap
     {

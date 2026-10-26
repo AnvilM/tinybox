@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Outbound\Export;
 
 use App\Application\Outbound\Export\Exporter\Outbound\ShadowsocksOutboundExporter;
+use App\Application\Outbound\Export\Exporter\Outbound\UrltestOutboundExporter;
 use App\Application\Outbound\Export\Exporter\Outbound\VlessOutboundExporter;
 use App\Application\Outbound\Export\Exporter\Security\RealitySecurityExporter;
 use App\Application\Outbound\Export\Exporter\Security\TLSSecurityExporter;
@@ -44,6 +45,7 @@ final class ExporterRegistryFactory
         return new ExporterRegistry([
             new VlessOutboundExporter(),
             new ShadowsocksOutboundExporter(),
+            new UrltestOutboundExporter(),
             new RealitySecurityExporter(),
             new WebSocketTransportExporter(),
             new XHTTPTransportExporter(),
