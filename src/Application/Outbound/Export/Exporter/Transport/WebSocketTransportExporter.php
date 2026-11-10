@@ -24,23 +24,28 @@ final class WebSocketTransportExporter implements NodeExporterInterface
     public function export(object $node, CoreType $core, ExporterRegistry $registry): array
     {
         /** @var WebSocketTransportVO $node */
+        $path = $node->getPath()->getValue();
+
+        /**
+         * "Host" header is optional: without it the core uses the server address / SNI
+         */
+        $headers = $node->getHost() !== null
+            ? ['Host' => $node->getHost()->getValue()]
+            : null;
+
         return match ($core) {
             CoreType::Xray => [
                 'network' => $node->getType()->value,
-                'wsSettings' => [
-                    'path' => $node->getPath()->getValue(),
-                    'headers' => [
-                        'Host' => $node->getHost()->getValue(),
-                    ],
-                ],
+                'wsSettings' => array_filter([
+                    'path' => $path,
+                    'headers' => $headers,
+                ], static fn(mixed $v): bool => $v !== null),
             ],
-            CoreType::SingBox => [
+            CoreType::SingBox => array_filter([
                 'type' => $node->getType()->value,
-                'path' => $node->getPath()->getValue(),
-                'headers' => [
-                    'Host' => $node->getHost()->getValue(),
-                ],
-            ],
+                'path' => $path,
+                'headers' => $headers,
+            ], static fn(mixed $v): bool => $v !== null),
         };
     }
 }

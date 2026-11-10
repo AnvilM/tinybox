@@ -52,7 +52,7 @@ final readonly class FromRawOutboundSecurityFactory
         return new TLSSecurityVO(
             new NonEmptyStringVO($rawOutbound->sni),
             $rawOutbound->fp === null ? null : new NonEmptyStringVO($rawOutbound->fp),
-            new NonEmptyStringVO($rawOutbound->alpn),
+            $rawOutbound->alpn === null ? null : new NonEmptyStringVO($rawOutbound->alpn),
         );
     }
 }

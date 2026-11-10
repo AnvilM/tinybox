@@ -25,7 +25,7 @@ final readonly class FromRawOutboundTransportFactory
         return match (TransportTypeVO::tryFrom($rawOutbound->transportType)) {
             TransportTypeVO::WebSocket => $this->createWebSocketTransport($rawOutbound),
             TransportTypeVO::XHTTP => $this->createXHTTPTransport($rawOutbound),
-            default => throw new UnsupportedTransportException()
+            default => throw new UnsupportedTransportException($rawOutbound->transportType)
         };
     }
 
@@ -35,9 +35,16 @@ final readonly class FromRawOutboundTransportFactory
      */
     private function createWebSocketTransport(RawOutboundVO $rawOutbound): WebSocketTransportVO
     {
+        /**
+         * "host" is optional for WebSocket
+         */
+        $host = $rawOutbound->host !== null && $rawOutbound->host !== ''
+            ? new NonEmptyStringVO($rawOutbound->host)
+            : null;
+
         return new WebSocketTransportVO(
             new NonEmptyStringVO($rawOutbound->path),
-            new NonEmptyStringVO($rawOutbound->host),
+            $host,
         );
     }
 
@@ -48,17 +55,34 @@ final readonly class FromRawOutboundTransportFactory
     private function createXHTTPTransport(RawOutboundVO $rawOutbound): XHTTPTransportVO
     {
 
-        try {
-            $extra = json_decode($rawOutbound->extra, true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException) {
-            throw new InvalidArgumentException();
+        /**
+         * "mode", "host", "path" and "extra" are optional for XHTTP
+         */
+        $extra = [];
+
+        if ($rawOutbound->extra !== null && $rawOutbound->extra !== '') {
+            try {
+                $decoded = json_decode($rawOutbound->extra, true, 512, JSON_THROW_ON_ERROR);
+            } catch (JsonException) {
+                throw new InvalidArgumentException('Invalid XHTTP extra');
+            }
+
+            if (is_array($decoded)) $extra = $decoded;
         }
 
         return new XHTTPTransportVO(
-            new NonEmptyStringVO($rawOutbound->mode),
-            new NonEmptyStringVO($rawOutbound->host),
-            new NonEmptyStringVO($rawOutbound->path),
+            $this->optionalString($rawOutbound->mode),
+            $this->optionalString($rawOutbound->host),
+            $this->optionalString($rawOutbound->path),
             $extra
         );
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    private function optionalString(?string $value): ?NonEmptyStringVO
+    {
+        return $value === null || $value === '' ? null : new NonEmptyStringVO($value);
     }
 }

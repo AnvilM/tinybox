@@ -10,9 +10,8 @@ use App\Application\Outbound\Export\Interface\NodeExporterInterface;
 use App\Domain\Outbound\VO\Transport\XHTTPTransportVO;
 
 /**
- * WebSocket transport is supported by both cores but with different JSON
- * shapes: xray expects a nested `wsSettings` inside `streamSettings`,
- * sing-box a flat `transport` object with a `type` field.
+ * XHTTP transport is supported by xray only: it expects a nested
+ * `xhttpSettings` inside `streamSettings`.
  */
 final class XHTTPTransportExporter implements NodeExporterInterface
 {
@@ -26,12 +25,15 @@ final class XHTTPTransportExporter implements NodeExporterInterface
         /** @var XHTTPTransportVO $node */
         return [
             'network' => $node->getType()->value,
-            'xhttpSettings' => [
-                'mode' => $node->getMode()->getValue(),
-                'host' => $node->getHost()->getValue(),
-                'path' => $node->getPath()->getValue(),
+            /**
+             * Optional fields are omitted so the core uses its defaults
+             */
+            'xhttpSettings' => array_filter([
+                'mode' => $node->getMode()?->getValue(),
+                'host' => $node->getHost()?->getValue(),
+                'path' => $node->getPath()?->getValue(),
                 'extra' => $node->getExtra(),
-            ],
+            ], static fn(mixed $v): bool => $v !== null),
         ];
     }
 }

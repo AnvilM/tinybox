@@ -34,7 +34,7 @@ final class TLSSecurityExporter implements NodeExporterInterface
                     [
                         'serverName' => $node->getServerName()->getValue(),
                         'fingerprint' => $node->getFingerprint()?->getValue(),
-                        'alpn' => [$node->getAlpn()->getValue()],
+                        'alpn' => $node->getAlpn() === null ? null : [$node->getAlpn()->getValue()],
                         'allowInsecure' => $node->getInsecure() === null ? null : $node->getInsecure(),
                         'verifyPeerCertByName' => $node->getVerifyPeerCertByName()?->getValue(),
                     ],
@@ -42,16 +42,16 @@ final class TLSSecurityExporter implements NodeExporterInterface
                 ),
             ],
             CoreType::SingBox => array_filter([
-                'tls' => [
+                'tls' => array_filter([
                     'enabled' => true,
                     'server_name' => $node->getServerName()->getValue(),
-                    'alpn' => [$node->getAlpn()->getValue()],
+                    'alpn' => $node->getAlpn() === null ? null : [$node->getAlpn()->getValue()],
                     'insecure' => $node->getInsecure() === null ? null : $node->getInsecure(),
                     'utls' => $node->getFingerprint() === null ? null : [
                         'enabled' => true,
                         'fingerprint' => $node->getFingerprint()->getValue(),
                     ]
-                ]
+                ], static fn(mixed $value): bool => $value !== null)
             ], static fn(mixed $value): bool => $value !== null),
         };
     }

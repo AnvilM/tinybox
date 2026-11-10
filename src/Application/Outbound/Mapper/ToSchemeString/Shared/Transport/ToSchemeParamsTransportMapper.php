@@ -29,21 +29,26 @@ final readonly class ToSchemeParamsTransportMapper
 
     private function mapWebSocketTransport(WebSocketTransportVO $transport): array
     {
-        return [
+        $params = [
             'type' => $transport->getType()->value,
             'path' => $transport->getPath()->getValue(),
-            'host' => $transport->getHost()->getValue(),
         ];
+
+        if ($transport->getHost()) $params['host'] = $transport->getHost()->getValue();
+
+        return $params;
     }
 
     private function mapXHTTPTransport(XHTTPTransportVO $transport): array
     {
-        return [
-            'type' => $transport->getType()->value,
-            'mode' => $transport->getMode()->getValue(),
-            'host' => $transport->getHost()->getValue(),
-            'path' => $transport->getPath()->getValue(),
-            'extra' => json_encode($transport->getExtra())
-        ];
+        $params = ['type' => $transport->getType()->value];
+
+        if ($transport->getMode()) $params['mode'] = $transport->getMode()->getValue();
+        if ($transport->getHost()) $params['host'] = $transport->getHost()->getValue();
+        if ($transport->getPath()) $params['path'] = $transport->getPath()->getValue();
+
+        $params['extra'] = json_encode($transport->getExtra());
+
+        return $params;
     }
 }
