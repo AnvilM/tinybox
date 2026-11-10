@@ -39,6 +39,26 @@ templates.
     - Override / urltest / detour with expressions, applied in the order of flags
     - Multiple methods for outbounds testing
 
+## Duplicates and tags
+
+Tags must be unique inside a subscription (sing-box refuses duplicated tags), while subscriptions often publish several
+servers under the same tag, or the same server under different tags. `subscription create` and `subscription update`
+handle both cases automatically:
+
+| Fetched outbounds                       | Result                                                                     |
+|-----------------------------------------|----------------------------------------------------------------------------|
+| Same content, same or different tags    | Saved once, the first one is kept                                          |
+| Different content, same tag             | All are saved, the next ones get a suffix: `tag`, `tag #2`, `tag #3`, ...  |
+| Different content, different tags       | All are saved as is                                                        |
+
+"Same content" means that **all** parameters are equal (server, port, credentials, flow, security with fingerprint
+and ALPN, transport); only the tag is ignored. Outbounds that differ in any parameter, even in the TLS fingerprint,
+are different outbounds.
+
+The suffix depends on the order of outbounds in the subscription. Subscriptions and groups saved before this rule
+existed are loaded the same way (the suffix is applied on load, nothing is lost). Run `tinybox subscription update`
+to store the renamed outbounds permanently.
+
 ## Outbound selection
 
 The `export` and `test` commands choose outbounds with a single expression language, passed only through the CLI.

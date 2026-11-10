@@ -57,7 +57,7 @@ final readonly class RawOutboundsSubscriptionVOBuilder
          */
         foreach ($outboundsIds as $outboundId) {
             try {
-                $subscriptionOutbounds->add($outbounds->getWithId($outboundId));
+                $subscriptionOutbounds->addWithUniqueTag($outbounds->getWithId($outboundId));
             } catch (OutboundAlreadyExistsException|OutboundNotFoundException) {
                 continue;
                 //TODO: Report

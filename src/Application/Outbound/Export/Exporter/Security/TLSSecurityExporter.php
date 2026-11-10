@@ -34,7 +34,7 @@ final class TLSSecurityExporter implements NodeExporterInterface
                     [
                         'serverName' => $node->getServerName()->getValue(),
                         'fingerprint' => $node->getFingerprint()?->getValue(),
-                        'alpn' => $node->getAlpn() === null ? null : [$node->getAlpn()->getValue()],
+                        'alpn' => $this->alpnList($node),
                         'allowInsecure' => $node->getInsecure() === null ? null : $node->getInsecure(),
                         'verifyPeerCertByName' => $node->getVerifyPeerCertByName()?->getValue(),
                     ],
@@ -45,7 +45,7 @@ final class TLSSecurityExporter implements NodeExporterInterface
                 'tls' => array_filter([
                     'enabled' => true,
                     'server_name' => $node->getServerName()->getValue(),
-                    'alpn' => $node->getAlpn() === null ? null : [$node->getAlpn()->getValue()],
+                    'alpn' => $this->alpnList($node),
                     'insecure' => $node->getInsecure() === null ? null : $node->getInsecure(),
                     'utls' => $singBoxFingerprint === null ? null : [
                         'enabled' => true,
@@ -54,5 +54,15 @@ final class TLSSecurityExporter implements NodeExporterInterface
                 ], static fn(mixed $value): bool => $value !== null)
             ], static fn(mixed $value): bool => $value !== null),
         };
+    }
+
+    /**
+     * ALPN is stored as a comma separated string ("h2,http/1.1") but both cores expect a list
+     *
+     * @return string[]|null
+     */
+    private function alpnList(TLSSecurityVO $node): ?array
+    {
+        return $node->getAlpn() === null ? null : explode(',', $node->getAlpn()->getValue());
     }
 }

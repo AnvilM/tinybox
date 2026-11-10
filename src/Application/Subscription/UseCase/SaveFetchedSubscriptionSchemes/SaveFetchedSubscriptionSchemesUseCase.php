@@ -12,7 +12,6 @@ use App\Application\Repository\Shared\Exception\UnableToGetListException;
 use App\Application\Repository\Shared\Exception\UnableToSaveListException;
 use App\Application\Repository\Subscription\AddSubscriptionRepository;
 use App\Application\Subscription\Exception\UseCase\SaveFetchedSubscriptionSchemes\NoValidSchemesFoundException;
-use App\Domain\Outbound\Collection\UniqueTagAndContentOutboundsMap;
 use App\Domain\Outbound\Collection\UniqueTagOutboundsMap;
 use App\Domain\Outbound\Entity\Outbound;
 use App\Domain\Outbound\Exception\OutboundAlreadyExistsException;
@@ -44,6 +43,12 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
     /**
      * Parse and save fetched subscription schemes and subscription
      *
+     * Rules applied to the fetched outbounds:
+     *  - outbounds with the same content (see {@see Outbound::equalsContent()}) are saved once, whatever their tags are.
+     *    The comparison is strict: if any parameter differs (e.g. TLS fingerprint), outbounds are different;
+     *  - outbounds with different content but the same tag are all saved: tags in a subscription must be unique
+     *    (sing-box refuses duplicated tags), so the next ones get a numeric suffix: "tag #2", "tag #3", ...
+     *
      * @param NonEmptyStringVO $subscriptionName Subscription name
      * @param SubscriptionURLVO $subscriptionUrl Subscription Url
      * @param string $fetchedSchemesString Fetched schemes as plain text
@@ -53,7 +58,7 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
      * @throws UnableToGetListException If unable to get list of subscriptions or outbounds
      * @throws UnableToSaveListException If unable to save subscriptions list or outbounds list
      */
-    public function handle(NonEmptyStringVO $subscriptionName, SubscriptionURLVO $subscriptionUrl, string $fetchedSchemesString, bool $skipDuplicates): void
+    public function handle(NonEmptyStringVO $subscriptionName, SubscriptionURLVO $subscriptionUrl, string $fetchedSchemesString): void
     {
 
         /**
@@ -65,7 +70,7 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
         /**
          * Create empty unique outbounds map
          */
-        $outbounds = $skipDuplicates ? new UniqueTagAndContentOutboundsMap() : new UniqueTagOutboundsMap();
+        $outbounds = new UniqueTagOutboundsMap();
 
 
         foreach ($schemesStrings as $schemeString) {
@@ -73,9 +78,37 @@ final readonly class SaveFetchedSubscriptionSchemesUseCase
              * Try to create outbound entity from string and add it to outbound mao
              */
             try {
-                $outbounds->add(
-                    $this->createOutboundFromSchemeUseCase->handle($schemeString)
-                );
+                $outbound = $this->createOutboundFromSchemeUseCase->handle($schemeString);
+
+                /**
+                 * Skip outbound with the same content as already added one, even if tags differ
+                 */
+                $duplicate = $outbounds->getContentDuplicate($outbound);
+
+                if ($duplicate instanceof Outbound) {
+                    $this->reporterInstancePort->get()->notify(
+                        ReporterEventBuilder::warning("Duplicate: Outbound {$outbound->getTagString()} has the same content as {$duplicate->getTagString()} already exists in subscription")
+                            ->attachments(ReporterEventAttachmentVO::veryVerbose('Scheme: ' . $schemeString))->normal()
+                    );
+
+                    continue;
+                }
+
+                /**
+                 * Keep outbound with another content but the same tag under a unique tag
+                 */
+                $uniqueTag = $outbounds->getUniqueTag($outbound->getTagString());
+
+                if ($uniqueTag !== $outbound->getTagString()) {
+                    $this->reporterInstancePort->get()->notify(
+                        ReporterEventBuilder::warning("Tag {$outbound->getTagString()} is already used by an outbound with another content, outbound renamed to {$uniqueTag}")
+                            ->attachments(ReporterEventAttachmentVO::veryVerbose('Scheme: ' . $schemeString))->verbose()
+                    );
+
+                    $outbound = $outbound->withTag($uniqueTag);
+                }
+
+                $outbounds->add($outbound);
             } catch (UnableToParseRawSchemeStringException|UnsupportedProtocolException|UnsupportedSecurityException|UnsupportedTransportException|InvalidArgumentException $e) {
                 $this->reporterInstancePort->get()->notify(
                     ReporterEventBuilder::warning("Unable to create outbound from scheme string" . ($e->getMessage() != '' ? (': ' . $e->getMessage()) : ''))

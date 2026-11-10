@@ -52,7 +52,27 @@ final readonly class FromRawOutboundSecurityFactory
         return new TLSSecurityVO(
             new NonEmptyStringVO($rawOutbound->sni),
             $rawOutbound->fp === null ? null : new NonEmptyStringVO($rawOutbound->fp),
-            $rawOutbound->alpn === null ? null : new NonEmptyStringVO($rawOutbound->alpn),
+            $this->normalizeAlpn($rawOutbound->alpn),
         );
+    }
+
+    /**
+     * Keeps only valid ALPN protocol names (comma separated list, e.g. "h2,http/1.1")
+     *
+     * Subscriptions sometimes contain broken values (e.g. a multiple times percent-encoded "http%252F1.1")
+     * that no server understands: they are ignored instead of producing a distinct outbound for each variant.
+     *
+     * @throws InvalidArgumentException
+     */
+    private function normalizeAlpn(?string $alpn): ?NonEmptyStringVO
+    {
+        if ($alpn === null) return null;
+
+        $protocols = array_filter(
+            array_map('trim', explode(',', $alpn)),
+            static fn(string $protocol): bool => preg_match('~^[A-Za-z0-9][A-Za-z0-9._/-]*$~', $protocol) === 1,
+        );
+
+        return $protocols === [] ? null : new NonEmptyStringVO(implode(',', array_unique($protocols)));
     }
 }
