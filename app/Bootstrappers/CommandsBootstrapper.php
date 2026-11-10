@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Bootstrappers;
 
+use App\Commands\ExportUrlCommand;
 use App\Commands\Subscription\CreateSubscriptionCommand;
 use App\Commands\Subscription\ExportSubscriptionCommand;
 use App\Commands\Subscription\ListSubscriptionsCommand;
@@ -25,5 +26,7 @@ final class CommandsBootstrapper
             ->subcommand($container->get(ListSubscriptionsCommand::class))->end()
             ->subcommand($container->get(TestSubscriptionCommand::class))->end()
             ->subcommand($container->get(UpdateSubscriptionCommand::class));
+
+        $app->command($container->get(ExportUrlCommand::class));
     }
 }

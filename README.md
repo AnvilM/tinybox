@@ -39,6 +39,27 @@ templates.
     - Override / urltest / detour with expressions, applied in the order of flags
     - Multiple methods for outbounds testing
 
+## Export from urls without saving
+
+`tinybox export-url` works like `subscription export`, but takes the subscription content straight from urls: they are
+fetched the same way as in `subscription create`, and neither the subscription nor its outbounds are saved to the
+storage. The command is not part of the `subscription` namespace.
+
+```shell
+tinybox export-url --url https://example.com/sub
+tinybox export-url --url https://a.example/sub --url https://b.example/sub --select type=vless
+tinybox export-url --url https://example.com/sub --scheme --dry-run
+```
+
+- `--url` is repeatable. The responses of all urls are handled as **one** response: schemes are merged, then
+  [duplicates and tags](#duplicates-and-tags) are resolved over the merged list.
+- A url without a response (network error, unsupported content) gives a warning and is skipped. If no url answered, the
+  command fails.
+- A config response can not be merged with anything: it is exported as is, only when it is the only response, otherwise
+  it is skipped with a warning.
+- The other flags (`--select`, `--exclude`, `--override`, `--urltest`, `--detour`, `--scheme`, `--sing-box`, `--xray`,
+  `--dry-run`) work the same as in `subscription export`.
+
 ## Duplicates and tags
 
 Tags must be unique inside a subscription (sing-box refuses duplicated tags), while subscriptions often publish several
