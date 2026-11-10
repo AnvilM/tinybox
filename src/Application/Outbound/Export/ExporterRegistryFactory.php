@@ -12,6 +12,8 @@ use App\Application\Outbound\Export\Exporter\Security\TLSSecurityExporter;
 use App\Application\Outbound\Export\Exporter\Transport\WebSocketTransportExporter;
 use App\Application\Outbound\Export\Exporter\Transport\XHTTPTransportExporter;
 use App\Application\Outbound\Export\Interface\NodeExporterInterface;
+use App\Application\Outbound\Export\Specification\RealityCredentialsValiditySpecification;
+use App\Application\Outbound\Export\Specification\SingBoxVlessFlowSpecification;
 use App\Application\Outbound\Export\Specification\VisionFlowRequiresSecureSecuritySpecification;
 
 /**
@@ -36,6 +38,8 @@ final class ExporterRegistryFactory
             self::createDefault(),
             [
                 new VisionFlowRequiresSecureSecuritySpecification(),
+                new RealityCredentialsValiditySpecification(),
+                new SingBoxVlessFlowSpecification(),
             ],
         );
     }

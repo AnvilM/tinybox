@@ -7,15 +7,13 @@ namespace App\Application\Outbound\Export\Exporter\Security;
 use App\Application\Outbound\DTO\Export\CoreType;
 use App\Application\Outbound\Export\ExporterRegistry;
 use App\Application\Outbound\Export\Interface\NodeExporterInterface;
+use App\Application\Outbound\Export\Support\SingBoxUtlsFingerprint;
 use App\Domain\Outbound\VO\Security\TLSSecurityVO;
 
 /**
- * Reality is xray-only — sing-box has no Reality client config, so this
- * exporter's {@see self::supports()} intentionally returns false for
- * {@see CoreType::SingBox}. If no other exporter handles RealitySecurityVO,
- * the registry throws {@see \App\Application\Outbound\Exception\Export\UnsupportedByCoreException}
- * when building a sing-box config for a Reality outbound — that's the
- * intended core-level restriction.
+ * TLS is supported by both cores. For sing-box uTLS is enabled only with a
+ * fingerprint it knows, because an unknown one makes it fail at startup;
+ * such a fingerprint is skipped (plain TLS is used instead).
  */
 final class TLSSecurityExporter implements NodeExporterInterface
 {
@@ -27,6 +25,8 @@ final class TLSSecurityExporter implements NodeExporterInterface
     public function export(object $node, CoreType $core, ExporterRegistry $registry): array
     {
         /** @var TLSSecurityVO $node */
+        $singBoxFingerprint = SingBoxUtlsFingerprint::normalize($node->getFingerprint()?->getValue());
+
         return match ($core) {
             CoreType::Xray => [
                 'security' => $node->getType()->value,
@@ -47,9 +47,9 @@ final class TLSSecurityExporter implements NodeExporterInterface
                     'server_name' => $node->getServerName()->getValue(),
                     'alpn' => $node->getAlpn() === null ? null : [$node->getAlpn()->getValue()],
                     'insecure' => $node->getInsecure() === null ? null : $node->getInsecure(),
-                    'utls' => $node->getFingerprint() === null ? null : [
+                    'utls' => $singBoxFingerprint === null ? null : [
                         'enabled' => true,
-                        'fingerprint' => $node->getFingerprint()->getValue(),
+                        'fingerprint' => $singBoxFingerprint,
                     ]
                 ], static fn(mixed $value): bool => $value !== null)
             ], static fn(mixed $value): bool => $value !== null),
