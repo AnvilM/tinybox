@@ -54,13 +54,26 @@ final readonly class FetchSubscriptionContentUseCase
          * Try to load outbounds
          */
         try {
-            $rawEncodedSubscriptionContent = $this->httpPort
-                ->get((float)$config->timeout, $subscriptionUrl->getUrl(), $headers)
-                ->body?->readAll();
+            $response = $this->httpPort->get((float)$config->timeout, $subscriptionUrl->getUrl(), $headers);
+
+            /**
+             * Redirect is returned as is only if following redirects is disabled
+             */
+            if ($response->status >= 300 && $response->status < 400) {
+                $location = $response->headers->get('location');
+
+                throw new InvalidArgumentException(
+                    "Server responded with redirect (HTTP {$response->status})"
+                    . ($location !== null ? " to $location" : '')
+                    . ", following redirects is disabled"
+                );
+            }
+
+            $rawEncodedSubscriptionContent = $response->body?->readAll();
         } catch (RuntimeException) {
             throw new InvalidArgumentException("Unable to read response");
-        } catch (HttpException) {
-            throw new InvalidArgumentException("Unable to send request");
+        } catch (HttpException $e) {
+            throw new InvalidArgumentException($e->getMessage() !== '' ? $e->getMessage() : "Unable to send request");
         }
 
 

@@ -38,6 +38,8 @@ templates.
     - Selecting outbounds with expressions
     - Override / urltest / detour with expressions, applied in the order of flags
     - Multiple methods for outbounds testing
+    - HTTP redirects following (can be disabled)
+    - Gzip encoded responses
 
 ## Export from urls without saving
 
@@ -59,6 +61,22 @@ tinybox export-url --url https://example.com/sub --scheme --dry-run
   it is skipped with a warning.
 - The other flags (`--select`, `--exclude`, `--override`, `--urltest`, `--detour`, `--scheme`, `--sing-box`, `--xray`,
   `--dry-run`) work the same as in `subscription export`.
+
+## HTTP requests
+
+Redirects (`301`, `302`, `303`, `307`, `308`) are followed automatically, up to 10 redirects per request. Redirects to
+non-HTTP(S) schemes are refused, and the `Authorization`, `Cookie` and `Proxy-Authorization` headers are not sent to
+another origin. If the limit is exceeded, the request fails.
+
+Following redirects can be disabled with the `common.http.follow_redirects` [config](#http) option, e.g. for a single
+run: `-o common.http.follow_redirects=false`. With following disabled, fetching a subscription that answers with a
+redirect fails with an error that contains the status and the `Location` of the redirect.
+
+Requests are sent with the `Accept-Encoding: gzip` header (can be disabled with `common.http.accept_gzip`). Gzip
+encoded responses are decoded transparently, whether or not the header was sent.
+
+> [!NOTE]
+> `subscription test` does not use these options: its requests are made by the `sing-box` binary.
 
 ## Duplicates and tags
 
@@ -496,6 +514,10 @@ If the configuration file is missing or some parameters are not specified, defau
         "https://8.8.8.8/resolve",
         "https://1.1.1.1/dns-query"
       ]
+    },
+    "http": {
+      "follow_redirects": true,
+      "accept_gzip": true
     }
   },
   "subscriptions": {
@@ -568,6 +590,15 @@ Controls how domain names are resolved.
 |-------------------|------------|------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `resolve_timeout` | `integer`  | `10`                                                       | Timeout in seconds to wait for a response from a DNS resolver when resolving each individual domain.                                                                                                                                         |
 | `endpoints`       | `string[]` | `["https://8.8.8.8/resolve", "https://1.1.1.1/dns-query"]` | List of DoH endpoint URLs used to resolve domains. Endpoints are queried in order, from first to last: if an endpoint does not return an answer, the next one is tried; once an answer is received, the remaining endpoints are not queried. |
+
+#### `http`
+
+Controls how HTTP requests are sent (fetching subscriptions, DoH requests).
+
+| Parameter          | Type      | Default | Description                                                                                                                                                                         |
+|--------------------|-----------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `follow_redirects` | `boolean` | `true`  | Follow HTTP redirects. Can be overridden for a single run with `-o common.http.follow_redirects=false`.                                                                                        |
+| `accept_gzip`      | `boolean` | `true`  | Send the `Accept-Encoding: gzip` header. Gzip encoded responses are decoded regardless of this option. The header is not added if the request already has an `Accept-Encoding` one. |
 
 ### `subscriptions`
 
