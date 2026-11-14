@@ -44,8 +44,14 @@ final readonly class FromRawOutboundVlessOutboundFactory
             new PortVO($rawOutbound->server_port),
             new NonEmptyStringVO($rawOutbound->uuid),
             $rawOutbound->flow === null ? null : new NonEmptyStringVO($rawOutbound->flow),
-            $rawOutbound->security === null ? null : $this->fromRawOutboundSecurityFactory->create($rawOutbound),
-            $rawOutbound->transportType === null || $rawOutbound->transportType === 'tcp' ? null : $this->fromRawOutboundTransportFactory->create($rawOutbound),
+            /**
+             * "none" means no security at all
+             */
+            $rawOutbound->security === null || $rawOutbound->security === 'none' ? null : $this->fromRawOutboundSecurityFactory->create($rawOutbound),
+            /**
+             * "raw" is the new xray name of "tcp"
+             */
+            in_array($rawOutbound->transportType, [null, 'tcp', 'raw'], true) ? null : $this->fromRawOutboundTransportFactory->create($rawOutbound),
         );
     }
 }

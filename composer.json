@@ -31,7 +31,8 @@
     "ramsey/uuid": "^4.9",
     "php-standard-library/php-standard-library": "^6.1",
     "anvilm/iva": "^0.1",
-    "league/climate": "^3.12"
+    "league/climate": "^3.12",
+    "ext-zlib": "*"
   },
   "scripts": {
     "test": "vendor/bin/phpunit",

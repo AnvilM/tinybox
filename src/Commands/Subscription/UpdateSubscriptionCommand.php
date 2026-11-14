@@ -23,7 +23,6 @@ use InvalidArgumentException;
 use Iva\ExitCode;
 use Iva\Input\Argument;
 use Iva\Input\Input;
-use Iva\Input\Option;
 use Iva\Output\Output;
 use Throwable;
 use function Psl\Async\run;
@@ -31,7 +30,6 @@ use function Psl\Async\run;
 final class UpdateSubscriptionCommand extends AbstractCommand
 {
     private Argument $nameArgument;
-    private Option $skipDuplicatesOption;
 
     public function __construct(
         ReporterInstancePort                                   $reporterInstancePort,
@@ -108,7 +106,7 @@ final class UpdateSubscriptionCommand extends AbstractCommand
          * If subscription content type is schemes list
          */
         if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::SCHEMES)
-            $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscription->getUrlVO(), $subscriptionContent->content, $input->flag($this->skipDuplicatesOption));
+            $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscription->getUrlVO(), $subscriptionContent->content);
 
         /**
          * If subscription content type is config
@@ -126,6 +124,5 @@ final class UpdateSubscriptionCommand extends AbstractCommand
         $this->setDescription('Update subscription');
 
         $this->nameArgument = $this->addArgument(Argument::string('name', 'Subscription name'));
-        $this->skipDuplicatesOption = $this->addOption(Option::flag('skipDuplicates', 's'));
     }
 }

@@ -8,6 +8,7 @@ use App\Domain\Shared\Exception\Config\ConfigException;
 use App\Domain\Shared\Ports\OS\Path\NormalizePathPort;
 use App\Domain\Shared\VO\Config\Common\CommonConfigVO;
 use App\Domain\Shared\VO\Config\Common\DNS\DNSCommonConfigVO;
+use App\Domain\Shared\VO\Config\Common\Http\HttpCommonConfigVO;
 use App\Domain\Shared\VO\Config\ConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\FetchIp\FetchIpOutboundTestSingBoxConfigVO;
 use App\Domain\Shared\VO\Config\SingBox\OutboundTest\Latency\LatencyTestMethod;
@@ -89,6 +90,10 @@ final readonly class ConfigFactory
                 new DNSCommonConfigVO(
                     $rawConfig['common']['dns']['resolve_timeout'] ?? $defaultConfig->commonConfig->dnsCommonConfig->resolveTimeout,
                     $rawConfig['common']['dns']['endpoints'] ?? $defaultConfig->commonConfig->dnsCommonConfig->endpoints,
+                ),
+                new HttpCommonConfigVO(
+                    $rawConfig['common']['http']['follow_redirects'] ?? $defaultConfig->commonConfig->httpCommonConfig->followRedirects,
+                    $rawConfig['common']['http']['accept_gzip'] ?? $defaultConfig->commonConfig->httpCommonConfig->acceptGzip,
                 )
             )
         );

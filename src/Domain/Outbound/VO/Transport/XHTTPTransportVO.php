@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 namespace App\Domain\Outbound\VO\Transport;
 
+use App\Domain\Shared\Trait\ComparesNullable;
 use App\Domain\Shared\VO\Shared\NonEmptyStringVO;
 
 final readonly class XHTTPTransportVO extends TransportVO
 {
+    use ComparesNullable;
 
-
+    /**
+     * "mode", "host" and "path" are optional for XHTTP: when omitted the core
+     * falls back to its defaults (mode "auto", path "/", host from server address / SNI)
+     */
     public function __construct(
-        private NonEmptyStringVO $mode,
-        private NonEmptyStringVO $host,
-        private NonEmptyStringVO $path,
-        private array            $extra,
+        private ?NonEmptyStringVO $mode = null,
+        private ?NonEmptyStringVO $host = null,
+        private ?NonEmptyStringVO $path = null,
+        private array             $extra = [],
     )
     {
     }
@@ -22,9 +27,9 @@ final readonly class XHTTPTransportVO extends TransportVO
     public function equals(mixed $other): bool
     {
         return parent::equals($other) &&
-            $this->path->equals($other->path) &&
-            $this->host->equals($other->host) &&
-            $this->mode->equals($other->mode) &&
+            $this->equalsNullable($this->path, $other->path) &&
+            $this->equalsNullable($this->host, $other->host) &&
+            $this->equalsNullable($this->mode, $other->mode) &&
             $this->extra == $other->extra;
     }
 
@@ -33,17 +38,17 @@ final readonly class XHTTPTransportVO extends TransportVO
         return TransportTypeVO::XHTTP;
     }
 
-    public function getMode(): NonEmptyStringVO
+    public function getMode(): ?NonEmptyStringVO
     {
         return $this->mode;
     }
 
-    public function getHost(): NonEmptyStringVO
+    public function getHost(): ?NonEmptyStringVO
     {
         return $this->host;
     }
 
-    public function getPath(): NonEmptyStringVO
+    public function getPath(): ?NonEmptyStringVO
     {
         return $this->path;
     }

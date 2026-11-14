@@ -45,9 +45,9 @@ final readonly class ToSchemeParamsSecurityMapper
         $params = [
             'security' => $security->getType()->value,
             'sni' => $security->getServerName()->getValue(),
-            'alpn' => $security->getAlpn()->getValue(),
         ];
 
+        if ($security->getAlpn()) $params['alpn'] = $security->getAlpn()->getValue();
         if ($security->getFingerprint()) $params['fp'] = $security->getFingerprint()->getValue();
 
         return $params;

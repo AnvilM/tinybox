@@ -114,6 +114,16 @@ abstract readonly class Outbound implements Equable
     }
 
     /**
+     * Create a copy of the outbound with another tag
+     *
+     * @param string $tag New tag
+     */
+    public function withTag(string $tag): static
+    {
+        return $this->cloneWith(['tag' => $tag]);
+    }
+
+    /**
      * Create a copy of the current outbound with overridden constructor arguments
      *
      * NOTE: Keys of $changes must match constructor parameter names. Detour is carried over if it was set.

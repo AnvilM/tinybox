@@ -25,7 +25,6 @@ use InvalidArgumentException;
 use Iva\ExitCode;
 use Iva\Input\Argument;
 use Iva\Input\Input;
-use Iva\Input\Option;
 use Iva\Output\Output;
 use Iva\Output\Verbosity;
 use Throwable;
@@ -39,7 +38,6 @@ final class CreateSubscriptionCommand extends AbstractCommand
 
     private Argument $nameArgument;
     private Argument $urlArgument;
-    private Option $skipDuplicatesOption;
     
     public function __construct(
         ReporterInstancePort                                   $reporterInstancePort,
@@ -128,7 +126,7 @@ final class CreateSubscriptionCommand extends AbstractCommand
              * If subscription content type is schemes list
              */
             if ($subscriptionContent->contentType === SubscriptionContentTypeDTO::SCHEMES)
-                $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscriptionUrl, $subscriptionContent->content, $input->flag($this->skipDuplicatesOption));
+                $this->saveFetchedSubscriptionSchemesUseCase->handle($subscriptionName, $subscriptionUrl, $subscriptionContent->content);
 
             /**
              * If subscription content type is config
@@ -151,9 +149,8 @@ final class CreateSubscriptionCommand extends AbstractCommand
 
         $this->nameArgument = $this->addArgument(Argument::string('name', 'Subscription name'));
         $this->urlArgument = $this->addArgument(Argument::string('url', 'Subscription URL'));
-        $this->skipDuplicatesOption = $this->addOption(Option::flag('skipDuplicates', 's'));
 
-        $this->configureDryRunOption('Shows response with raw content, ignoring skipDuplicates flag.');
+        $this->configureDryRunOption('Shows response with raw content without saving it.');
     }
 
 

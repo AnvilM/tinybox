@@ -111,7 +111,7 @@ class GroupRepository
                  * Try to add found outbound to group
                  */
                 try {
-                    $groupOutbounds->add($outbound);
+                    $groupOutbounds->addWithUniqueTag($outbound);
                 } catch (OutboundAlreadyExistsException) {
                     continue;
                     //TODO: Add reporter event
